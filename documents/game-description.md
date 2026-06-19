@@ -1,0 +1,763 @@
+# Echoes of the Ashen Vault — Game Description (Implementation Spec)
+
+This document converts the original design document into a fully specified ruleset:
+every stat, timer, formula, and threshold needed to implement the game is defined
+here. Where the source document used relative terms ("High", "Low", "Very high"),
+concrete values are assigned below and held internally consistent across all systems.
+
+---
+
+## 1. Core Loop
+
+1. Player enters **Level 1** (3 chambers) → **Level 2** (3 chambers) →
+   **Level 3** (4 chambers) → **Final Chamber** (boss).
+2. Each non-boss chamber is one of: **Protect**, **Prevent**, **Gauntlet**.
+3. Between main chambers, the player passes through a **Mid-Chamber** (free-switch zone).
+4. Echo outcomes (collected / stolen / intact %) accumulate across the run and determine
+   boss modifiers and the ending. There are **5 Echoes** total across the three levels.
+5. HP does **not** reset between chambers (see §6.1) — resource pressure is continuous
+   across all three levels and into the boss.
+
+---
+
+## 2. Player Forms
+
+All three forms share one HP pool and one position in the world. Switching changes
+active stats, the equipped attack, and the active Momentum meter. Inactive forms'
+Momentum meters persist (frozen) while not active.
+
+### 2.1 Base Stats
+
+| Form | Move Speed (units/s) | Max HP contribution* | Base Damage / hit | Attack Range | Attack Rate |
+|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 100 | 12 | Melee (1.5 units) | 2 hits/sec |
+| Voidcaster | 5.0 | 70 | 22 | Ranged (12 units, piercing) | 1 hit/sec |
+| Ironshell | 2.5 | 160 | 6 | Melee (1.0 units, cleave) | 1 hit/sec |
+
+*HP is a single shared pool sized to the **active** form's Max HP contribution (see §2.4
+for how HP converts when switching).
+
+### 2.2 Form Switching Rules
+
+- Switching is available at any time: in combat, during Protect collection timers,
+  during Gauntlet waves, during boss phases.
+- **Switch Cooldown: 4.0 seconds**, identical regardless of which two forms are
+  involved (e.g., Wraithblade → Ironshell costs the same cooldown as Ironshell →
+  Voidcaster).
+- The cooldown begins the instant a switch completes and blocks only *further
+  switching* — it does not restrict movement or attacking.
+- Switching has **no stat penalty, no Echo-integrity penalty, and does not interrupt
+  an active Protect collection timer** (the timer keeps counting as long as Serin
+  remains in the collection radius, regardless of form).
+- Switching **resets the active form's Momentum meter to 0** (see §3.3). The
+  newly-active form's meter resumes from whatever value it was frozen at.
+
+### 2.3 Passive: Ironshell Aura
+
+While Ironshell is the active form, a persistent aura applies **Slowed** (see §4) to
+all enemies within **4.0 units** of Serin, refreshed continuously (no stacking
+duration — it's reapplied every tick while the enemy remains in range).
+
+### 2.4 HP Conversion on Switch
+
+HP is tracked as a **percentage of current form's max HP**, not a flat number, to
+keep switching fair regardless of form:
+
+```
+new_HP = (current_HP / current_form_max_HP) × new_form_max_HP
+```
+
+Example: Serin is Wraithblade at 50/100 HP (50%) and switches to Ironshell →
+new HP = 50% × 160 = 80/160 HP.
+
+---
+
+## 3. Momentum System
+
+### 3.1 Momentum Meter
+
+- Range: **0–100** per form, independent per form, persists while the form is
+  inactive (frozen, does not decay over time).
+- Two unlockable special abilities per form, gated by charge thresholds:
+  - **Special Ability 1**: unlocks at **50 Momentum**.
+  - **Special Ability 2**: unlocks at **100 Momentum**.
+- The player may use Special Ability 1 at any point once Momentum ≥ 50 (it does not
+  require waiting for 100). Using either ability **consumes all current Momentum**
+  (resets to 0) regardless of which ability was used.
+- Momentum is also reset to 0 (without granting an ability) when the player **switches
+  away** from that form (§2.2).
+
+### 3.2 Momentum Gain Rates
+
+| Form | Major source | Major gain | Minor source | Minor gain |
+|---|---|---|---|---|
+| Wraithblade | Landing a hit | +6 / hit | Damage taken | +0.4 per HP lost (Wraithblade-equivalent HP) |
+| Voidcaster | Landing a far-range hit | +8 / hit (+4 bonus per additional enemy pierced) | Damage taken | +0.4 per HP lost |
+| Ironshell | Damage taken | +1.2 per HP lost (Ironshell-equivalent HP) | Landing a hit | +3 / hit |
+
+These rates are tuned so that a form reaches its Special 1 threshold (50) in
+roughly **8–10 seconds of its core playstyle** (e.g., Wraithblade needs ~8–9 hits;
+Ironshell needs to absorb ~40 HP of damage), and Special 2 (100) in roughly double
+that, rewarding sustained commitment to a form's identity.
+
+### 3.3 Special Abilities
+
+| Form | Special 1 (50 Momentum) | Special 2 (100 Momentum) |
+|---|---|---|
+| **Wraithblade** | **Riftcrush** — Next knockback strike deals **3× base damage** and chains the struck enemy into all enemies within 3 units of the impact point, dealing **1.5× base damage** to each chained target. | **Cinderveil** — For 10 seconds, all Wraithblade hits apply **Burned** (see §4) to the target on top of normal damage. |
+| **Voidcaster** | **Lance of the Hollow** — A single charged shot that **pierces walls/obstacles** and hits every enemy along a straight line across the chamber for **2.5× base damage** each. | **Detonation Field** — For 10 seconds, every Voidcaster shot that lands triggers a small explosion (radius 2.5 units) dealing **0.75× base damage** to all enemies in the blast. |
+| **Ironshell** | **Aegis Pulse** — An outward shockwave (radius 5 units) that **staggers** (1.5s stun, no separate "stagger" status — implemented as a 1.5s application of Paralyzed, see §4) all nearby enemies and instantly knocks out **1 Echo Fragment** from each enemy hit (in addition to normal drop-on-death). | **Veil of Thorns** — For 10 seconds, Serin's aura (range matches the passive Ironshell aura, 4.0 units) applies **Paralyzed** to any enemy that touches it and knocks out 1 Echo Fragment from them immediately (does not require the enemy to die). |
+
+---
+
+## 4. Status Effects
+
+All effects last **10 seconds** from application unless otherwise noted, and
+re-applying an active effect **refreshes its duration** rather than stacking
+duration. Multiple *different* effects can be active simultaneously on the same
+target.
+
+| Effect | Mechanic | Concrete Formula |
+|---|---|---|
+| **Burned** | Deals damage every second for the duration. | `damage_per_tick = 0.25 × dealer's base Damage stat`, applied once per second for 10 ticks. (E.g., Wraithblade's Cinderveil burn ticks for `0.25 × 12 = 3` per second.) |
+| **Paralyzed** | 40% chance the afflicted character's next action (attack or, for enemies, special telegraph) **misses/fails** entirely. Re-rolled per action attempt for the duration. | `miss_chance = 40%` per action while active. |
+| **Slowed** | Movement speed reduced. | `new_speed = base_speed × 0.70` (a 30% reduction) for the duration. |
+
+Effects apply to both enemies (dealt by Serin) and to Serin (dealt by Malachar or
+elite enemies in Phase 3). Effect sources are tagged so Burned damage always uses
+the *original dealer's* Damage stat at the moment of application (not re-evaluated
+each tick).
+
+---
+
+## 5. Echo Fragment Economy
+
+### 5.1 Base Fragment Rules
+
+- Echo Fragments drop from enemies killed **inside Protect and Prevent chambers
+  only**. Gauntlet chambers have no Echo and drop no fragments (pure attrition,
+  per §7.3).
+- **Base fragment drop: 1 fragment per regular enemy kill.**
+- Each fragment collected **before** the Echo pickup/collection completes adds
+  **+5% Echo Power** (see §5.3), up to the chamber's cap (§5.2).
+- Fragments collected **during** an active Protect collection timer are reduced:
+  enemies killed *after* collection has started yield only **0.5 fragments**
+  (rounded down at point of conversion to Echo Power — i.e., 2 mid-collection
+  kills = 1 fragment's worth of power), reflecting that the player is committed
+  to extraction rather than farming.
+
+### 5.2 Echo Power Cap
+
+- Each Echo has an Echo Power stat ranging **0–100%**.
+- Echo Power starts at a **base of 50%** the moment the chamber is entered
+  (representing the Echo's "as found" condition).
+- Fragment collection adds toward the 100% cap; Echo damage during collection
+  subtracts from current Power down to a floor of **10%** (an Echo can never be
+  reduced to 0% by enemy hits — only full theft removes it, see §5.4).
+- **"Fully intact" = Echo Power ≥ 90%** at the moment of successful collection.
+  This threshold gates the bonus effects described per-Echo in §8 and §9.
+
+### 5.3 Echo Power Formula
+
+```
+Echo Power = clamp( 50 + (fragments_collected_pre_collection × 5)
+                       + (fragments_collected_mid_collection × 2.5)
+                       − (hits_taken_by_Echo_during_collection × hit_penalty%),
+                     10, 100 )
+```
+
+Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
+
+### 5.4 Damage to the Echo (Protect Chambers)
+
+- While an Echo is exposed (chamber entered, not yet collected) and while
+  collection is in progress, enemies may land hits **on the Echo itself** (not on
+  Serin) if Serin fails to intercept/block them.
+- Each such hit reduces Echo Power by **8%** (per §5.3), down to the 10% floor.
+- Ironshell standing exactly on the Echo's location **redirects 100% of
+  would-be Echo damage to Serin's own HP instead** (see Protect chamber form
+  approach, §7.1) — this is the mechanical implementation of "absorb the damage
+  through the shell."
+
+### 5.5 Fragment Bonuses by Form
+
+| Form | Bonus condition | Bonus |
+|---|---|---|
+| Wraithblade | Enemy is knocked back by a hit and collides with a wall/obstacle before dying | +1 extra fragment on that kill (total 2) |
+| Voidcaster | A single piercing shot kills 2+ enemies | +1 fragment per additional enemy beyond the first killed in that shot |
+| Ironshell | Enemy dies while afflicted with Slowed (from the passive aura or Veil of Thorns) | Fragment drop is **doubled** (2 instead of 1) |
+
+### 5.6 Prevent Chamber Fragment Bonus
+
+- Killing an Echo **carrier** (real or decoy that engages in combat) drops
+  **3 fragments** instead of the base 1, reflecting the "aggressive interception is
+  rewarded" design intent.
+- Killing a non-carrying **blocker/guard** enemy drops the standard 1 fragment
+  (modified by form bonuses in §5.5 as normal).
+- Prevent chambers do not have a "collection timer," so all fragments collected
+  count as pre-collection (full +5% Echo Power each) up to the cap.
+
+---
+
+## 6. HP, Damage, and Carry-Over
+
+### 6.1 HP Persistence
+
+- HP is **not restored** between chambers within a level, and **not restored**
+  between Level 1 → Level 2 → Level 3, except for a single **+25% Max HP heal**
+  granted automatically upon clearing each Gauntlet chamber (representing a brief
+  respite after attrition — applies to whichever form is active at chamber-exit,
+  using the §2.4 conversion if the player switches afterward). Across the full run
+  this heal triggers three times: end of Level 1 Ch.3, end of Level 2 Ch.3, and end
+  of Level 3 Ch.3.
+- Entering the Final Chamber, Serin's HP carries over exactly as it stood at the
+  end of Level 3, Chamber 4 (The Sarcophagus Approach).
+
+### 6.2 Death / Failure State
+
+- If Serin's HP reaches 0 in any chamber, the chamber is failed and restarts from
+  its beginning (Echo Power progress and fragment counts for that chamber reset;
+  prior chambers' results are unaffected).
+- Falling into the void in The Hunger Pit (§11.3.3) is an instant-death failure
+  state, identical in consequence to HP reaching 0.
+
+### 6.3 Mid-Chamber Bonus Momentum
+
+- In a Mid-Chamber, the player may freely switch forms with **no cooldown
+  restriction** (Mid-Chambers suspend the 4.0s switch cooldown entirely).
+- The **last form active when the player exits** the Mid-Chamber receives a flat
+  **+15 Momentum** bonus on top of whatever it was frozen at (clamped to 100).
+
+---
+
+## 7. Chamber Type Specifications
+
+### 7.1 Protect
+
+**Objective:** Stay within the Echo's collection radius for the required duration
+while minimizing hits landed on the Echo.
+
+- **Collection radius:** 2.5 units from the Echo's position.
+- **Collection timer:** counts up continuously while Serin is in radius, in *any*
+  form; pauses (does not reset) if Serin leaves the radius.
+- **Required collection time:** set per-chamber (see §10), reduced globally by
+  10% for all chambers after the Clarity Shard (Chamber 1 Echo) is collected
+  (see §8.1), reduced by an additional 10% (20% total) if the Clarity Shard was
+  collected fully intact.
+- Enemies spawn in waves tuned to the chamber (see §10) and will path toward the
+  Echo to attack it directly if no enemy currently has line-of-sight blocked to
+  it; otherwise they path toward Serin.
+- **Form approach mechanics:**
+  - *Wraithblade:* Knockback hits push attacking enemies away from the Echo's
+    position by 4 units, buying time before they re-engage.
+  - *Voidcaster:* No special chamber mechanic beyond base piercing — intended to
+    clear before starting the collection timer.
+  - *Ironshell:* Standing within 1 unit of the Echo's exact position triggers
+    **Damage Redirect** — all damage that would hit the Echo this tick instead
+    hits Serin's HP pool (§5.4).
+
+### 7.2 Prevent
+
+**Objective:** Eliminate every real carrier before any of them reaches the exit.
+
+- **Carrier count and decoy count:** set per-chamber (§11).
+- **Carrier speed:** carriers move at **1.4× a Bone Sprinter's base speed**
+  toward the exit, starting immediately when the chamber begins (no warmup).
+- **Failure condition:** if **any** real carrier reaches the exit gate, that
+  Echo is marked **Stolen** for the rest of the run (triggers whichever Phase
+  2/3 boss modifier is associated with that specific Echo — see §8, §9, and
+  §10 for each Echo's stolen-state effect) — the chamber itself is not
+  failed/restarted, the run continues, but the Echo's bonus effects are
+  permanently forfeited for this run.
+- **Identifying real carriers:**
+  - Real carriers have a faint luminous flicker visible at all times (baseline
+    "tell," always available).
+  - *Voidcaster* pierce-shots reveal the stagger reaction on real carriers at
+    range (decoys do not stagger when grazed/pierced without dying).
+  - *Wraithblade* knockback also reveals the difference: decoys do not react
+    (no knockback) when struck, since they are non-physical illusions; only real
+    carriers physically slide on a knockback hit.
+- **Blockers/guards:** position between Serin and carriers; have no Echo-stealing
+  behavior themselves, exist purely to delay (§5.6 for their fragment value).
+
+### 7.3 Gauntlet
+
+**Objective:** Survive all waves and exit; no Echo, no fragments.
+
+- Waves spawn with **0 seconds gap** between them (next wave begins the instant
+  the prior wave's last enemy dies — explicitly "no pause," per source doc).
+- HP carries into and out of Gauntlet chambers per §6.1, including the +25% Max
+  HP heal on clear.
+- Momentum still accrues normally during Gauntlets (this is the primary place
+  Ironshell's "absorb the waves" playstyle generates heavy Momentum, per source
+  doc intent).
+
+---
+
+## 8. Level 1 Echoes — Concrete Values
+
+### 8.1 Clarity Shard (Chamber 1 — The Drowned Archive, Protect)
+
+- **Base effect (any Power ≥ 10%):** Reduces required collection time for **all
+  future Protect chambers** by 10%.
+- **Fully intact (Power ≥ 90%):** Additionally grants **Foretell**: starting in
+  **Phase 2** of the final boss, Malachar's next attack is telegraphed one full
+  beat (0.6s) earlier than normal (a visible color-flash tell). See §13.4 for the
+  interaction with full intactness pushing this to Phase 1.
+- **If stolen:** N/A — Clarity Shard is collected via Protect, not stolen via
+  Prevent; "stolen" status does not apply to this Echo. (Protect Echoes can only
+  end the chamber as Collected-at-some-Power%; they cannot be carried off by
+  enemies. If Serin dies and the chamber fails, the Echo simply hasn't been
+  collected yet — see §6.2.)
+
+### 8.2 Marrow Echo (Chamber 2 — The Bone Corridor, Prevent)
+
+- **If successfully defended (carrier killed before reaching exit):** Banked as
+  Collected at whatever Power% the player built via fragments (§5.3, §5.6); no
+  direct gameplay bonus during the run — its value is purely in *denying* the
+  stolen-state penalty below.
+- **If stolen:** Triggers two permanent-for-this-run effects:
+  1. **Phase 2, Phase 3, and Phase 4 of the final boss:** Malachar regenerates
+     **2% of his Max HP per second**, continuously, until defeated — must be
+     out-damaged (§13.3).
+  2. **The next Gauntlet chamber** (Level 1, Chamber 3 — The Collapsed Barracks)
+     spawns enemies with **self-healing**: every non-Siege-Wraith enemy in that
+     Gauntlet regenerates **3% of its Max HP per second** whenever not actively
+     taking damage.
+
+### 8.3 (Level 1 Gauntlet — The Collapsed Barracks has no Echo; see §7.3 and §11.1.3)
+
+---
+
+## 9. Level 2 Echoes — Concrete Values
+
+Level 2, **The Sunken Choir**, sits between the Outer Wards and the Inner
+Sanctum: the wards have been breached, and the Vault has started actively
+responding to Serin rather than merely housing old defenses. It introduces a
+single new Echo, the **Hollow Bell**, spread across all three of its chambers
+(see §12.2 for chamber-by-chamber numeric specs).
+
+### 9.1 Hollow Bell (Chamber 1 — The Drowned Choir, Protect)
+
+- **Base effect (Power ≥ 10%, Collected):** Reduces the Momentum cost-to-charge
+  for **Special Ability 1 only**, across all three forms, by **15%** for the
+  remainder of the run (i.e., Special 1 now unlocks at **42.5 Momentum** instead
+  of 50 — Special 2 is unaffected and still requires the full 100).
+- **Fully intact (Power ≥ 90%):** The reduction increases to **30%** (Special 1
+  unlocks at **35 Momentum**) for the remainder of the run.
+- **If stolen:** Malachar gains a **damage-reflect ward** in Phase 1 of the final
+  boss (see §13.2): the first hit Serin lands against him each 8 seconds reflects
+  **20% of that hit's damage** back to her as direct HP loss (no status effect,
+  pure damage). This models the Bell's original purpose — a resonant ward meant
+  to punish those who struck the Vault's defenders — now turned against Serin if
+  Malachar holds it instead of her.
+
+### 9.2 Chamber-specific notes
+
+- Chamber 1 (Protect) is where the Hollow Bell is collected.
+- Chamber 2 (Prevent) and Chamber 3 (Gauntlet) in Level 2 carry **no Echo of
+  their own** — Level 2 is intentionally a single-Echo level, giving it a
+  lighter narrative/mechanical footprint than Levels 1 and 3 and functioning as
+  a tonal "rising action" bridge (see storyline.md for narrative framing).
+
+---
+
+## 10. Level 3 Echoes — Concrete Values
+
+### 10.1 Resonance Core (Chamber 1 — The Resonance Hall, Protect)
+
+- **Base effect (Power ≥ 10%, Collected):** During the final boss, **every phase
+  transition** (Phase 1→2, Phase 2→3, and Phase 3→4) triggers a burst of damage
+  equal to **8% of Malachar's current HP** at the moment of transition.
+- **Fully intact (Power ≥ 90%):** The burst triggers **twice** per transition
+  (two separate 8% bursts, back to back, ~1 second apart) instead of once.
+- **If stolen:** No phase-transition burst occurs at all; Malachar's transitions
+  play out with no player-favoring interruption.
+- **Chamber-specific noise mechanic:** Every offensive action Serin takes (any
+  attack, in any form) spawns **+1 additional Hushed Stalker** for the remainder
+  of the chamber, up to a hard cap of **+12 additional spawns**. This is the
+  resource being managed — see §12.2.1.
+
+### 10.2 Obsidian Key (Chamber 2 — The Mirror Vault, Prevent)
+
+- **If successfully defended:** Banked as Collected at Power% per §5.3/§5.6; no
+  direct combat bonus, denies the stolen-state penalty below.
+- **If stolen:** Triggers two permanent-for-this-run effects:
+  1. **Phase 2 of the final boss:** Malachar gains a **Blink** ability — every
+     6–9 seconds (randomized) he teleports to a new position within the arena
+     instead of his normal movement, making him harder to consistently target
+     (no direct stat change, but interrupts sustained-DPS positioning strategies).
+  2. **Level 3, Chamber 3 (The Hunger Pit)'s exits** begin **flickering**:
+     visibility/telegraphing of the pit's edge geometry is reduced for the
+     remainder of that chamber (a fairness-preserving visual/UX penalty, not a
+     hidden insta-kill change — the pit boundary itself does not move).
+
+### 10.3 Multiple-Echo-stolen interactions
+
+- All Phase 2 modifiers from stolen Echoes apply **simultaneously and
+  independently** — e.g., Marrow Echo's 2%/sec regen, Obsidian Key's 6–9s blink
+  timer, and Hollow Bell's Phase 1 reflect-ward (§9.1) can all be active in the
+  same run with no additional combined penalty beyond the sum of each.
+
+### 10.4 Clarity Shard / Foretell interaction (cross-reference to §8.1)
+
+- If Clarity Shard was collected at Power ≥ 10% but < 90%: Foretell begins in
+  **Phase 2** of the boss fight.
+- If Clarity Shard was collected fully intact (Power ≥ 90%): Foretell begins
+  immediately in **Phase 1**.
+- If Clarity Shard was never collected (chamber failed permanently — not
+  applicable per §8.1's note that Protect Echoes can't be "missed," only delayed
+  by retries): treat as not-collected only if the player somehow exits Level 1
+  without ever completing Chamber 1, which the level gate prevents. Foretell is
+  simply absent if Power could not be raised above 10% (theoretical floor case).
+
+---
+
+## 11. Chamber-by-Chamber Numeric Specs
+
+### 11.1 Level 1 — The Outer Wards
+
+#### 11.1.1 Chamber 1 — The Drowned Archive (Protect)
+
+- **Enemies:** 6× Waterlogged Scribe — HP 18 each, Damage 5/hit, Speed 1.5
+  units/s (already reduced by the chamber's water; this is their effective
+  speed, not a base value further multiplied by Slowed unless additionally
+  afflicted).
+- **Collection time:** **8 seconds** base (subject to later Clarity-Shard
+  self-reduction from *other* chambers only — Chamber 1 cannot reduce its own
+  timer since the Shard isn't collected yet).
+- **Echo position:** center of room, half-submerged reading table.
+- **Water field:** all combatants (Serin included) in the chamber have a
+  permanent ambient **Slowed** effect (30% speed reduction) applied as a zone
+  effect, not a timed status — it is not removed by the 10-second expiry rule
+  and persists for the whole chamber.
+
+#### 11.1.2 Chamber 2 — The Bone Corridor (Prevent)
+
+- **Enemies:** 4× Bone Sprinter (carriers) — HP 14 each, Speed 9.0 units/s
+  (this is the "Bone Sprinter base speed" referenced in §7.2's 1.4× carrier
+  multiplier note — carriers in this chamber already *are* Bone Sprinters, so
+  no additional multiplier applies here; the 1.4× rule in §7.2 is the general
+  rule for chambers where carriers are a different enemy type than their base
+  movement archetype).
+- **Blockers:** 3× Bone Sprinter (blocker variant) — HP 20 each, Speed 6.0
+  units/s, do not carry, position between Serin and carriers.
+- **Corridor length:** 30 units; carriers reach the exit gate in ~3.3s of
+  unobstructed movement, so engagement must be immediate.
+- **Real-carrier tell:** faint luminous flicker, always visible (baseline).
+
+#### 11.1.3 Chamber 3 — The Collapsed Barracks (Gauntlet)
+
+- **Wave 1:** 5× Shard Soldier — HP 16 each, Damage 6/hit.
+- **Wave 2:** 4× Shard Soldier + 1× Siege Wraith — Siege Wraith HP 40, Damage
+  10/hit, explodes on death dealing **15 AOE damage** in a 3-unit radius
+  (can chain into other enemies — "baited into each other's death zones" per
+  source doc, meaning a Siege Wraith's death-AOE can kill/damage other nearby
+  enemies including other Siege Wraiths).
+- **Wave 3:** 3× Shard Soldier + 2× Siege Wraith.
+- **Self-healing modifier (if Marrow Echo was stolen, §8.2):** all Shard
+  Soldiers in this chamber regenerate 3% Max HP/sec while not taking damage;
+  Siege Wraiths are explicitly exempt from self-healing (per source doc: "Can
+  be baited into each other's death zones" implies they're balanced around
+  burst removal, not sustained healing).
+
+### 11.2 Level 2 — The Sunken Choir
+
+The Vault's mid-section: a half-drowned processional hall built for rites
+nobody alive remembers. This level introduces the **Hollow Bell** Echo
+(§9.1) and is intentionally shorter than Levels 1 and 3 — three chambers,
+one Echo — functioning as a tonal and difficulty bridge between the
+abandoned outer wards and the fully-awake inner sanctum.
+
+#### 11.2.1 Chamber 1 — The Drowned Choir (Protect)
+
+- **Enemies:** 7× Choir Husk — HP 20 each, Damage 7/hit, Speed 4.0 units/s,
+  attack in a call-and-response pattern (one Husk "calls," triggering a 0.6s
+  windup on up to 2 nearby Husks before they all strike together).
+- **Collection time:** **10 seconds** base (subject to the standing Clarity
+  Shard reduction from §8.1: −10% if Shard collected at any Power, −20% if
+  fully intact, i.e., 9.0s or 8.0s respectively).
+- **Echo position:** suspended above a cracked altar at the hall's center,
+  the literal Hollow Bell.
+- **Fragment opportunity:** killing 2+ Husks within the same 0.6s
+  call-and-response window (any form) grants **+1 bonus fragment**, on top
+  of normal per-kill and per-form bonuses (§5.5) — rewarding players who
+  punish the call-and-response pattern instead of picking Husks off one at a
+  time.
+
+#### 11.2.2 Chamber 2 — The Choir Loft (Prevent)
+
+- **Carriers:** 5× Choir Husk (carrier variant) — HP 16 each, Speed 7.5
+  units/s, **no decoys in this chamber** (all 5 carriers are real — the
+  challenge is volume and speed, not deception, a deliberate contrast with
+  Level 3's Mirror Vault).
+- **Guards:** 2× Choir Husk (guard variant) — HP 22 each.
+- **Mechanic:** carriers do not path toward a single exit gate but toward
+  **3 separate loft exits** simultaneously (roughly even split), forcing
+  Serin to triage rather than funnel-block a single corridor the way
+  Ironshell can in the Bone Corridor.
+- **Note:** This chamber guards no unique Echo of its own (the Hollow Bell
+  was already collected in Chamber 1, per §9.2) — its fragments still feed
+  Echo Power retroactively into the Hollow Bell's banked total if collected
+  at less than 100% (fragments collected here apply the standard +5%/
+  carrier-kill 3-fragment rule from §5.6, capped at the Hollow Bell's 100%
+  ceiling). If the Hollow Bell chamber already capped Echo Power at 100%,
+  fragments here simply have no further mechanical effect beyond their
+  normal momentum/combat value.
+
+#### 11.2.3 Chamber 3 — The Silent Nave (Gauntlet)
+
+- **Wave 1:** 6× Choir Husk — HP 20 each, Damage 7/hit.
+- **Wave 2:** 5× Choir Husk + 1× Resonant Cantor — Cantor HP 50, Damage
+  9/hit, periodically (every 5s) emits a pulse that applies **Slowed** to
+  Serin if she is within 6 units.
+- **Wave 3:** 4× Choir Husk + 2× Resonant Cantor.
+- **Mechanic:** Resonant Cantors do not move; they must be approached or
+  shot. Their slow-pulse stacks with environmental hazards but not with
+  itself (Slowed refreshes per §4, does not stack in magnitude).
+
+### 11.3 Level 3 — The Inner Sanctum
+
+#### 11.3.1 Chamber 1 — The Resonance Hall (Protect)
+
+- **Enemies:** 8× Hushed Stalker (base) — HP 22 each, Damage 9/hit, **invisible
+  until they begin an attack wind-up** (0.4s telegraph window when they become
+  visible/targetable, then attack).
+- **Noise mechanic:** +1 Hushed Stalker spawned per offensive action by Serin,
+  capped at +12 (see §10.1).
+- **Collection time:** **12 seconds** base (subject to Clarity Shard reduction
+  per §8.1: −10% if Shard collected at any Power, −20% total if fully intact,
+  i.e., 10.8s or 9.6s respectively).
+- **Fragment opportunity:** Stalkers afflicted with Slowed (Ironshell aura or
+  Veil of Thorns) become permanently visible/targetable for the duration of the
+  Slowed effect, and killing a Slowed Stalker drops **2 fragments without
+  triggering the +1-spawn noise penalty** for that kill specifically (the kill
+  itself is silent; other simultaneous Serin actions still trigger spawns
+  normally).
+
+#### 11.3.2 Chamber 2 — The Mirror Vault (Prevent)
+
+- **Carriers:** 3× Mirror Bearer — HP 18 each, Speed 6.5 units/s. **1 real, 2
+  decoys** (randomized which slot is real each playthrough/attempt).
+- **Guards:** 2× Mirror Bearer (guard variant, non-carrying) — HP 24 each.
+- **Decoy death:** shatters into smoke, deals no AOE, drops 0 fragments (decoys
+  are illusions, not real kills — only the real carrier's death yields the §5.6
+  carrier-fragment bonus of 3).
+- **Real carrier on non-lethal hit:** staggers visibly (0.5s stagger animation,
+  no gameplay-mechanical stun, purely the identifying "tell" described in
+  source doc) — this is what Voidcaster pierce-shots and Wraithblade knockback
+  reveal at range/on contact.
+
+#### 11.3.3 Chamber 3 — The Hunger Pit (Gauntlet)
+
+- **5 waves, 4× Void Shunter each = 20 total** — HP 25 each, Damage 11/hit
+  (charge attack only; Void Shunters have no ranged attack), Speed 6.0 units/s
+  when charging.
+- **Spawn pattern:** each wave spawns progressively closer to Serin's starting
+  position — Wave 1 spawns at the arena edge (10 units out), Wave 5 spawns at
+  4 units out, decreasing by 1.5 units per wave.
+- **Void pit:** instant death (§6.2) on contact, centered in the arena, radius
+  5 units.
+- **Knockback interaction:** Wraithblade's standard knockback (4 units, per
+  §7.1) and Riftcrush's enhanced knockback can push Void Shunters into the pit
+  for an instant kill; conversely, a Void Shunter's charge attack that connects
+  with Serin **while she is within 2 units of the pit edge** pushes Serin back
+  3 units, which can carry her into the pit if she has no room to be pushed.
+- **Obsidian Key flicker modifier (if stolen, §10.2):** pit-edge visual
+  telegraphing (the warning glow/outline at the pit's boundary) is reduced in
+  opacity by 60% for this chamber; the actual physical boundary is unchanged.
+
+#### 11.3.4 Chamber 4 — The Sarcophagus Approach (Protect)
+
+A short, tense final chamber before the boss door: Malachar's thralls make
+one last attempt to recover whatever Echoes remain unclaimed, guarding the
+threshold to his throne room. No new Echo is introduced here — this chamber
+exists purely to apply final pressure on whichever Echoes are still in play
+mechanically (Echo Power can still be raised on already-collected Echoes is
+**not** possible per §5.2's per-chamber cap design; instead, this chamber's
+"Echo" is a **decoy reliquary** that, if successfully defended, grants a
+one-time **+20% Max HP** buff for the Final Chamber only, on top of carried-
+over HP per §6.1).
+
+- **Enemies:** 6× Sarcophagus Warden — HP 28 each, Damage 10/hit, Speed 4.5
+  units/s, periodically (every 6s) one Warden enters a brief **Guard Stance**
+  (immune to knockback, +50% damage resistance for 2s) — Voidcaster pierce
+  shots ignore Guard Stance's damage resistance, rewarding ranged play in this
+  specific window.
+- **Collection time:** **10 seconds** base (subject to the standing Clarity
+  Shard reduction from §8.1, same as all Protect chambers).
+- **Reward:** successful collection grants the +20% Max HP buff described
+  above. Failure to collect (chamber timer never completes because Serin
+  keeps getting forced out of radius) simply forfeits the buff — there is no
+  "stolen" penalty, since the decoy reliquary holds no real Echo and Malachar
+  gains nothing from it either way.
+
+---
+
+## 13. Final Boss — Malachar (Full Numeric Spec)
+
+### 13.1 Base Stats
+
+- **Max HP:** 1250 (scaled up from the 2-level version's 1000 to account for
+  the additional Level 2 content and the 5th Echo's modifiers).
+- **Arena:** circular, 20-unit radius, becomes the floating-platform layout in
+  Phase 3 (§13.4) and the fractured-void layout in Phase 4 (§13.5).
+
+### 13.2 Phase 1 — Baseline
+
+- **Trigger:** fight start.
+- **Moveset (fixed cycle, repeats every 12 seconds regardless of run history):**
+  1. **Void Bolt Cycle:** 3 ranged bolts, Damage 14 each, fired in sequence
+     0.8s apart, telegraphed by a 0.5s charge glow.
+  2. **Summoning Burst:** spawns 2× Shard Wraith — HP 30 each, Damage 8/hit,
+     fly toward Serin.
+- **Phase 1 → Phase 2 transition trigger:** Malachar's HP drops to **75%**
+  (937.5 HP).
+- **Foretell interaction:** if Clarity Shard was collected fully intact
+  (§8.1/§10.4), the 0.5s charge-glow telegraph for Void Bolt Cycle is extended
+  to **1.1s** (an extra 0.6s of warning) starting immediately in Phase 1.
+- **Hollow Bell reflect-ward (if stolen, §9.1):** active for the entirety of
+  Phase 1 only. The first hit Serin lands every 8 seconds reflects 20% of
+  that hit's own damage back to her as direct HP loss. The ward expires
+  automatically at the Phase 1 → Phase 2 transition regardless of whether it
+  was on cooldown.
+
+### 13.3 Phase 2 — Echo Absorption
+
+- **Trigger:** HP ≤ 75%, runs until HP ≤ 50%.
+- **Modifiers applied (cumulative, depending on what was stolen during the
+  run):**
+  - **Marrow Echo stolen:** +2% Max HP/sec regeneration (25 HP/sec), active
+    through Phase 2, Phase 3, *and* Phase 4.
+  - **Obsidian Key stolen:** Blink every 6–9 seconds (randomized each
+    trigger) to a new arena position, active through Phase 2 *and* Phase 3
+    (Phase 4's fractured-void layout, §13.5, replaces Blink with its own
+    movement pattern).
+  - **Neither stolen:** Phase 2 plays identically to Phase 1's moveset, just
+    at this HP band — no additional modifier, base difficulty only.
+- **Resonance Core transition burst (if collected, §10.1):** upon entering
+  Phase 2 (the 75% threshold crossing), an immediate burst deals 8% of
+  Malachar's *current* HP (i.e., 8% of 937.5 ≈ 75 HP) — or twice, ~1s apart,
+  if Resonance Core was fully intact (effectively ~144 HP total, second burst
+  calculated off HP remaining after the first).
+- **Foretell (if active per §13.2/§10.4 and not yet active from Phase 1):**
+  begins here if Clarity Shard was collected but not fully intact.
+
+### 13.4 Phase 3 — Vault Collapse
+
+- **Trigger:** HP ≤ 50%, runs until HP ≤ 25%.
+- **Arena change:** floor shatters into **6 floating platforms** (3 units
+  radius each), connected by gaps Serin must navigate (Wraithblade/Voidcaster
+  movement unaffected; Ironshell's low Speed of 2.5 units/s makes platform
+  navigation notably riskier, an intentional tension with its tanking role).
+- **Moveset additions on top of Phase 1 cycle:** Malachar adds a **Platform
+  Sunder** attack every 15 seconds — targets Serin's current platform, which
+  collapses 3 seconds after the telegraph, forcing relocation.
+- **Resonance Core transition burst:** triggers again on the 50% threshold
+  crossing (8% of current HP at that moment, doubled if fully intact, per
+  §10.1/§13.3's pattern).
+- **Carried-over Phase 2 modifiers (Marrow regen, Obsidian blink) remain
+  active** if applicable, per §10.3.
+
+### 13.5 Phase 4 — The Fracture
+
+- **Trigger:** HP ≤ 25%, runs until HP = 0. New phase, added to accommodate
+  the longer 3-level run and give the 5th Echo (Hollow Bell) room to matter
+  structurally even though its own ward expired back in Phase 1 — Phase 4 is
+  where the *cumulative* toll of every other stolen Echo is felt hardest.
+- **Arena change:** the floating platforms from Phase 3 begin shrinking
+  continuously (each platform's radius decreases by 0.1 units/second,
+  floor of 1.5 units), forcing constant repositioning.
+- **Moveset additions on top of Phase 1 + Phase 3 cycle:** Malachar adds a
+  **Soul Lance** — a single high-damage targeted bolt (Damage 30) fired
+  every 10 seconds with a 1.0s telegraph (extended to 1.6s if Foretell is
+  active per §13.2/§13.3).
+- **Resonance Core transition burst:** triggers a third time on the 25%
+  threshold crossing, identical formula to §13.3/§13.4.
+- **Carried-over Phase 2/3 modifiers (Marrow regen, capped per §13.3) remain
+  active** if applicable. Obsidian Key's Blink does **not** carry into Phase
+  4 — the shrinking-platform mechanic is considered its narrative and
+  mechanical replacement (Malachar is now too weak to teleport reliably and
+  relies on the collapsing arena itself to keep Serin off-balance).
+
+### 13.6 Boss Defeat & Ending Determination
+
+Tracked across the whole run: for each of the **5 Echoes** (Clarity Shard,
+Marrow Echo, Hollow Bell, Resonance Core, Obsidian Key), the run ends the
+chamber in exactly one of: **Collected** (any Power 10–100%) or **Stolen**.
+
+| Outcome | Condition | Ending |
+|---|---|---|
+| **Ending A — The Shatter** | All 5 Echoes Collected, 0 Stolen | Full canonical ending |
+| **Ending B — The Retreat** | 1–2 Echoes Stolen | Partial ending |
+| **Ending C — The Warning** | 3–5 Echoes Stolen | Sequel-hook ending |
+
+(Extending the original 2-level game's 0 / 1–2 / 3–4 split to account for the
+5th Echo: the B/C boundary stays anchored at "more than 2 stolen," so Ending
+C's range simply grows by one to 3–5, preserving the original tuning intent
+that losing roughly half or more of the Echoes is what tips the story into
+its darkest ending.)
+
+---
+
+## 14. Summary Reference Tables
+
+### 14.1 Form Stat Block (Quick Reference)
+
+| Form | Speed | Max HP | Dmg | Range | Atk Rate | DPS (sustained) |
+|---|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 100 | 12 | 1.5 (melee) | 2/s | 24 |
+| Voidcaster | 5.0 | 70 | 22 | 12 (ranged, piercing) | 1/s | 22 |
+| Ironshell | 2.5 | 160 | 6 | 1.0 (melee, cleave) | 1/s | 6 |
+
+### 14.2 Effect Quick Reference
+
+| Effect | Duration | Magnitude |
+|---|---|---|
+| Burned | 10s, ticks every 1s | 0.25 × dealer's base Damage per tick |
+| Paralyzed | 10s (or 1.5s for Aegis Pulse stagger application) | 40% action-miss chance |
+| Slowed | 10s (or chamber-permanent for water zones) | −30% movement speed |
+
+### 14.3 Switch & Momentum Quick Reference
+
+| Rule | Value |
+|---|---|
+| Switch cooldown | 4.0s (uniform across all form pairs) |
+| Mid-Chamber switching | No cooldown; exiting form gets +15 Momentum |
+| Special Ability 1 threshold | 50 Momentum (42.5 if Hollow Bell collected, 35 if fully intact — §9.1) |
+| Special Ability 2 threshold | 100 Momentum (unaffected by Hollow Bell) |
+| Momentum on switch-away | Reset to 0 |
+| Momentum on special use | Reset to 0 |
+
+### 14.4 Echo Power Quick Reference
+
+| Value | Meaning |
+|---|---|
+| 50% | Starting Power on chamber entry |
+| +5% | Per fragment collected pre-collection |
+| +2.5% | Per fragment collected mid-collection (Protect only) |
+| −8% | Per hit the Echo takes during collection (Protect only) |
+| 10% | Power floor (cannot go lower from damage) |
+| 90%+ | "Fully intact" threshold |
+
+### 14.5 Level & Echo Map (Quick Reference)
+
+| Level | Chambers | Echoes Introduced |
+|---|---|---|
+| Level 1 — The Outer Wards | Drowned Archive (Protect) · Bone Corridor (Prevent) · Collapsed Barracks (Gauntlet) | Clarity Shard, Marrow Echo |
+| Level 2 — The Sunken Choir | Drowned Choir (Protect) · Choir Loft (Prevent) · Silent Nave (Gauntlet) | Hollow Bell |
+| Level 3 — The Inner Sanctum | Resonance Hall (Protect) · Mirror Vault (Prevent) · Hunger Pit (Gauntlet) · Sarcophagus Approach (Protect) | Resonance Core, Obsidian Key |
+| Final Chamber | The Vault's Heart (Boss, 4 phases) | — |
+
+---
+
+*This spec is intended to be sufficient for direct implementation: every
+ability, timer, drop rate, and threshold referenced has a concrete value.
+Where the original GDD was silent, values were chosen to preserve the stated
+design intent (e.g., aggression/caution tension, form-identity rewards,
+escalating per-level difficulty) while keeping all three forms viable across
+all chamber types, per the "no chamber has a correct answer" design pillar.
+The expansion from 2 levels to 3 levels (§this revision) added Level 2 — The
+Sunken Choir and its Hollow Bell Echo, a 4th chamber to Level 3, and a 4th
+boss phase, while preserving every numeric value from the original 2-level
+spec for content that carried over unchanged.*

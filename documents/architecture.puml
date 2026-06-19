@@ -1,0 +1,279 @@
+@startuml Echoes_of_the_Ashen_Vault_Architecture
+
+' --- Configuration ---
+skinparam class {
+    BackgroundColor White
+    ArrowColor DeepSkyBlue
+    BorderColor DarkSlateGray
+}
+skinparam stereotypeCBackgroundColor LightGreen
+
+' --- Core Game Loop & State Management (State & Singleton Patterns) ---
+class Game << (S,#FF7F24) Singleton >> {
+    - {static} instance : Game*
+    - window : sf::RenderWindow
+    - stateManager : StateManager
+    - Game()
+    + {static} getInstance() : Game*
+    + run() : void
+    + getWindow() : sf::RenderWindow&
+}
+
+class StateManager {
+    - states : std::stack<std::unique_ptr<GameState>>
+    + pushState(state : std::unique_ptr<GameState>) : void
+    + popState() : void
+    + changeState(state : std::unique_ptr<GameState>) : void
+    + update(dt : float) : void
+    + draw() : void
+    + handleEvents(event : sf::Event&) : void
+}
+
+abstract class GameState {
+    # stateManager : StateManager&
+    + GameState(manager : StateManager&)
+    + {abstract} update(dt : float) : void
+    + {abstract} draw() : void
+    + {abstract} handleEvents(event : sf::Event&) : void
+}
+
+class MainMenuState extends GameState
+class GameplayState extends GameState
+class PauseState extends GameState
+class GameOverState extends GameState
+class VictoryState extends GameState
+
+Game o-- StateManager
+StateManager *-- GameState
+
+' --- System Managers (Singleton Pattern) ---
+class AssetManager << (S,#FF7F24) Singleton >> {
+    - {static} instance : AssetManager*
+    - textures : std::unordered_map<std::string, sf::Texture>
+    - fonts : std::unordered_map<std::string, sf::Font>
+    - AssetManager()
+    + {static} getInstance() : AssetManager*
+    + loadTexture(name : std::string, filepath : std::string) : bool
+    + getTexture(name : std::string) : const sf::Texture&
+    + loadFont(name : std::string, filepath : std::string) : bool
+    + getFont(name : std::string) : const sf::Font&
+}
+
+class SoundManager << (S,#FF7F24) Singleton >> {
+    - {static} instance : SoundManager*
+    - soundBuffers : std::unordered_map<std::string, sf::SoundBuffer>
+    - activeSounds : std::list<sf::Sound>
+    - music : sf::Music
+    - SoundManager()
+    + {static} getInstance() : SoundManager*
+    + playSound(name : std::string) : void
+    + playMusic(filepath : std::string, loop : bool) : void
+    + stopMusic() : void
+}
+
+class SaveLoadManager << (S,#FF7F24) Singleton >> {
+    - {static} instance : SaveLoadManager*
+    - SaveLoadManager()
+    + {static} getInstance() : SaveLoadManager*
+    + saveGame(filepath : std::string, player : const Player&, levelNum : int, chamberNum : int, echoes : const std::vector<Echo*>&) : bool
+    + loadGame(filepath : std::string, player : Player&, levelNum : int&, chamberNum : int&, echoes : std::vector<Echo*>&) : bool
+}
+
+' --- Entity & Form System (Strategy & Decorator Patterns) ---
+abstract class Character {
+    # position : sf::Vector2f
+    # velocity : sf::Vector2f
+    # size : sf::Vector2f
+    # hp : float
+    # maxHp : float
+    # baseDamage : float
+    # moveSpeed : float
+    # statusEffects : std::vector<std::unique_ptr<StatusEffect>>
+    + Character(maxHp : float, damage : float, speed : float)
+    + {abstract} update(dt : float) : void
+    + {abstract} draw(window : sf::RenderWindow&) : void
+    + takeDamage(amount : float) : void
+    + applyStatusEffect(effect : std::unique_ptr<StatusEffect>) : void
+    + getPosition() : sf::Vector2f
+    + setPosition(pos : sf::Vector2f) : void
+    + getHp() : float
+    + getMaxHp() : float
+}
+
+abstract class StatusEffect {
+    # duration : float
+    # timer : float
+    + StatusEffect(duration : float)
+    + {abstract} apply(character : Character&) : void
+    + {abstract} remove(character : Character&) : void
+    + update(dt : float, character : Character&) : bool
+}
+
+class BurnedEffect extends StatusEffect {
+    - damagePerTick : float
+    - tickTimer : float
+}
+class ParalyzedEffect extends StatusEffect {
+    - missChance : float
+}
+class SlowedEffect extends StatusEffect {
+    - speedReductionPercent : float
+}
+
+Character *-- StatusEffect
+
+class Player extends Character {
+    - activeForm : std::unique_ptr<PlayerForm>
+    - wraithbladeMomentum : float
+    - voidcasterMomentum : float
+    - ironshellMomentum : float
+    - switchCooldownTimer : float
+    - sharedHpPercentage : float
+    + Player()
+    + switchForm(newForm : PlayerFormType) : void
+    + gainMomentum(amount : float, form : PlayerFormType) : void
+    + triggerSpecial(abilityIndex : int) : void
+}
+
+abstract class PlayerForm << (Strategy) >> {
+    # formType : PlayerFormType
+    # baseSpeed : float
+    # maxHpContribution : float
+    # baseDamage : float
+    # attackRange : float
+    # attackRate : float
+    + {abstract} attack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
+    + {abstract} triggerSpecial1(player : Player&, chamber : Chamber&) : void
+    + {abstract} triggerSpecial2(player : Player&, chamber : Chamber&) : void
+    + getStats() : FormStats
+}
+
+class WraithbladeForm extends PlayerForm
+class VoidcasterForm extends PlayerForm
+class IronshellForm extends PlayerForm
+
+Player *-- PlayerForm
+
+' --- Enemy & Boss AI System (Factory Pattern) ---
+abstract class Enemy extends Character {
+    # playerRef : Player&
+    # state : EnemyState
+    # attackCooldown : float
+    + Enemy(player : Player&, hp : float, damage : float, speed : float)
+    + {abstract} updateAI(dt : float, chamber : Chamber&) : void
+}
+
+class WaterloggedScribe extends Enemy
+class BoneSprinter extends Enemy {
+    - isCarrier : bool
+}
+class ShardSoldier extends Enemy
+class SiegeWraith extends Enemy {
+    + explode() : void
+}
+class ChoirHusk extends Enemy
+class ResonantCantor extends Enemy
+class HushedStalker extends Enemy {
+    - isVisible : bool
+}
+class MirrorBearer extends Enemy {
+    - isReal : bool
+}
+class VoidShunter extends Enemy
+class SarcophagusWarden extends Enemy
+
+class BossMalachar extends Enemy {
+    - currentPhase : int
+    - regenTimer : float
+    - blinkTimer : float
+    + transitionPhase(phase : int) : void
+    + platformSunder(chamber : Chamber&) : void
+    + soulLance(chamber : Chamber&) : void
+}
+
+class EnemyFactory {
+    + {static} createEnemy(type : EnemyType, player : Player&) : std::unique_ptr<Enemy>
+}
+
+EnemyFactory ..> Enemy
+
+' --- Chamber System (Factory Pattern) ---
+abstract class Chamber {
+    # player : Player&
+    # enemies : std::vector<std::unique_ptr<Enemy>>
+    # items : std::vector<std::unique_ptr<Item>>
+    # obstacles : std::vector<sf::FloatRect>
+    # isCompleted : bool
+    + Chamber(player : Player&)
+    + {abstract} update(dt : float) : void
+    + {abstract} draw(window : sf::RenderWindow&) : void
+    + spawnEnemy(enemy : std::unique_ptr<Enemy>) : void
+    + checkCollisions() : void
+}
+
+class ProtectChamber extends Chamber {
+    - echo : std::unique_ptr<Echo>
+    - collectionRadius : float
+    - collectionTimer : float
+    - requiredTime : float
+}
+class PreventChamber extends Chamber {
+    - exitGate : sf::FloatRect
+    - carriersEscaped : int
+}
+class GauntletChamber extends Chamber {
+    - waves : std::vector<std::vector<EnemyType>>
+    - currentWaveIndex : int
+}
+class MidChamber extends Chamber
+class BossChamber extends Chamber {
+    - boss : std::unique_ptr<BossMalachar>
+}
+
+class ChamberFactory {
+    + {static} createChamber(level : int, chamberIndex : int, player : Player&) : std::unique_ptr<Chamber>
+}
+
+ChamberFactory ..> Chamber
+Chamber *-- Player
+Chamber *-- Enemy
+Chamber *-- Item
+
+' --- Item & Echo Economy System (Observer Pattern) ---
+abstract class Item {
+    # position : sf::Vector2f
+    # bounds : sf::FloatRect
+    + {abstract} onCollect(player : Player&, chamber : Chamber&) : void
+}
+
+class EchoFragment extends Item {
+    - value : float
+}
+
+abstract class Echo << (Subject) >> {
+    # name : std::string
+    # echoPower : float
+    # basePower : float
+    # observers : std::vector<EchoObserver*>
+    + Echo(name : std::string)
+    + takeDamage(penalty : float) : void
+    + addPower(amount : float) : void
+    + getPower() : float
+    + attach(observer : EchoObserver*) : void
+    + notify() : void
+}
+
+class ClarityShard extends Echo
+class MarrowEcho extends Echo
+class HollowBell extends Echo
+class ResonanceCore extends Echo
+class ObsidianKey extends Echo
+
+interface EchoObserver {
+    + {abstract} onEchoPowerChanged(power : float) : void
+}
+
+Echo o-- EchoObserver
+GameplayState ..|> EchoObserver
+
+@enduml
