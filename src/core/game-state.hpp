@@ -1,7 +1,7 @@
 #ifndef GAME_STATE
 #define GAME_STATE
 
-#include "state-manager.hpp"
+class StateManager;
 
 class GameState {
 public:
