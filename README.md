@@ -1,8 +1,6 @@
-# cs202-dungeon-game
+# CS202 Dungeon Game: Echoes of the Ashen Vault
 
 This is the GitHub repository for Nguyễn Tấn Minh and Châu Tấn Phát's CS202 game project.
-
----
 
 ## Setup Instructions
 
@@ -39,4 +37,105 @@ cmake --build build
 Once built, run the executable generated in the output directory:
 ```powershell
 .\build\game.exe
+```
+
+## Proposed folder structure
+
+```
+cs202-dungeon-game/
+├── CMakeLists.txt                 # Master CMake project file
+├── README.md                      # Project documentation
+├── documents/                     # Architecture & Planning documents (already exists)
+│   ├── CS202-FinalProject_SuperMario.md
+│   ├── architecture.puml
+│   ├── drafting.md
+│   ├── game-description.md
+│   └── implementation-plan.md
+│
+├── assets/                        # External game assets loaded at runtime
+│   ├── fonts/                     # Font files (e.g., Arial, custom pixel fonts)
+│   ├── textures/                  # Character sprites, chamber tiles, UI elements
+│   ├── sounds/                    # Combat, collection, navigation sound effects
+│   ├── music/                     # Ambient tracks & boss theme
+│   └── maps/                      # Chamber configs (XML, JSON, or CSV files loaded by MapLoader)
+│
+└── src/                           # Source Code Directory
+    ├── main.cpp                   # Application entry point
+    │
+    ├── core/                      # Core Game Loop & State Management
+    │   ├── Game.hpp / Game.cpp             # Game Singleton
+    │   ├── StateManager.hpp / StateManager.cpp # Manages GameState stack
+    │   ├── GameState.hpp / GameState.cpp   # Abstract base state
+    │   └── states/                         # Concrete game states
+    │       ├── MainMenuState.hpp / MainMenuState.cpp
+    │       ├── GameplayState.hpp / GameplayState.cpp
+    │       ├── PauseState.hpp / PauseState.cpp
+    │       ├── GameOverState.hpp / GameOverState.cpp
+    │       └── VictoryState.hpp / VictoryState.cpp
+    │
+    ├── managers/                  # Engine Subsystem Managers (Singletons)
+    │   ├── AssetManager.hpp / AssetManager.cpp     # Resource cache (textures, fonts)
+    │   ├── SoundManager.hpp / SoundManager.cpp     # Controls sound and music
+    │   ├── SaveLoadManager.hpp / SaveLoadManager.cpp # Serialization of RunState
+    │   └── MapLoader.hpp / MapLoader.cpp           # Parses map & wave configuration files
+    │
+    ├── entities/                  # Entity Hierarchy & Action Strategy
+    │   ├── Character.hpp / Character.cpp           # Abstract base character
+    │   ├── Player.hpp / Player.cpp                 # Player class (owns forms)
+    │   │
+    │   ├── forms/                 # Player Forms (Strategy Pattern)
+    │   │   ├── PlayerForm.hpp / PlayerForm.cpp     # Strategy base
+    │   │   ├── WraithbladeForm.hpp / WraithbladeForm.cpp
+    │   │   ├── VoidcasterForm.hpp / VoidcasterForm.cpp
+    │   │   └── IronshellForm.hpp / IronshellForm.cpp
+    │   │
+    │   ├── effects/               # Status Effects (Decorator/Strategy)
+    │   │   ├── StatusEffect.hpp / StatusEffect.cpp # Status effect base
+    │   │   ├── BurnedEffect.hpp / BurnedEffect.cpp
+    │   │   ├── ParalyzedEffect.hpp / ParalyzedEffect.cpp
+    │   │   └── SlowedEffect.hpp / SlowedEffect.cpp
+    │   │
+    │   └── enemies/               # Enemies & AI (Factory Pattern)
+    │       ├── Enemy.hpp / Enemy.cpp               # Abstract enemy base
+    │       ├── EnemyFactory.hpp / EnemyFactory.cpp # Instantiates enemies from enums
+    │       ├── WaterloggedScribe.hpp / WaterloggedScribe.cpp
+    │       ├── BoneSprinter.hpp / BoneSprinter.cpp
+    │       ├── ShardSoldier.hpp / ShardSoldier.cpp
+    │       ├── SiegeWraith.hpp / SiegeWraith.cpp
+    │       ├── ChoirHusk.hpp / ChoirHusk.cpp
+    │       ├── ResonantCantor.hpp / ResonantCantor.cpp
+    │       ├── HushedStalker.hpp / HushedStalker.cpp
+    │       ├── MirrorBearer.hpp / MirrorBearer.cpp
+    │       ├── VoidShunter.hpp / VoidShunter.cpp
+    │       ├── SarcophagusWarden.hpp / SarcophagusWarden.cpp
+    │       └── BossMalachar.hpp / BossMalachar.cpp
+    │
+    ├── chambers/                  # Rooms and Level Layouts (Factory Pattern)
+    │   ├── Chamber.hpp / Chamber.cpp               # Abstract base chamber
+    │   ├── ChamberFactory.hpp / ChamberFactory.cpp # Instantiates chambers from config
+    │   ├── ProtectChamber.hpp / ProtectChamber.cpp
+    │   ├── PreventChamber.hpp / PreventChamber.cpp
+    │   ├── GauntletChamber.hpp / GauntletChamber.cpp
+    │   ├── MidChamber.hpp / MidChamber.cpp
+    │   └── BossChamber.hpp / BossChamber.cpp
+    │
+    ├── economy/                   # Items & Echoes (Observer Pattern)
+    │   ├── Item.hpp / Item.cpp                     # Abstract collectible base
+    │   ├── EchoFragment.hpp / EchoFragment.cpp     # Collectible shard
+    │   ├── EchoObserver.hpp                        # Observer interface
+    │   ├── Echo.hpp / Echo.cpp                     # Subject base class for Echoes
+    │   └── echoes/                                 # Concrete Echoes
+    │       ├── ClarityShard.hpp / ClarityShard.cpp
+    │       ├── MarrowEcho.hpp / MarrowEcho.cpp
+    │       ├── HollowBell.hpp / HollowBell.cpp
+    │       ├── ResonanceCore.hpp / ResonanceCore.cpp
+    │       └── ObsidianKey.hpp / ObsidianKey.cpp
+    │
+    ├── ui/                        # User Interface Elements
+    │   └── HUD.hpp / HUD.cpp                       # Concrete EchoObserver, displays stats
+    │
+    └── utils/                     # Shared Structs, Helpers & Math
+        ├── CollisionSolver.hpp / CollisionSolver.cpp # Stateless static helper for geometry/physics
+        ├── RunState.hpp                            # Serialisable state struct (data only)
+        └── Common.hpp                              # Shared Enums (EchoType, FormType, etc.)
 ```
