@@ -15,7 +15,7 @@ Ensure you have the following installed and configured in your system `PATH`:
 * **SFML 3.0.x:** Download the package matching your compiler/architecture from the [SFML Downloads Page](https://www.sfml-dev.org/download.php).
 
 ### 2. Configure SFML Path
-Open [CMakeLists.txt](file:///CMakeLists.txt) and locate the following line:
+Open [CMakeLists.txt](CMakeLists.txt) and locate the following line:
 ```cmake
 set(SFML_ROOT "C:/Program Files/SFML/SFML-3.0.2")
 ```
