@@ -4,7 +4,7 @@ This is the GitHub repository for Nguyễn Tấn Minh and Châu Tấn Phát's CS
 
 ---
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
 Follow these steps to set up, build, and run the project on your local machine.
 
