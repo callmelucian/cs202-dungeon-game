@@ -10,13 +10,13 @@ skinparam stereotypeCBackgroundColor LightGreen
 
 ' --- Core Game Loop & State Management (State & Singleton Patterns) ---
 class Game << (S,#FF7F24) Singleton >> {
-    - {static} instance : Game*
-    - window : sf::RenderWindow
+    - renderWindow : sf::RenderWindow
     - stateManager : StateManager
     - Game()
-    + {static} getInstance() : Game*
-    + run() : void
+    + {static} getInstance() : Game&
+    + runMainLoop() : void
     + getWindow() : sf::RenderWindow&
+    + isRunning() : bool
 }
 
 class StateManager {
@@ -77,6 +77,35 @@ class SaveLoadManager << (S,#FF7F24) Singleton >> {
     + {static} getInstance() : SaveLoadManager*
     + saveGame(filepath : std::string, player : const Player&, levelNum : int, chamberNum : int, echoes : const std::vector<Echo*>&) : bool
     + loadGame(filepath : std::string, player : Player&, levelNum : int&, chamberNum : int&, echoes : std::vector<Echo*>&) : bool
+}
+
+class SettingManager << (S,#FF7F24) Singleton >> {
+    - {static} instance : SettingManager*
+    - musicVolume : float
+    - sfxVolume : float
+    - windowWidth : unsigned int
+    - windowHeight : unsigned int
+    - fullscreen : bool
+    - difficulty : std::string
+    - keyBindings : std::unordered_map<std::string, sf::Keyboard::Scancode>
+    - SettingManager()
+    - loadDefaults() : void
+    + {static} getInstance() : SettingManager&
+    + loadSettings(filepath : std::string) : bool
+    + saveSettings(filepath : std::string) : bool
+    + getMusicVolume() : float
+    + setMusicVolume(volume : float) : void
+    + getSfxVolume() : float
+    + setSfxVolume(volume : float) : void
+    + getWindowWidth() : unsigned int
+    + getWindowHeight() : unsigned int
+    + setResolution(width : unsigned int, height : unsigned int) : void
+    + isFullscreen() : bool
+    + setFullscreen(enable : bool) : void
+    + getDifficulty() : std::string
+    + setDifficulty(diff : std::string) : void
+    + getKeyBinding(action : std::string) : sf::Keyboard::Scancode
+    + setKeyBinding(action : std::string, scancode : sf::Keyboard::Scancode) : void
 }
 
 ' --- Entity & Form System (Strategy & Decorator Patterns) ---

@@ -14,7 +14,17 @@ list(APPEND CMAKE_PREFIX_PATH "${SFML_ROOT}")
 find_package(SFML 3 COMPONENTS Graphics Window System Audio Network REQUIRED)
 
 # Define the game executable target named 'game'
-add_executable(game src/main.cpp)
+add_executable(game
+    src/main.cpp
+
+    # core
+    src/core/game.cpp
+    src/core/state-manager.cpp
+    src/core/game-state.cpp
+
+    # global-settings
+    src/global-settings/setting-manager.cpp
+)
 
 # Link SFML libraries
 target_link_libraries(game PRIVATE

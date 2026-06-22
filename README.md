@@ -39,6 +39,26 @@ Once built, run the executable generated in the output directory:
 .\build\game.exe
 ```
 
+## Notes for teammates
+
+- Implementation disclipines:
+  - Variable naming: `camelCase` for variables/functions, `CamelCases` for classes.
+  - Avoid using `auto` in classes/modules with high dependency.
+- Header files: All definition in `.hpp` files and implementation in `.cpp` files. The header file should contain a brief comment explaining the usage of all objects defined within.
+- Linking: Use the header guards instead of `#pragma once`, the keyword for header guards is the filename. Example of header guards:
+
+```cpp
+#ifndef GAME
+#define GAME
+
+// implementation of src/core/game.hpp
+
+#endif // GAME
+```
+- Folder structure: Every new files created must follow the proposed folder structure below, if any new files not included in the plan are needed, update the folder structure and notify the team.
+- Branching: For big modules with low-depency develop it on a separate branch and create a pull request later.
+- Register files into CMake: To register a new `.cpp` file into CMake so it compiles everytime we run `cmake --build build`, go to [CMakeLists.txt](CMakeLists.txt), find the `add_executable` function starting from line 17. Then add the absolute path of the new `.cpp` file onto the list.
+
 ## Proposed folder structure
 
 ```
@@ -73,7 +93,8 @@ cs202-dungeon-game/
     │       ├── GameOverState.hpp / GameOverState.cpp
     │       └── VictoryState.hpp / VictoryState.cpp
     │
-    ├── managers/                  # Engine Subsystem Managers (Singletons)
+    ├── global-setings/                  # Engine Subsystem Managers (Singletons)
+    │   ├── SettingManager.hpp / SettingManager.cpp # Manages settings & keybinds
     │   ├── AssetManager.hpp / AssetManager.cpp     # Resource cache (textures, fonts)
     │   ├── SoundManager.hpp / SoundManager.cpp     # Controls sound and music
     │   ├── SaveLoadManager.hpp / SaveLoadManager.cpp # Serialization of RunState

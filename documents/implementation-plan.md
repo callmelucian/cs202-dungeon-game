@@ -15,7 +15,7 @@ A complete class diagram modeling these dependencies is available in [architectu
 * **Encapsulation**: Keeps attributes `private` or `protected` and provides access control through setters/getters (e.g. `Character::takeDamage()`, `Player::gainMomentum()`).
 
 ### Integrated Design Patterns
-1. **Singleton Pattern**: Applies to `Game`, `AssetManager`, `SoundManager`, and `SaveLoadManager` to guarantee single instances controlling critical engine services.
+1. **Singleton Pattern**: Applies to `Game`, `AssetManager`, `SoundManager`, `SaveLoadManager`, and `SettingManager` to guarantee single instances controlling critical engine services.
 2. **State Pattern**: The stack-based `StateManager` manages active `GameState` implementations (`MainMenuState`, `GameplayState`, `PauseState`, `GameOverState`).
 3. **Strategy Pattern**: The player controls a dynamic `PlayerForm` reference, swapping between `WraithbladeForm`, `VoidcasterForm`, and `IronshellForm` at runtime. Because `special1Threshold` is mutable at runtime (Hollow Bell Echo reduces it from 50 → 42.5 → 35), `PlayerForm` exposes a `setSpecial1Threshold()` setter that `RunState` calls whenever an Echo outcome is resolved.
 4. **Factory Pattern**: `EnemyFactory` and `ChamberFactory` dynamically instantiate concrete classes from `EnemyType` enums and `ChamberConfig` data objects loaded by `MapLoader`.
@@ -35,6 +35,7 @@ A complete class diagram modeling these dependencies is available in [architectu
 * **Developer A (Core Engine & States)**
   - [ ] Configure CMakeLists.txt to fetch and link dependencies (SFML/Raylib, etc.).
   - [ ] Implement `Game` singleton wrapper (`getInstance()`, `run()`, game loop, window setup).
+  - [ ] Implement `SettingManager` singleton storing/loading game volumes, resolution, and control binds.
   - [ ] Implement stack-based `StateManager` (`pushState()`, `popState()`, `changeState()`).
   - [ ] Implement abstract `GameState` class interface.
   - [ ] Create concrete states: `MainMenuState` (Start, Load, Exit buttons), `GameplayState` (black window placeholder), `PauseState` (overlay), `GameOverState` (receives `EndingType` enum to display Ending A, B, or C).
