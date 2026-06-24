@@ -6,6 +6,7 @@
 #include<memory>
 
 #include "game-state.hpp"
+#include "game.hpp"
 
 class StateManager {
 public:
@@ -13,8 +14,10 @@ public:
     void popState();
     void changeState (std::unique_ptr<GameState> state);
     void update (float deltaTime);
-    void draw();
+    void draw() const;
     void handleEvents (sf::Event &event);
+
+    GameState* currentState() const;
 
 private:
     std::vector<std::unique_ptr<GameState>> states;

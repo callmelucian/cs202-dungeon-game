@@ -3,16 +3,14 @@
 
 #include <SFML/Graphics.hpp>
 #include "../global-settings/setting-manager.hpp"
+#include "state-manager.hpp"
 
 const int screenWidth = 1800;
 const int screenHeight = 900;
 
 class Game {
 public:
-    static Game& getInstance() {
-        static Game instance;
-        return instance;
-    }
+    static Game& getInstance();
 
     void runMainLoop();
     sf::RenderWindow& getWindow() const;
@@ -21,8 +19,8 @@ public:
 private:
     sf::ContextSettings contextSettings;
     sf::RenderWindow renderWindow;
+    StateManager stateManager;
     bool running;
-    // StateManager stateManager;
 
     Game();
     Game (const Game&) = delete;

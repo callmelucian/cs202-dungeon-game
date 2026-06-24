@@ -13,6 +13,15 @@ list(APPEND CMAKE_PREFIX_PATH "${SFML_ROOT}")
 # Find SFML 3 libraries
 find_package(SFML 3 COMPONENTS Graphics Window System Audio Network REQUIRED)
 
+# Integrate nlohmann/json using FetchContent
+include(FetchContent)
+set(CMAKE_TLS_VERIFY OFF)
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
 # Define the game executable target named 'game'
 add_executable(game
     src/main.cpp
@@ -26,13 +35,14 @@ add_executable(game
     src/global-settings/setting-manager.cpp
 )
 
-# Link SFML libraries
+# Link SFML and JSON libraries
 target_link_libraries(game PRIVATE
     SFML::Graphics
     SFML::Window
     SFML::System
     SFML::Audio
     SFML::Network
+    nlohmann_json::nlohmann_json
 )
 
 # Set runtime output directory directly to build/ (instead of build/bin/)

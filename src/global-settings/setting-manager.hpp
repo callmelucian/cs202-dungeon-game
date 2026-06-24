@@ -1,22 +1,62 @@
-#ifndef SETTING_MANAGER
-#define SETTING_MANAGER
+#ifndef SETTING_MANAGER_HPP
+#define SETTING_MANAGER_HPP
+
+#include <SFML/Window/Keyboard.hpp>
+#include <nlohmann/json.hpp>
+#include <unordered_map>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 class SettingManager {
 public:
-    static SettingManager& getInstance() {
-        static SettingManager instance;
-        return instance;
-    }
+    enum class Difficulty {
+        Easy,
+        Normal,
+        Hard
+    };
 
-    unsigned int getWidth() const { return screenWidth; }
-    unsigned int getHeight() const { return screenHeight; }
+    static SettingManager& getInstance();
+
+    // Settings I/O
+    bool loadSettings(const std::string& filepath);
+    bool saveSettings(const std::string& filepath);
+
+    // Getters and Setters
+    float getMusicVolume() const;
+    void setMusicVolume(float volume);
+
+    float getSfxVolume() const;
+    void setSfxVolume(float volume);
+
+    unsigned int getWindowWidth() const;
+    unsigned int getWindowHeight() const;
+    void setResolution(unsigned int width, unsigned int height);
+
+    bool isFullscreen() const;
+    void setFullscreen(bool enable);
+
+    Difficulty getDifficulty() const;
+    void setDifficulty(Difficulty diff);
+
+    sf::Keyboard::Scancode getKeyBinding(const std::string& action) const;
+    void setKeyBinding(const std::string& action, sf::Keyboard::Scancode scancode);
 
 private:
-    const unsigned int screenWidth, screenHeight;
-    
+    float musicVolume;
+    float sfxVolume;
+    unsigned int windowWidth;
+    unsigned int windowHeight;
+    bool fullscreen;
+    Difficulty difficulty;
+    std::unordered_map<std::string, sf::Keyboard::Scancode> keyBindings;
+
     SettingManager();
-    SettingManager (const SettingManager&) = delete;
+    SettingManager(const SettingManager&) = delete;
     SettingManager& operator=(const SettingManager&) = delete;
+
+    void loadDefaults();
 };
 
-#endif // SETTING_MANAGER
+#endif // SETTING_MANAGER_HPP

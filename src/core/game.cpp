@@ -6,8 +6,8 @@ Game::Game() : running(false) {
 
     // get global settings
     SettingManager &settings = SettingManager::getInstance();
-    unsigned width = settings.getWidth();
-    unsigned height = settings.getHeight();
+    unsigned width = settings.getWindowWidth();
+    unsigned height = settings.getWindowHeight();
 
     // setup render window
     renderWindow.create(
@@ -19,6 +19,11 @@ Game::Game() : running(false) {
     );
     renderWindow.setPosition({50, 50});
     renderWindow.setFramerateLimit(60);
+}
+
+Game& Game::getInstance() {
+    static Game instance;
+    return instance;
 }
 
 bool Game::isRunning() const {
