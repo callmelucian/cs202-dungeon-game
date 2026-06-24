@@ -39,17 +39,22 @@ A complete class diagram modeling these dependencies is available in [architectu
   - [ ] Implement stack-based `StateManager` (`pushState()`, `popState()`, `changeState()`).
   - [ ] Implement abstract `GameState` class interface.
   - [ ] Create concrete states: `MainMenuState` (Start, Load, Exit buttons), `GameplayState` (black window placeholder), `PauseState` (overlay), `GameOverState` (receives `EndingType` enum to display Ending A, B, or C).
+  - [ ] Planning on easy-to-use UI framework classes and color palette management.
+
 * **Developer B (Resource & System Managers)**
   - [ ] Implement `AssetManager` singleton caching textures, fonts, and shaders.
   - [ ] Implement `SoundManager` singleton controlling background music streams and sound buffers.
   - [ ] Implement `SaveLoadManager` singleton with `saveGame(RunState&)` and `loadGame() → RunState` interfaces; keep it decoupled from map data (that is `MapLoader`'s job).
   - [ ] Define the `RunState` struct (fields: `currentLevel`, `currentChamber`, `map<EchoType, EchoOutcome> echoOutcomes`, `playerHP`, `activeForm`, per-form Momentum floats, `collectTimeReduction`, `special1MomentumThreshold`, `foretellActive`, `foretellPhase1`). This struct is used by every subsequent system and must exist before Week 2 work begins.
   - [ ] Integrate default UI font and basic game sound assets (menu navigation sounds, placeholder music).
+
 * **AI-Assisted Tasks (Boilerplate & Utilities)**
   - [ ] Boilerplate CMake file configuration.
   - [ ] Standard C++ singleton template class structure.
   - [ ] Window initialization and rendering loop boilerplate.
   - [ ] `EndingType`, `EchoType`, `EchoOutcome`, `FormType`, `ChamberType`, and `EnemyType` enum definitions (one shared header; all other classes include it).
+  - [ ] Implement reusable UI framework classes under folder `ui` inside namespace `UI` (`Component`, `Label`, `Button`, `ProgressBar`, `Slider`, `Panel`) & color palette management.
+ 
 * **Week 1 Deliverable**: A compilable game window that boots into a working Main Menu. Clicking "Start" transitions to the gameplay screen; pressing Escape opens/closes the pause state; clicking "Exit" performs a clean shutdown.
 
 ---

@@ -28,11 +28,13 @@ add_executable(game
 
     # core
     src/core/game.cpp
-    # src/core/state-manager.cpp
-    # src/core/game-state.cpp
+    src/core/state-manager.cpp
+    src/core/game-state.cpp
+    src/core/states/main-menu-state.cpp
 
     # global-settings
     src/global-settings/setting-manager.cpp
+    src/global-settings/color-palette-manager.cpp
 )
 
 # Link SFML and JSON libraries

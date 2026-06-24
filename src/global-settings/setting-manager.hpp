@@ -2,6 +2,7 @@
 #define SETTING_MANAGER_HPP
 
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <string>

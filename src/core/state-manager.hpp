@@ -6,7 +6,6 @@
 #include<memory>
 
 #include "game-state.hpp"
-#include "game.hpp"
 
 class StateManager {
 public:

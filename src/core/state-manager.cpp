@@ -1,4 +1,5 @@
 #include "state-manager.hpp"
+#include "game.hpp"
 
 void StateManager::draw() const {
     // get render window & pass them down the GameState object

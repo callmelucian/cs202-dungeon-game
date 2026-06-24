@@ -1,0 +1,35 @@
+{
+    "audio": {
+        "musicVolume": 65.0,
+        "sfxVolume": 80.0
+    },
+    "gameplay": {
+        "difficulty": "Normal"
+    },
+    "keyBindings": {
+        "MoveDown": 18,
+        "MoveLeft": 0,
+        "MoveRight": 3,
+        "MoveUp": 22,
+        "SwitchForm1": 26,
+        "SwitchForm2": 27,
+        "SwitchForm3": 28
+    },
+    "palette": {
+        "accent": "#1f8a3c",
+        "background": "#1b1819",
+        "disabled": "#555555",
+        "primary": "#8a1f3c",
+        "secondary": "#d83a56",
+        "success": "#4e9f3d",
+        "text": "#e4e4e4",
+        "warning": "#d83a56"
+    },
+    "video": {
+        "fullscreen": false,
+        "resolution": {
+            "height": 900,
+            "width": 1800
+        }
+    }
+}

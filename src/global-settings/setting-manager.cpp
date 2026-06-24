@@ -1,7 +1,9 @@
 #include "setting-manager.hpp"
+#include "color-palette-manager.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 SettingManager::SettingManager() {
     loadDefaults();
@@ -87,6 +89,10 @@ bool SettingManager::loadSettings(const std::string& filepath) {
                 keyBindings[it.key()] = static_cast<sf::Keyboard::Scancode>(it.value().get<int>());
             }
         }
+
+        if (j.contains("palette")) {
+            ColorPaletteManager::getInstance().load(j["palette"]);
+        }
     }
     catch (const std::exception& e) {
         std::cerr << "Failed to parse settings JSON: " << e.what() << "\n";
@@ -123,6 +129,10 @@ bool SettingManager::saveSettings(const std::string& filepath) {
         keys[action] = static_cast<int>(scancode);
     }
     j["keyBindings"] = keys;
+
+    nlohmann::json palJson = nlohmann::json::object();
+    ColorPaletteManager::getInstance().save(palJson);
+    j["palette"] = palJson;
 
     file << j.dump(4);
     return true;
