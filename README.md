@@ -83,80 +83,91 @@ cs202-dungeon-game/
     ├── main.cpp                   # Application entry point
     │
     ├── core/                      # Core Game Loop & State Management
-    │   ├── Game.hpp / Game.cpp             # Game Singleton
-    │   ├── StateManager.hpp / StateManager.cpp # Manages GameState stack
-    │   ├── GameState.hpp / GameState.cpp   # Abstract base state
+    │   ├── game.hpp / game.cpp             # Game Singleton
+    │   ├── state-manager.hpp / state-manager.cpp # Manages GameState stack
+    │   ├── game-state.hpp / game-state.cpp   # Abstract base state
     │   └── states/                         # Concrete game states
-    │       ├── MainMenuState.hpp / MainMenuState.cpp
-    │       ├── GameplayState.hpp / GameplayState.cpp
-    │       ├── PauseState.hpp / PauseState.cpp
-    │       ├── GameOverState.hpp / GameOverState.cpp
-    │       └── VictoryState.hpp / VictoryState.cpp
+    │       ├── main-menu-state.hpp / main-menu-state.cpp
+    │       ├── gameplay-state.hpp / gameplay-state.cpp
+    │       ├── pause-state.hpp / pause-state.cpp
+    │       ├── game-over-state.hpp / game-over-state.cpp
+    │       └── victory-state.hpp / victory-state.cpp
     │
-    ├── global-setings/                  # Engine Subsystem Managers (Singletons)
-    │   ├── SettingManager.hpp / SettingManager.cpp # Manages settings & keybinds
-    │   ├── AssetManager.hpp / AssetManager.cpp     # Resource cache (textures, fonts)
-    │   ├── SoundManager.hpp / SoundManager.cpp     # Controls sound and music
-    │   ├── SaveLoadManager.hpp / SaveLoadManager.cpp # Serialization of RunState
-    │   └── MapLoader.hpp / MapLoader.cpp           # Parses map & wave configuration files
+    ├── global-settings/                 # Engine Subsystem Managers (Singletons)
+    │   ├── setting-manager.hpp / setting-manager.cpp # Manages settings & keybinds
+    │   ├── asset-manager.hpp / asset-manager.cpp     # Resource cache (textures, fonts)
+    │   ├── sound-manager.hpp / sound-manager.cpp     # Controls sound and music
+    │   ├── save-load-manager.hpp / save-load-manager.cpp # Serialization of RunState
+    │   ├── map-loader.hpp / map-loader.cpp           # Parses map & wave configuration files
+    │   └── color-palette-manager.hpp / color-palette-manager.cpp # ColorPalette, ColorPaletteObserver, ColorPaletteManager singleton
     │
     ├── entities/                  # Entity Hierarchy & Action Strategy
-    │   ├── Character.hpp / Character.cpp           # Abstract base character
-    │   ├── Player.hpp / Player.cpp                 # Player class (owns forms)
+    │   ├── character.hpp / character.cpp           # Abstract base character
+    │   ├── player.hpp / player.cpp                 # Player class (owns forms)
     │   │
     │   ├── forms/                 # Player Forms (Strategy Pattern)
-    │   │   ├── PlayerForm.hpp / PlayerForm.cpp     # Strategy base
-    │   │   ├── WraithbladeForm.hpp / WraithbladeForm.cpp
-    │   │   ├── VoidcasterForm.hpp / VoidcasterForm.cpp
-    │   │   └── IronshellForm.hpp / IronshellForm.cpp
+    │   │   ├── player-form.hpp / player-form.cpp     # Strategy base
+    │   │   ├── wraithblade-form.hpp / wraithblade-form.cpp
+    │   │   ├── voidcaster-form.hpp / voidcaster-form.cpp
+    │   │   └── ironshell-form.hpp / ironshell-form.cpp
     │   │
     │   ├── effects/               # Status Effects (Decorator/Strategy)
-    │   │   ├── StatusEffect.hpp / StatusEffect.cpp # Status effect base
-    │   │   ├── BurnedEffect.hpp / BurnedEffect.cpp
-    │   │   ├── ParalyzedEffect.hpp / ParalyzedEffect.cpp
-    │   │   └── SlowedEffect.hpp / SlowedEffect.cpp
+    │   │   ├── status-effect.hpp / status-effect.cpp # Status effect base
+    │   │   ├── burned-effect.hpp / burned-effect.cpp
+    │   │   ├── paralyzed-effect.hpp / paralyzed-effect.cpp
+    │   │   └── slowed-effect.hpp / slowed-effect.cpp
     │   │
     │   └── enemies/               # Enemies & AI (Factory Pattern)
-    │       ├── Enemy.hpp / Enemy.cpp               # Abstract enemy base
-    │       ├── EnemyFactory.hpp / EnemyFactory.cpp # Instantiates enemies from enums
-    │       ├── WaterloggedScribe.hpp / WaterloggedScribe.cpp
-    │       ├── BoneSprinter.hpp / BoneSprinter.cpp
-    │       ├── ShardSoldier.hpp / ShardSoldier.cpp
-    │       ├── SiegeWraith.hpp / SiegeWraith.cpp
-    │       ├── ChoirHusk.hpp / ChoirHusk.cpp
-    │       ├── ResonantCantor.hpp / ResonantCantor.cpp
-    │       ├── HushedStalker.hpp / HushedStalker.cpp
-    │       ├── MirrorBearer.hpp / MirrorBearer.cpp
-    │       ├── VoidShunter.hpp / VoidShunter.cpp
-    │       ├── SarcophagusWarden.hpp / SarcophagusWarden.cpp
-    │       └── BossMalachar.hpp / BossMalachar.cpp
+    │       ├── enemy.hpp / enemy.cpp               # Abstract enemy base
+    │       ├── enemy-factory.hpp / enemy-factory.cpp # Instantiates enemies from enums
+    │       ├── waterlogged-scribe.hpp / waterlogged-scribe.cpp
+    │       ├── bone-sprinter.hpp / bone-sprinter.cpp
+    │       ├── shard-soldier.hpp / shard-soldier.cpp
+    │       ├── siege-wraith.hpp / siege-wraith.cpp
+    │       ├── choir-husk.hpp / choir-husk.cpp
+    │       ├── resonant-cantor.hpp / resonant-cantor.cpp
+    │       ├── hushed-stalker.hpp / hushed-stalker.cpp
+    │       ├── mirror-bearer.hpp / mirror-bearer.cpp
+    │       ├── void-shunter.hpp / void-shunter.cpp
+    │       ├── sarcophagus-warden.hpp / sarcophagus-warden.cpp
+    │       └── boss-malachar.hpp / boss-malachar.cpp
     │
     ├── chambers/                  # Rooms and Level Layouts (Factory Pattern)
-    │   ├── Chamber.hpp / Chamber.cpp               # Abstract base chamber
-    │   ├── ChamberFactory.hpp / ChamberFactory.cpp # Instantiates chambers from config
-    │   ├── ProtectChamber.hpp / ProtectChamber.cpp
-    │   ├── PreventChamber.hpp / PreventChamber.cpp
-    │   ├── GauntletChamber.hpp / GauntletChamber.cpp
-    │   ├── MidChamber.hpp / MidChamber.cpp
-    │   └── BossChamber.hpp / BossChamber.cpp
+    │   ├── chamber.hpp / chamber.cpp               # Abstract base chamber
+    │   ├── chamber-factory.hpp / chamber-factory.cpp # Instantiates chambers from config
+    │   ├── protect-chamber.hpp / protect-chamber.cpp
+    │   ├── prevent-chamber.hpp / prevent-chamber.cpp
+    │   ├── gauntlet-chamber.hpp / gauntlet-chamber.cpp
+    │   ├── mid-chamber.hpp / mid-chamber.cpp
+    │   └── boss-chamber.hpp / boss-chamber.cpp
     │
     ├── economy/                   # Items & Echoes (Observer Pattern)
-    │   ├── Item.hpp / Item.cpp                     # Abstract collectible base
-    │   ├── EchoFragment.hpp / EchoFragment.cpp     # Collectible shard
-    │   ├── EchoObserver.hpp                        # Observer interface
-    │   ├── Echo.hpp / Echo.cpp                     # Subject base class for Echoes
+    │   ├── item.hpp / item.cpp                     # Abstract collectible base
+    │   ├── echo-fragment.hpp / echo-fragment.cpp     # Collectible shard
+    │   ├── echo-observer.hpp                        # Observer interface
+    │   ├── echo.hpp / echo.cpp                     # Subject base class for Echoes
     │   └── echoes/                                 # Concrete Echoes
-    │       ├── ClarityShard.hpp / ClarityShard.cpp
-    │       ├── MarrowEcho.hpp / MarrowEcho.cpp
-    │       ├── HollowBell.hpp / HollowBell.cpp
-    │       ├── ResonanceCore.hpp / ResonanceCore.cpp
-    │       └── ObsidianKey.hpp / ObsidianKey.cpp
+    │       ├── clarity-shard.hpp / clarity-shard.cpp
+    │       ├── marrow-echo.hpp / marrow-echo.cpp
+    │       ├── hollow-bell.hpp / hollow-bell.cpp
+    │       ├── resonance-core.hpp / resonance-core.cpp
+    │       └── obsidian-key.hpp / obsidian-key.cpp
     │
-    ├── ui/                        # User Interface Elements
-    │   └── HUD.hpp / HUD.cpp                       # Concrete EchoObserver, displays stats
+    ├── ui/                        # UI Framework & Game HUD
+    │   ├── base/                                   # Core UI abstractions
+    │   │   ├── component.hpp / component.cpp       # Abstract Component base (sf::Drawable + ColorPaletteObserver)
+    │   │   └── text.hpp / text.cpp                 # SFML sf::Text wrapper
+    │   ├── containers/                             # Layout containers
+    │   │   ├── container.hpp / container.cpp       # Abstract Container base (holds children)
+    │   │   ├── vertical-box.hpp / vertical-box.cpp # Vertical layout with Left/Center/Right alignment
+    │   │   └── horizontal-box.hpp / horizontal-box.cpp # Horizontal layout with Top/Middle/Bottom alignment
+    │   └── widgets/                               # Interactive leaf widgets
+    │       ├── button.hpp / button.cpp             # Clickable button with hover/press states
+    │       ├── slider.hpp / slider.cpp             # Draggable value slider
+    │       └── text-input.hpp / text-input.cpp     # Single-line text field with cursor
     │
     └── utils/                     # Shared Structs, Helpers & Math
-        ├── CollisionSolver.hpp / CollisionSolver.cpp # Stateless static helper for geometry/physics
-        ├── RunState.hpp                            # Serialisable state struct (data only)
-        └── Common.hpp                              # Shared Enums (EchoType, FormType, etc.)
+        ├── collision-solver.hpp / collision-solver.cpp # Stateless static helper for geometry/physics
+        ├── run-state.hpp                            # Serialisable state struct (data only)
+        └── common.hpp                              # Shared Enums (EchoType, FormType, etc.)
 ```
