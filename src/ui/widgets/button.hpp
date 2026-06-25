@@ -6,7 +6,7 @@
 #include <functional>
 #include <string>
 
-namespace ui {
+namespace UI {
 
 class Button : public Component {
 public:
@@ -29,7 +29,7 @@ private:
     void centerText();
     void updateVisuals();
 
-    ui::Text buttonText;
+    UI::Text buttonText;
     sf::RectangleShape backgroundShape;
     std::function<void()> onClick;
     

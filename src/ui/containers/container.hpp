@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace ui {
+namespace UI {
 
 class Container : public Component {
 public:

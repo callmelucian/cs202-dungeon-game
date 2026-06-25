@@ -6,7 +6,7 @@
 #include <functional>
 #include <string>
 
-namespace ui {
+namespace UI {
 
 class TextInput : public Component {
 public:
@@ -38,8 +38,8 @@ private:
     void updateVisuals();
 
     sf::RectangleShape backgroundShape;
-    ui::Text textDisplay;
-    ui::Text placeholderDisplay;
+    UI::Text textDisplay;
+    UI::Text placeholderDisplay;
     sf::RectangleShape cursorLine;
 
     std::string content;

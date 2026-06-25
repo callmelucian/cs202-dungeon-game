@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "../../global-settings/color-palette-manager.hpp"
 
-namespace ui {
+namespace UI {
 
 class Component : public sf::Drawable, public ColorPaletteObserver {
 public:

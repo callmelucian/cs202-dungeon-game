@@ -4,7 +4,7 @@
 #include "../base/component.hpp"
 #include <functional>
 
-namespace ui {
+namespace UI {
 
 class Slider : public Component {
 public:

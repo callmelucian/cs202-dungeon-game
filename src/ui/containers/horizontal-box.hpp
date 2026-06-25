@@ -3,7 +3,7 @@
 
 #include "container.hpp"
 
-namespace ui {
+namespace UI {
 
 class HorizontalBox : public Container {
 public:

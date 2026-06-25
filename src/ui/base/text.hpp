@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-namespace ui {
+namespace UI {
 
 class Text : public sf::Drawable {
 public:
