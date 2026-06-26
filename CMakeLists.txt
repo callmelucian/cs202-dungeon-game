@@ -34,6 +34,7 @@ add_executable(game
 
     # global-settings
     src/global-settings/setting-manager.cpp
+    src/global-settings/sound-manager.cpp
     src/global-settings/color-palette-manager.cpp
     src/global-settings/asset-manager.cpp
 )
