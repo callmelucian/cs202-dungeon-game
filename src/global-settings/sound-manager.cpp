@@ -10,7 +10,10 @@ SoundManager& SoundManager::getInstance() {
 }
 
 bool SoundManager::loadSound(const std::string& name, const std::string& filepath) {
-    if (_soundBuffers.find(name) != _soundBuffers.end()) return true;
+    if (_soundBuffers.find(name) != _soundBuffers.end()) {
+        std::cerr << "SoundManager: Sound " << name << " is already loaded.\n";
+        return true;
+    }
 
     auto buffer = std::make_unique<sf::SoundBuffer>();
     if (buffer->loadFromFile(filepath)) {
@@ -18,7 +21,7 @@ bool SoundManager::loadSound(const std::string& name, const std::string& filepat
         return true;
     }
 
-    std::cerr << "SoundManager: Failed to load sound '" << name << "' from '" << filepath << "'\n";
+    std::cerr << "SoundManager: Failed to load sound " << name << " from " << filepath << "\n";
     return false;
 }
 
