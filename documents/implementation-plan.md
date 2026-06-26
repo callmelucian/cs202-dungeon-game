@@ -42,7 +42,7 @@ A complete class diagram modeling these dependencies is available in [architectu
   - [ ] Planning on easy-to-use UI framework classes and color palette management.
 
 * **Developer B (Resource & System Managers)**
-  - [ ] Implement `AssetManager` singleton caching textures, fonts, and shaders.
+  - [ ] Implement `AssetManager` singleton caching textures, fonts.
   - [ ] Implement `SoundManager` singleton controlling background music streams and sound buffers.
   - [ ] Implement `SaveLoadManager` singleton with `saveGame(RunState&)` and `loadGame() → RunState` interfaces; keep it decoupled from map data (that is `MapLoader`'s job).
   - [ ] Define the `RunState` struct (fields: `currentLevel`, `currentChamber`, `map<EchoType, EchoOutcome> echoOutcomes`, `playerHP`, `activeForm`, per-form Momentum floats, `collectTimeReduction`, `special1MomentumThreshold`, `foretellActive`, `foretellPhase1`). This struct is used by every subsequent system and must exist before Week 2 work begins.

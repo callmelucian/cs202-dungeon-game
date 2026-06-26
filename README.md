@@ -58,6 +58,9 @@ Once built, run the executable generated in the output directory:
 - Folder structure: Every new files created must follow the proposed folder structure below, if any new files not included in the plan are needed, update the folder structure and notify the team.
 - Branching: For big modules with low-depency develop it on a separate branch and create a pull request later.
 - Register files into CMake: To register a new `.cpp` file into CMake so it compiles everytime we run `cmake --build build`, go to [CMakeLists.txt](CMakeLists.txt), find the `add_executable` function starting from line 17. Then add the absolute path of the new `.cpp` file onto the list.
+- Memory Safety & RAII: No raw `new` and `delete`. Use smart pointers (`std::unique_ptr` by default). Wrap external resources in RAII wrapper classes or load them via `AssetManager`.
+- Naming Conventions: File names are lowercase-with-hyphens. Classes/structs are PascalCase. Functions/variables are camelCase. Class member variables prefix with `_` (e.g., `_position`). Constants/Macros are UPPERCASE_WITH_UNDERSCORES.
+- Class Design & Code Modularity: Use `const` for getter methods. Use virtual destructors for polymorphic classes. Use `.hpp` and `#ifndef` guards (not `#pragma once`). Keep `#include` statements restricted to `.cpp` files when possible by using forward declarations. Avoid `auto` in high dependency modules. Use STL algorithms instead of manual loops.
 
 ## Proposed folder structure
 
