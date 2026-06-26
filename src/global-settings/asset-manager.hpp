@@ -7,9 +7,6 @@
 #include <memory>
 #include <stdexcept>
 
-/*
- * @brief Singleton class to cache and manage textures, fonts, and shaders.
- */
 class AssetManager {
 public:
     static AssetManager& getInstance();
