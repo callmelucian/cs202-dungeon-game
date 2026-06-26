@@ -90,6 +90,7 @@ package "Global Settings" {
         - music : sf::Music
         - SoundManager()
         + {static} getInstance() : SoundManager&
+        + loadSound(name : std::string, filepath : std::string) : bool
         + playSound(name : std::string) : void
         + playMusic(filepath : std::string, loop : bool) : void
         + stopMusic() : void

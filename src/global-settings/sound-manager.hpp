@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <optional>
 
 class SoundManager {
 public:
@@ -16,16 +17,20 @@ public:
     SoundManager(SoundManager&&) = delete;
     SoundManager& operator=(SoundManager&&) = delete;
 
+    bool loadSound(const std::string& name, const std::string& filepath);
     void playSound(const std::string& name);
     void playMusic(const std::string& filepath, bool loop);
     void stopMusic();
 
 private:
-    SoundManager() = default;
+    SoundManager();
     ~SoundManager() = default;
 
     std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> _soundBuffers;
     sf::Music _music;
+
+    static const size_t MAX_SOUNDS = 32;
+    std::vector<std::optional<sf::Sound>> _soundPool;
 };
 
 #endif // SOUND_MANAGER_HPP
