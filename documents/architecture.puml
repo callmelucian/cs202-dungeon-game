@@ -102,7 +102,7 @@ package "Global Settings" {
         + loadGame(filepath : std::string, player : Player&, levelNum : int&, chamberNum : int&, echoes : std::vector<Echo*>&) : bool
     }
 
-    struct ColorPalette {
+    class ColorPalette <<struct>> {
         + primary : sf::Color
         + secondary : sf::Color
         + background : sf::Color
