@@ -37,6 +37,14 @@ add_executable(game
     src/global-settings/sound-manager.cpp
     src/global-settings/color-palette-manager.cpp
     src/global-settings/asset-manager.cpp
+
+    # ui
+    src/ui/base/component.cpp
+    src/ui/base/text.cpp
+    src/ui/containers/container.cpp
+    src/ui/widgets/button.cpp
+    src/ui/widgets/slider.cpp
+    src/ui/widgets/text-input.cpp
 )
 
 # Link SFML and JSON libraries

@@ -6,51 +6,46 @@
 
 namespace UI {
 
+// Draggable horizontal track-and-thumb value slider widget
 class Slider : public Component {
 public:
-    Slider(float minVal = 0.0f, float maxVal = 100.0f, float initialVal = 50.0f, const sf::Vector2f& size = {200.0f, 30.0f});
+    Slider(float minValue, float maxValue, float initialValue);
+    virtual ~Slider();
 
-    void setPosition(const sf::Vector2f& pos) override;
-    void setSize(const sf::Vector2f& sz) override;
+    void draw(sf::RenderTarget& target) const override;
+    void handleEvent(const sf::Event& event) override;
+    void update(float dt) override;
+    void onColorPaletteChanged(const ColorPalette& palette) override;
+    void computeSize(sf::Vector2f availableSize) override;
+    void setPosition(sf::Vector2f pos) override;
 
-    void setRange(float minVal, float maxVal);
-    void setValue(float val);
     float getValue() const;
+    void setValue(float newValue);
 
-    void setOnValueChanged(const std::function<void(float)>& callback);
+    float getMinValue() const;
+    float getMaxValue() const;
+    void setRange(float minVal, float maxVal);
 
-    bool handleEvent(const sf::Event& event) override;
-
-protected:
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    void updateColors(const ColorPalette& palette) override;
+    void setOnValueChanged(std::function<void(float)> callback);
 
 private:
-    void updateLayout();
-    void updateVisuals();
-
-    sf::RectangleShape trackShape;
-    sf::RectangleShape filledTrackShape;
-    sf::RectangleShape thumbShape;
-
     float minValue;
     float maxValue;
-    float currentValue;
-    bool isDragging;
-    bool isHovered;
+    float value;
 
-    float trackHeight;
-    float thumbWidth;
-    float thumbHeight;
+    bool dragging;
+    float dragOffset;
 
-    std::function<void(float)> onValueChanged;
+    sf::RectangleShape trackShape;
+    sf::RectangleShape thumbShape;
 
-    sf::Color trackColor;
-    sf::Color filledColor;
-    sf::Color thumbNormalColor;
-    sf::Color thumbHoverColor;
+    std::function<void(float)> onValueChangedCallback;
+
+    float getThumbPixelOffset() const;
+    float getValueFromOffset(float pixelOffset) const;
+    bool isPointInThumb(sf::Vector2f point) const;
 };
 
-} // namespace ui
+} // namespace UI
 
 #endif // SLIDER_HPP

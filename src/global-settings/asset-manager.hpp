@@ -26,8 +26,8 @@ private:
     AssetManager() = default;
     ~AssetManager() = default;
 
-    std::unordered_map<std::string, std::unique_ptr<sf::Texture>> _textures;
-    std::unordered_map<std::string, std::unique_ptr<sf::Font>> _fonts;
+    std::unordered_map<std::string, std::unique_ptr<sf::Texture>> textures;
+    std::unordered_map<std::string, std::unique_ptr<sf::Font>> fonts;
 };
 
 #endif // ASSET_MANAGER_HPP

@@ -138,79 +138,104 @@ package "Global Settings" {
 package "UI Framework" {
 
     abstract class Component << ColorPaletteObserver >> {
+        # parent : Component*
         # position : sf::Vector2f
         # size : sf::Vector2f
-        + setPosition(pos : const sf::Vector2f&) : void
-        + setSize(sz : const sf::Vector2f&) : void
-        + getGlobalBounds() : sf::FloatRect
-        + {abstract} handleEvent(event : const sf::Event&) : bool
-        + update(deltaTime : float) : void
-        # {abstract} updateColors(palette : const ColorPalette&) : void
+        # modeX : SizeMode
+        # modeY : SizeMode
+        # fixedWidth : float
+        # fixedHeight : float
+        # marginTop : float
+        # marginBottom : float
+        # marginLeft : float
+        # marginRight : float
+        + {abstract} draw(target : sf::RenderTarget&) : void
+        + {abstract} handleEvent(event : const sf::Event&) : void
+        + {abstract} update(dt : float) : void
+        + {abstract} onColorPaletteChanged(palette : const ColorPalette&) : void
+        + {abstract} computeSize(availableSize : sf::Vector2f) : void
+        + {abstract} setPosition(pos : sf::Vector2f) : void
     }
 
     class Text {
-        + Text(string : const std::string&, font : const sf::Font&, characterSize : unsigned int)
-        + setString(string : const std::string&) : void
-        + setFont(font : const sf::Font&) : void
+        - text : sf::Text
+        - fontKey : std::string
+        + Text(fontKey : std::string_view, characterSize : unsigned int)
+        + setString(str : const sf::String&) : void
+        + setCharacterSize(size : unsigned int) : void
         + setFillColor(color : const sf::Color&) : void
-        + setPosition(position : const sf::Vector2f&) : void
-        + getGlobalBounds() : sf::FloatRect
+        + getUnderlyingText() : const sf::Text&
     }
 
     class Container {
-        # children : std::vector<std::shared_ptr<Component>>
-        + addComponent(child : const std::shared_ptr<Component>&) : void
-        + clear() : void
-        + handleEvent(event : const sf::Event&) : bool
-        + update(deltaTime : float) : void
+        # children : std::vector<std::unique_ptr<Component>>
+        # paddingTop : float
+        # paddingBottom : float
+        # paddingLeft : float
+        # paddingRight : float
+        # alignmentX : AlignmentX
+        # alignmentY : AlignmentY
+        # isRootNode : bool
+        + addChild(child : std::unique_ptr<Component>) : Component*
+        + getChildren() : const std::vector<std::unique_ptr<Component>>&
+        + setPadding(top : float, bottom : float, left : float, right : float) : void
     }
 
-    class VerticalBox {
-        + VerticalBox(align : Alignment, spacing : float, padding : float)
-        + setAlignment(align : Alignment) : void
-        + setSpacing(space : float) : void
-        + setPadding(pad : float) : void
-        + layout() : void
+    class FlexBox<Axis> {
+        - spacing : float
+        - distribution : Distribution
+        - overflow : Overflow
     }
 
-    class HorizontalBox {
-        + HorizontalBox(align : Alignment, spacing : float, padding : float)
-        + setAlignment(align : Alignment) : void
-        + setSpacing(space : float) : void
-        + setPadding(pad : float) : void
-        + layout() : void
-    }
+    class HorizontalBox << typedef >>
+    class VerticalBox << typedef >>
 
     class Button {
-        + Button(labelText : const std::string&, font : const sf::Font&, size : const sf::Vector2f&)
-        + setOnClick(callback : const std::function<void()>&) : void
-        + setString(labelText : const std::string&) : void
-        + handleEvent(event : const sf::Event&) : bool
+        - state : ButtonState
+        - label : std::unique_ptr<Text>
+        - backgroundShape : sf::RectangleShape
+        - onClickCallback : std::function<void()>
+        - onPressedCallback : std::function<void()>
+        + setOnClick(callback : std::function<void()>) : void
+        + setOnPressed(callback : std::function<void()>) : void
+        + setLabelText(labelText : const sf::String&) : void
     }
 
     class Slider {
-        + Slider(minVal : float, maxVal : float, initialVal : float, size : const sf::Vector2f&)
-        + setRange(minVal : float, maxVal : float) : void
-        + setValue(val : float) : void
+        - minValue : float
+        - maxValue : float
+        - value : float
+        - dragging : bool
+        - dragOffset : float
+        - trackShape : sf::RectangleShape
+        - thumbShape : sf::RectangleShape
+        - onValueChangedCallback : std::function<void(float)>
         + getValue() : float
-        + setOnValueChanged(callback : const std::function<void(float)>&) : void
-        + handleEvent(event : const sf::Event&) : bool
+        + setValue(newValue : float) : void
+        + setOnValueChanged(callback : std::function<void(float)>) : void
     }
 
     class TextInput {
-        + TextInput(placeholderText : const std::string&, font : const sf::Font&, size : const sf::Vector2f&)
-        + setContent(text : const std::string&) : void
-        + getContent() : const std::string&
-        + setOnTextChanged(callback : const std::function<void(const std::string&)>&) : void
-        + setOnEnterPressed(callback : const std::function<void()>&) : void
-        + handleEvent(event : const sf::Event&) : bool
-        + update(deltaTime : float) : void
+        - textDisplay : std::unique_ptr<Text>
+        - backgroundShape : sf::RectangleShape
+        - cursorShape : sf::RectangleShape
+        - cursorIndex : std::uint32_t
+        - hasFocus : bool
+        - blinkTimer : float
+        - blinkDuration : float
+        - cursorVisible : bool
+        - onTextChangedCallback : std::function<void(const sf::String&)>
+        - onEnterPressedCallback : std::function<void()>
+        + setTextString(str : const sf::String&) : void
+        + getTextString() : sf::String
+        + setKeyboardFocus(focus : bool) : void
     }
 
     Component ..|> ColorPaletteObserver
     Container --|> Component
-    VerticalBox --|> Container
-    HorizontalBox --|> Container
+    FlexBox --|> Container
+    HorizontalBox --|> FlexBox
+    VerticalBox --|> FlexBox
     Button --|> Component
     Slider --|> Component
     TextInput --|> Component

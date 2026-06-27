@@ -1,44 +1,56 @@
 #ifndef TEXT_HPP
 #define TEXT_HPP
 
-#include <SFML/Graphics.hpp>
+#include "component.hpp"
 #include <string>
+#include <string_view>
 
 namespace UI {
 
-class Text : public sf::Drawable {
+// Wrapper component around sf::Text sourcing fonts dynamically from AssetManager
+class Text : public Component {
 public:
-    Text();
-    Text(const std::string& string, const sf::Font& font, unsigned int characterSize = 30);
+    explicit Text(std::string_view fontKey, unsigned int characterSize = 16);
+    virtual ~Text();
 
-    void setString(const std::string& string);
-    std::string getString() const;
+    void draw(sf::RenderTarget& target) const override;
+    void handleEvent(const sf::Event& event) override;
+    void update(float dt) override;
+    void onColorPaletteChanged(const ColorPalette& palette) override;
+    void computeSize(sf::Vector2f availableSize) override;
+    void setPosition(sf::Vector2f pos) override;
 
-    void setFont(const sf::Font& font);
-    const sf::Font* getFont() const;
+    void setString(const sf::String& str);
+    const sf::String& getString() const;
 
     void setCharacterSize(unsigned int size);
     unsigned int getCharacterSize() const;
 
+    void setLineSpacing(float spacingFactor);
+    float getLineSpacing() const;
+
+    void setLetterSpacing(float spacingFactor);
+    float getLetterSpacing() const;
+
+    void setStyle(std::uint32_t style);
+    std::uint32_t getStyle() const;
+
     void setFillColor(const sf::Color& color);
-    const sf::Color& getFillColor() const;
+    sf::Color getFillColor() const;
 
-    void setPosition(const sf::Vector2f& position);
-    const sf::Vector2f& getPosition() const;
+    void setOutlineColor(const sf::Color& color);
+    sf::Color getOutlineColor() const;
 
-    sf::FloatRect getLocalBounds() const;
-    sf::FloatRect getGlobalBounds() const;
+    void setOutlineThickness(float thickness);
+    float getOutlineThickness() const;
 
-    sf::Text& getUnderlyingText();
     const sf::Text& getUnderlyingText() const;
-
-protected:
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
     sf::Text text;
+    std::string fontKey;
 };
 
-} // namespace ui
+} // namespace UI
 
 #endif // TEXT_HPP

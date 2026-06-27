@@ -4,44 +4,53 @@
 #include "../base/component.hpp"
 #include "../base/text.hpp"
 #include <functional>
-#include <string>
+#include <memory>
 
 namespace UI {
 
-class Button : public Component {
-public:
-    Button(const std::string& labelText, const sf::Font& font, const sf::Vector2f& size = {200.0f, 50.0f});
-
-    void setPosition(const sf::Vector2f& pos) override;
-    void setSize(const sf::Vector2f& sz) override;
-
-    void setOnClick(const std::function<void()>& callback);
-    void setString(const std::string& labelText);
-    std::string getString() const;
-
-    bool handleEvent(const sf::Event& event) override;
-
-protected:
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    void updateColors(const ColorPalette& palette) override;
-
-private:
-    void centerText();
-    void updateVisuals();
-
-    UI::Text buttonText;
-    sf::RectangleShape backgroundShape;
-    std::function<void()> onClick;
-    
-    bool isHovered;
-    bool isPressed;
-
-    sf::Color normalColor;
-    sf::Color hoverColor;
-    sf::Color pressedColor;
-    sf::Color textColor;
+enum class ButtonState {
+    Normal,
+    Hovered,
+    Pressed,
+    Disabled
 };
 
-} // namespace ui
+// Clickable button widget rendering background shape and a nested Text label
+class Button : public Component {
+public:
+    Button(const sf::String& labelText, std::string_view fontKey, unsigned int characterSize = 16);
+    virtual ~Button();
+
+    void draw(sf::RenderTarget& target) const override;
+    void handleEvent(const sf::Event& event) override;
+    void update(float dt) override;
+    void onColorPaletteChanged(const ColorPalette& palette) override;
+    void computeSize(sf::Vector2f availableSize) override;
+    void setPosition(sf::Vector2f pos) override;
+
+    void setOnClick(std::function<void()> callback);
+    void setOnPressed(std::function<void()> callback);
+
+    void setLabelText(const sf::String& labelText);
+    sf::String getLabelText() const;
+
+    ButtonState getState() const;
+    void setState(ButtonState newState);
+    bool isEnabled() const;
+    void setEnabled(bool enable);
+
+private:
+    ButtonState state;
+    std::unique_ptr<Text> label;
+    sf::RectangleShape backgroundShape;
+    
+    std::function<void()> onClickCallback;
+    std::function<void()> onPressedCallback;
+
+    bool isInside(sf::Vector2f point) const;
+    void updateStyle();
+};
+
+} // namespace UI
 
 #endif // BUTTON_HPP

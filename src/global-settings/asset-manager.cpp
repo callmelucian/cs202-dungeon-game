@@ -7,11 +7,11 @@ AssetManager& AssetManager::getInstance() {
 }
 
 bool AssetManager::loadTexture(const std::string& name, const std::string& filename) {
-    if (_textures.find(name) != _textures.end()) return true;
+    if (textures.find(name) != textures.end()) return true;
     
     auto texture = std::make_unique<sf::Texture>();
     if (texture->loadFromFile(filename)) {
-        _textures[name] = std::move(texture);
+        textures[name] = std::move(texture);
         return true;
     }
     
@@ -20,18 +20,18 @@ bool AssetManager::loadTexture(const std::string& name, const std::string& filen
 }
 
 const sf::Texture& AssetManager::getTexture(const std::string& name) const {
-    auto it = _textures.find(name);
-    if (it != _textures.end()) return *(it->second);
+    auto it = textures.find(name);
+    if (it != textures.end()) return *(it->second);
     
     throw std::runtime_error("AssetManager: Texture '" + name + "' not found. Did you forget to load it?");
 }
 
 bool AssetManager::loadFont(const std::string& name, const std::string& filename) {
-    if (_fonts.find(name) != _fonts.end()) return true;
+    if (fonts.find(name) != fonts.end()) return true;
     
     auto font = std::make_unique<sf::Font>();
     if (font->openFromFile(filename)) {
-        _fonts[name] = std::move(font);
+        fonts[name] = std::move(font);
         return true;
     }
     
@@ -40,8 +40,8 @@ bool AssetManager::loadFont(const std::string& name, const std::string& filename
 }
 
 const sf::Font& AssetManager::getFont(const std::string& name) const {
-    auto it = _fonts.find(name);
-    if (it != _fonts.end()) return *(it->second);
+    auto it = fonts.find(name);
+    if (it != fonts.end()) return *(it->second);
     
     throw std::runtime_error("AssetManager: Font '" + name + "' not found. Did you forget to load it?");
 }

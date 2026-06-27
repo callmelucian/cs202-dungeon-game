@@ -4,63 +4,55 @@
 #include "../base/component.hpp"
 #include "../base/text.hpp"
 #include <functional>
-#include <string>
+#include <memory>
 
 namespace UI {
 
+// Single-line editable text input widget with blinking keyboard cursor
 class TextInput : public Component {
 public:
-    TextInput(const std::string& placeholderText, const sf::Font& font, const sf::Vector2f& size = {300.0f, 40.0f});
+    TextInput(std::string_view fontKey, unsigned int characterSize = 16, const sf::String& defaultText = "");
+    virtual ~TextInput();
 
-    void setPosition(const sf::Vector2f& pos) override;
-    void setSize(const sf::Vector2f& sz) override;
+    void draw(sf::RenderTarget& target) const override;
+    void handleEvent(const sf::Event& event) override;
+    void update(float dt) override;
+    void onColorPaletteChanged(const ColorPalette& palette) override;
+    void computeSize(sf::Vector2f availableSize) override;
+    void setPosition(sf::Vector2f pos) override;
 
-    void setPlaceholder(const std::string& placeholderText);
-    void setContent(const std::string& text);
-    const std::string& getContent() const;
+    void setTextString(const sf::String& str);
+    sf::String getTextString() const;
 
-    void setOnTextChanged(const std::function<void(const std::string&)>& callback);
-    void setOnEnterPressed(const std::function<void()>& callback);
-    void setMaxLength(size_t len);
+    bool hasKeyboardFocus() const;
+    void setKeyboardFocus(bool focus);
 
-    bool isFocusedInput() const;
-    void setFocused(bool focus);
+    void setOnTextChanged(std::function<void(const sf::String&)> callback);
+    void setOnEnterPressed(std::function<void()> callback);
 
-    void update(float deltaTime) override;
-    bool handleEvent(const sf::Event& event) override;
-
-protected:
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    void updateColors(const ColorPalette& palette) override;
+    void setBlinkDuration(float durationInSeconds);
+    float getBlinkDuration() const;
 
 private:
-    void updateLayout();
-    void updateVisuals();
-
+    std::unique_ptr<Text> textDisplay;
     sf::RectangleShape backgroundShape;
-    UI::Text textDisplay;
-    UI::Text placeholderDisplay;
-    sf::RectangleShape cursorLine;
-
-    std::string content;
-    std::string placeholder;
-    size_t maxLength;
-    bool isFocused;
+    sf::RectangleShape cursorShape;
     
-    float cursorBlinkTimer;
-    bool showCursor;
+    std::uint32_t cursorIndex;
+    bool hasFocus;
+    
+    float blinkTimer;
+    float blinkDuration;
+    bool cursorVisible;
 
-    std::function<void(const std::string&)> onTextChanged;
-    std::function<void()> onEnterPressed;
+    std::function<void(const sf::String&)> onTextChangedCallback;
+    std::function<void()> onEnterPressedCallback;
 
-    sf::Color bgColor;
-    sf::Color normalOutlineColor;
-    sf::Color focusedOutlineColor;
-    sf::Color textColor;
-    sf::Color placeholderColor;
-    sf::Color cursorColor;
+    std::uint32_t getIndexFromX(float xOffset) const;
+    void updateCursorPosition();
+    bool isInside(sf::Vector2f point) const;
 };
 
-} // namespace ui
+} // namespace UI
 
 #endif // TEXT_INPUT_HPP
