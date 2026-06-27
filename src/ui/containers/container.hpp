@@ -33,6 +33,10 @@ public:
     void setPosition(sf::Vector2f pos) override;
 
     Component* addChild(std::unique_ptr<Component> child);
+
+    template <typename T, typename... Args>
+    T* createChild(Args&&... args);
+
     const std::vector<std::unique_ptr<Component>>& getChildren() const;
 
     float getPaddingTop() const;
@@ -68,5 +72,7 @@ protected:
 };
 
 } // namespace UI
+
+#include "container.tpp"
 
 #endif // CONTAINER_HPP

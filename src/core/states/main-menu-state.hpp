@@ -9,15 +9,22 @@
 #include <iostream>
 #include <memory>
 
+// UI Framework
+#include "../../ui/base/component.hpp"
+#include "../../ui/containers/container.hpp"
+#include "../../ui/widgets/button.hpp"
+#include "../../ui/widgets/slider.hpp"
+#include "../../ui/widgets/text-input.hpp"
+
 class MainMenuState : public GameState {
 public:
     MainMenuState(StateManager& manager);
 
-    void update(float deltaTime) override;
-    void draw(sf::RenderWindow& window) const override;
-    void handleEvents(sf::Event& event) override;
-
 private:
+    UI::HorizontalBox *mainMenu;
+    UI::Button *button1, *button2, *button3;
+    UI::Slider *slider;
+    UI::TextInput *textInput;
 };
 
 #endif // MAIN_MENU_STATE

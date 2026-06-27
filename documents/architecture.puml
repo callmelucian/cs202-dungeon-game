@@ -177,6 +177,7 @@ package "UI Framework" {
         # alignmentY : AlignmentY
         # isRootNode : bool
         + addChild(child : std::unique_ptr<Component>) : Component*
+        + createChild<T>(args...) : T*
         + getChildren() : const std::vector<std::unique_ptr<Component>>&
         + setPadding(top : float, bottom : float, left : float, right : float) : void
     }

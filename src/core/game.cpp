@@ -1,16 +1,27 @@
 #include "game.hpp"
 #include "../global-settings/color-palette-manager.hpp"
+#include "../global-settings/asset-manager.hpp"
+
 #include "states/main-menu-state.hpp"
 
 Game::Game() : running(false) {
     // setup context settings
     contextSettings.antiAliasingLevel = 8;
 
-    // get global settings
+    // get singleton instances
     SettingManager &settings = SettingManager::getInstance();
+    AssetManager &assets = AssetManager::getInstance();
+
+    // get global settings
     settings.loadSettings("settings.json");
     unsigned width = settings.getWindowWidth();
     unsigned height = settings.getWindowHeight();
+
+    // load assets via assets manager
+    assets.loadFont("regular", "assets\\typeface\\GoogleSansCode-Regular.ttf");
+    assets.loadFont("italic", "assets\\typeface\\GoogleSansCode-Italic.ttf");
+    assets.loadFont("bold", "assets\\typeface\\GoogleSansCode-Bold.ttf");
+    assets.loadFont("bold-italic", "assets\\typeface\\GoogleSansCode-BoldItalic.ttf");
 
     // setup render window
     renderWindow.create(
