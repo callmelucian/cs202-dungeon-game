@@ -33,13 +33,13 @@ A complete class diagram modeling these dependencies is available in [architectu
 ### Week 1: Core Engine, States & Asset Management (22.06 -> 27.06)
 
 * **Developer A (Core Engine & States)**
-  - [ ] Configure CMakeLists.txt to fetch and link dependencies (SFML/Raylib, etc.).
-  - [ ] Implement `Game` singleton wrapper (`getInstance()`, `run()`, game loop, window setup).
-  - [ ] Implement `SettingManager` singleton storing/loading game volumes, resolution, and control binds.
-  - [ ] Implement stack-based `StateManager` (`pushState()`, `popState()`, `changeState()`).
-  - [ ] Implement abstract `GameState` class interface.
-  - [ ] Create concrete states: `MainMenuState` (Start, Load, Exit buttons), `GameplayState` (black window placeholder), `PauseState` (overlay), `GameOverState` (receives `EndingType` enum to display Ending A, B, or C).
-  - [ ] Planning on easy-to-use UI framework classes and color palette management.
+  - [x] Configure CMakeLists.txt to fetch and link dependencies (SFML/Raylib, etc.).
+  - [x] Implement `Game` singleton wrapper (`getInstance()`, `run()`, game loop, window setup).
+  - [x] Implement `SettingManager` singleton storing/loading game volumes, resolution, and control binds.
+  - [x] Implement stack-based `StateManager` (`pushState()`, `popState()`, `changeState()`).
+  - [x] Implement abstract `GameState` class interface.
+  - [x] Create concrete states: `MainMenuState` (Start, Load, Exit buttons), `GameplayState` (black window placeholder), `PauseState` (overlay), `GameOverState` (receives `EndingType` enum to display Ending A, B, or C).
+  - [x] Planning on easy-to-use UI framework classes and color palette management.
 
 * **Developer B (Resource & System Managers)**
   - [x] Implement `AssetManager` singleton caching textures, fonts.
@@ -49,11 +49,11 @@ A complete class diagram modeling these dependencies is available in [architectu
   - [ ] Integrate default UI font and basic game sound assets (menu navigation sounds, placeholder music).
 
 * **AI-Assisted Tasks (Boilerplate & Utilities)**
-  - [ ] Boilerplate CMake file configuration.
-  - [ ] Standard C++ singleton template class structure.
-  - [ ] Window initialization and rendering loop boilerplate.
+  - [x] Boilerplate CMake file configuration.
+  - [x] Standard C++ singleton template class structure.
+  - [x] Window initialization and rendering loop boilerplate.
   - [ ] `EndingType`, `EchoType`, `EchoOutcome`, `FormType`, `ChamberType`, and `EnemyType` enum definitions (one shared header; all other classes include it).
-  - [ ] Implement reusable UI framework classes under folder `ui` inside namespace `UI` (`Component`, `Label`, `Button`, `ProgressBar`, `Slider`, `Panel`) & color palette management.
+  - [x] Implement reusable UI framework classes under folder `ui` inside namespace `UI` (`Component`, `Label`, `Button`, `ProgressBar`, `Slider`, `Container`) & color palette management.
  
 * **Week 1 Deliverable**: A compilable game window that boots into a working Main Menu. Clicking "Start" transitions to the gameplay screen; pressing Escape opens/closes the pause state; clicking "Exit" performs a clean shutdown.
 
