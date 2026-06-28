@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include "../global-settings/color-palette-manager.hpp"
 #include "../global-settings/asset-manager.hpp"
+#include <filesystem>
 
 #include "states/main-menu-state.hpp"
 
@@ -12,16 +13,23 @@ Game::Game() : running(false) {
     SettingManager &settings = SettingManager::getInstance();
     AssetManager &assets = AssetManager::getInstance();
 
+    // helper to resolve path
+    auto resolvePath = [](const std::string& path) {
+        if (std::filesystem::exists(path)) return path;
+        if (std::filesystem::exists("../" + path)) return "../" + path;
+        return path;
+    };
+
     // get global settings
-    settings.loadSettings("settings.json");
+    settings.loadSettings(resolvePath("settings.json"));
     unsigned width = settings.getWindowWidth();
     unsigned height = settings.getWindowHeight();
 
     // load assets via assets manager
-    assets.loadFont("regular", "assets\\typeface\\GoogleSansCode-Regular.ttf");
-    assets.loadFont("italic", "assets\\typeface\\GoogleSansCode-Italic.ttf");
-    assets.loadFont("bold", "assets\\typeface\\GoogleSansCode-Bold.ttf");
-    assets.loadFont("bold-italic", "assets\\typeface\\GoogleSansCode-BoldItalic.ttf");
+    assets.loadFont("regular", resolvePath("assets/typeface/GoogleSansCode-Regular.ttf"));
+    assets.loadFont("italic", resolvePath("assets/typeface/GoogleSansCode-Italic.ttf"));
+    assets.loadFont("bold", resolvePath("assets/typeface/GoogleSansCode-Bold.ttf"));
+    assets.loadFont("bold-italic", resolvePath("assets/typeface/GoogleSansCode-BoldItalic.ttf"));
 
     // setup render window
     renderWindow.create(
