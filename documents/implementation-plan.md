@@ -46,7 +46,7 @@ A complete class diagram modeling these dependencies is available in [architectu
   - [x] Implement `SoundManager` singleton controlling background music streams and sound buffers.
   - [x] Implement `SaveLoadManager` singleton with `saveGame(RunState&)` and `loadGame() → RunState` interfaces; keep it decoupled from map data (that is `MapLoader`'s job).
   - [x] Define the `RunState` struct (fields: `currentLevel`, `currentChamber`, `map<EchoType, EchoOutcome> echoOutcomes`, `playerHP`, `activeForm`, per-form Momentum floats, `collectTimeReduction`, `special1MomentumThreshold`, `special2MomentumThreshold`,  `foretellActive`, `foretellPhase1`). This struct is used by every subsequent system and must exist before Week 2 work begins.
-  - [ ] Integrate default UI font and basic game sound assets (menu navigation sounds, placeholder music).
+  - [x] Integrate default UI font and basic game sound assets (menu navigation sounds, placeholder music).
 
 * **AI-Assisted Tasks (Boilerplate & Utilities)**
   - [x] Boilerplate CMake file configuration.
