@@ -40,6 +40,7 @@ add_executable(game
     src/global-settings/sound-manager.cpp
     src/global-settings/color-palette-manager.cpp
     src/global-settings/asset-manager.cpp
+    src/global-settings/save-load-manager.cpp
 
     # ui
     src/ui/base/component.cpp
