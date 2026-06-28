@@ -37,6 +37,7 @@ struct RunState {
     // Modifiers from Echoes
     float collectTimeReduction = 1.0f; // Clarity Shard multiplier
     float special1MomentumThreshold = 50.0f; // Hollow Bell threshold
+    float special2MomentumThreshold = 100.0f; // Resonance Core threshold
 
     // Foretell flags from Clarity Shard
     bool foretellActive = false;
