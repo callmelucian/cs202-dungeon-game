@@ -26,11 +26,11 @@ private:
     SoundManager();
     ~SoundManager() = default;
 
-    std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> _soundBuffers;
-    sf::Music _music;
+    std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> soundBuffers;
+    sf::Music music;
 
     static const size_t MAX_SOUNDS = 32;
-    std::vector<std::optional<sf::Sound>> _soundPool;
+    std::vector<std::optional<sf::Sound>> soundPool;
 };
 
 #endif // SOUND_MANAGER_HPP
