@@ -62,6 +62,40 @@ Once built, run the executable generated in the output directory:
 - Naming Conventions: File names are lowercase-with-hyphens. Classes/structs are PascalCase. Functions/variables are camelCase. Class member variables do not contain any prefixes. Constants/Macros are UPPERCASE_WITH_UNDERSCORES.
 - Class Design & Code Modularity: Use `const` for getter methods. Use virtual destructors for polymorphic classes. Use `.hpp` and `#ifndef` guards (not `#pragma once`). Keep `#include` statements restricted to `.cpp` files when possible by using forward declarations. Avoid `auto` in high dependency modules. Use STL algorithms instead of manual loops.
 
+## Save Data Format (`savegame.json`)
+
+The game uses `nlohmann/json` to serialize the `RunState` struct. The resulting save file is human-readable and stores enums as their underlying integer values.
+
+```json
+{
+    "currentLevel": 1,
+    "currentChamber": 1,
+    "echoOutcomes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+    },
+    "echoesStolen": 0,
+    "playerHP": 100.0,
+    "activeForm": 0,
+    "wraithbladeMomentum": 0.0,
+    "voidcasterMomentum": 0.0,
+    "ironshellMomentum": 0.0,
+    "collectTimeReduction": 1.0,
+    "special1MomentumThreshold": 50.0,
+    "special2MomentumThreshold": 100.0,
+    "foretellActive": false,
+    "foretellPhase1": false
+}
+```
+
+**Enum Mapping Reference:**
+- **`activeForm`**: `0` = WRAITHBLADE, `1` = VOIDCASTER, `2` = IRONSHELL
+- **`echoOutcomes` Keys**: `0` = MARROW, `1` = HOLLOW_BELL, `2` = CLARITY_SHARD, `3` = RESONANCE_CORE, `4` = OBSIDIAN_KEY
+- **`echoOutcomes` Values**: `0` = UNCOLLECTED, `1` = COLLECTED, `2` = STOLEN
+
 ## Proposed folder structure
 
 ```
