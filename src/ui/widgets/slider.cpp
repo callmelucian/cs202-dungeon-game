@@ -119,7 +119,7 @@ float Slider::getValue() const {
     return value;
 }
 
-void Slider::setValue(float newValue) {
+Slider* Slider::setValue(float newValue) {
     float clampedValue = std::max(minValue, std::min(maxValue, newValue));
     if (value != clampedValue) {
         value = clampedValue;
@@ -132,6 +132,7 @@ void Slider::setValue(float newValue) {
             onValueChangedCallback(value);
         }
     }
+    return this;
 }
 
 float Slider::getMinValue() const {
@@ -142,14 +143,16 @@ float Slider::getMaxValue() const {
     return maxValue;
 }
 
-void Slider::setRange(float minVal, float maxVal) {
+Slider* Slider::setRange(float minVal, float maxVal) {
     minValue = minVal;
     maxValue = maxVal;
     setValue(value); // Re-clamp and trigger changes if necessary
+    return this;
 }
 
-void Slider::setOnValueChanged(std::function<void(float)> callback) {
+Slider* Slider::setOnValueChanged(std::function<void(float)> callback) {
     onValueChangedCallback = callback;
+    return this;
 }
 
 float Slider::getThumbPixelOffset() const {

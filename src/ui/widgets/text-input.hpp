@@ -3,14 +3,27 @@
 
 #include "../base/component.hpp"
 #include "../base/text.hpp"
+#include "../base/SetterMixin.hpp"
 #include <functional>
 #include <memory>
 
 namespace UI {
 
 // Single-line editable text input widget with blinking keyboard cursor
-class TextInput : public Component {
+class TextInput : public Component, public SetterMixin<TextInput> {
 public:
+    using SetterMixin<TextInput>::setModeX;
+    using SetterMixin<TextInput>::setModeY;
+    using SetterMixin<TextInput>::setFixedWidth;
+    using SetterMixin<TextInput>::setFixedHeight;
+    using SetterMixin<TextInput>::setFixedSize;
+    using SetterMixin<TextInput>::setMarginTop;
+    using SetterMixin<TextInput>::setMarginBottom;
+    using SetterMixin<TextInput>::setMarginLeft;
+    using SetterMixin<TextInput>::setMarginRight;
+    using SetterMixin<TextInput>::setMargins;
+    using SetterMixin<TextInput>::setMargin;
+
     TextInput(std::string_view fontKey, unsigned int characterSize = 16, const sf::String& defaultText = "");
     virtual ~TextInput();
 
@@ -21,16 +34,16 @@ public:
     void computeSize(sf::Vector2f availableSize) override;
     void setPosition(sf::Vector2f pos) override;
 
-    void setTextString(const sf::String& str);
+    TextInput* setTextString(const sf::String& str);
     sf::String getTextString() const;
 
     bool hasKeyboardFocus() const;
-    void setKeyboardFocus(bool focus);
+    TextInput* setKeyboardFocus(bool focus);
 
-    void setOnTextChanged(std::function<void(const sf::String&)> callback);
-    void setOnEnterPressed(std::function<void()> callback);
+    TextInput* setOnTextChanged(std::function<void(const sf::String&)> callback);
+    TextInput* setOnEnterPressed(std::function<void()> callback);
 
-    void setBlinkDuration(float durationInSeconds);
+    TextInput* setBlinkDuration(float durationInSeconds);
     float getBlinkDuration() const;
 
 private:

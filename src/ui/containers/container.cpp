@@ -183,32 +183,63 @@ const std::vector<std::unique_ptr<Component>>& Container::getChildren() const {
     return children;
 }
 
+Container* Container::setChildDefaults(ChildDefaults defaults) {
+    defaultsStack.clear();
+    defaultsStack.push_back(defaults);
+    return this;
+}
+
+Container* Container::clearChildDefaults() {
+    defaultsStack.clear();
+    return this;
+}
+
+Container* Container::pushChildDefaults(ChildDefaults defaults) {
+    defaultsStack.push_back(defaults);
+    return this;
+}
+
+Container* Container::popChildDefaults() {
+    if (!defaultsStack.empty()) {
+        defaultsStack.pop_back();
+    }
+    return this;
+}
+
+std::optional<ChildDefaults> Container::activeChildDefaults() const {
+    if (defaultsStack.empty()) {
+        return std::nullopt;
+    }
+    return defaultsStack.back();
+}
+
 float Container::getPaddingTop() const { return paddingTop; }
-void Container::setPaddingTop(float padding) { paddingTop = padding; }
+Container* Container::setPaddingTop(float padding) { paddingTop = padding; return this; }
 
 float Container::getPaddingBottom() const { return paddingBottom; }
-void Container::setPaddingBottom(float padding) { paddingBottom = padding; }
+Container* Container::setPaddingBottom(float padding) { paddingBottom = padding; return this; }
 
 float Container::getPaddingLeft() const { return paddingLeft; }
-void Container::setPaddingLeft(float padding) { paddingLeft = padding; }
+Container* Container::setPaddingLeft(float padding) { paddingLeft = padding; return this; }
 
 float Container::getPaddingRight() const { return paddingRight; }
-void Container::setPaddingRight(float padding) { paddingRight = padding; }
+Container* Container::setPaddingRight(float padding) { paddingRight = padding; return this; }
 
-void Container::setPadding(float top, float bottom, float left, float right) {
+Container* Container::setPadding(float top, float bottom, float left, float right) {
     paddingTop = top;
     paddingBottom = bottom;
     paddingLeft = left;
     paddingRight = right;
+    return this;
 }
 
 AlignmentX Container::getAlignmentX() const { return alignmentX; }
-void Container::setAlignmentX(AlignmentX align) { alignmentX = align; }
+Container* Container::setAlignmentX(AlignmentX align) { alignmentX = align; return this; }
 
 AlignmentY Container::getAlignmentY() const { return alignmentY; }
-void Container::setAlignmentY(AlignmentY align) { alignmentY = align; }
+Container* Container::setAlignmentY(AlignmentY align) { alignmentY = align; return this; }
 
-void Container::setRoot(bool isRoot) { isRootNode = isRoot; }
+Container* Container::setRoot(bool isRoot) { isRootNode = isRoot; return this; }
 bool Container::isRoot() const { return isRootNode; }
 
 } // namespace UI

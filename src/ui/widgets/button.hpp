@@ -3,6 +3,7 @@
 
 #include "../base/component.hpp"
 #include "../base/text.hpp"
+#include "../base/SetterMixin.hpp"
 #include <functional>
 #include <memory>
 
@@ -16,8 +17,20 @@ enum class ButtonState {
 };
 
 // Clickable button widget rendering background shape and a nested Text label
-class Button : public Component {
+class Button : public Component, public SetterMixin<Button> {
 public:
+    using SetterMixin<Button>::setModeX;
+    using SetterMixin<Button>::setModeY;
+    using SetterMixin<Button>::setFixedWidth;
+    using SetterMixin<Button>::setFixedHeight;
+    using SetterMixin<Button>::setFixedSize;
+    using SetterMixin<Button>::setMarginTop;
+    using SetterMixin<Button>::setMarginBottom;
+    using SetterMixin<Button>::setMarginLeft;
+    using SetterMixin<Button>::setMarginRight;
+    using SetterMixin<Button>::setMargins;
+    using SetterMixin<Button>::setMargin;
+
     Button(const sf::String& labelText, std::string_view fontKey, unsigned int characterSize = 16);
     virtual ~Button();
 
@@ -28,16 +41,16 @@ public:
     void computeSize(sf::Vector2f availableSize) override;
     void setPosition(sf::Vector2f pos) override;
 
-    void setOnClick(std::function<void()> callback);
-    void setOnPressed(std::function<void()> callback);
+    Button* setOnClick(std::function<void()> callback);
+    Button* setOnPressed(std::function<void()> callback);
 
-    void setLabelText(const sf::String& labelText);
+    Button* setLabelText(const sf::String& labelText);
     sf::String getLabelText() const;
 
     ButtonState getState() const;
-    void setState(ButtonState newState);
+    Button* setState(ButtonState newState);
     bool isEnabled() const;
-    void setEnabled(bool enable);
+    Button* setEnabled(bool enable);
 
 private:
     ButtonState state;

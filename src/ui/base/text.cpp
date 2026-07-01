@@ -60,64 +60,72 @@ void Text::setPosition(sf::Vector2f pos) {
     text.setPosition(position - bounds.position);
 }
 
-void Text::setString(const sf::String& str) {
+Text* Text::setString(const sf::String& str) {
     text.setString(str);
+    return this;
 }
 
 const sf::String& Text::getString() const {
     return text.getString();
 }
 
-void Text::setCharacterSize(unsigned int size) {
+Text* Text::setCharacterSize(unsigned int size) {
     text.setCharacterSize(size);
+    return this;
 }
 
 unsigned int Text::getCharacterSize() const {
     return text.getCharacterSize();
 }
 
-void Text::setLineSpacing(float spacingFactor) {
+Text* Text::setLineSpacing(float spacingFactor) {
     text.setLineSpacing(spacingFactor);
+    return this;
 }
 
 float Text::getLineSpacing() const {
     return text.getLineSpacing();
 }
 
-void Text::setLetterSpacing(float spacingFactor) {
+Text* Text::setLetterSpacing(float spacingFactor) {
     text.setLetterSpacing(spacingFactor);
+    return this;
 }
 
 float Text::getLetterSpacing() const {
     return text.getLetterSpacing();
 }
 
-void Text::setStyle(std::uint32_t style) {
+Text* Text::setStyle(std::uint32_t style) {
     text.setStyle(style);
+    return this;
 }
 
 std::uint32_t Text::getStyle() const {
     return text.getStyle();
 }
 
-void Text::setFillColor(const sf::Color& color) {
+Text* Text::setFillColor(const sf::Color& color) {
     text.setFillColor(color);
+    return this;
 }
 
 sf::Color Text::getFillColor() const {
     return text.getFillColor();
 }
 
-void Text::setOutlineColor(const sf::Color& color) {
+Text* Text::setOutlineColor(const sf::Color& color) {
     text.setOutlineColor(color);
+    return this;
 }
 
 sf::Color Text::getOutlineColor() const {
     return text.getOutlineColor();
 }
 
-void Text::setOutlineThickness(float thickness) {
+Text* Text::setOutlineThickness(float thickness) {
     text.setOutlineThickness(thickness);
+    return this;
 }
 
 float Text::getOutlineThickness() const {

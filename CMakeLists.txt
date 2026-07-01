@@ -45,11 +45,13 @@ add_executable(game
     # ui
     src/ui/base/component.cpp
     src/ui/base/text.cpp
+    src/ui/base/SetterMixin.cpp
     src/ui/containers/container.cpp
     src/ui/containers/flex-box.cpp
     src/ui/widgets/button.cpp
     src/ui/widgets/slider.cpp
     src/ui/widgets/text-input.cpp
+    src/ui-test.cpp
 )
 
 # Link SFML and JSON libraries

@@ -193,10 +193,11 @@ void TextInput::setPosition(sf::Vector2f pos) {
     updateCursorPosition();
 }
 
-void TextInput::setTextString(const sf::String& str) {
+TextInput* TextInput::setTextString(const sf::String& str) {
     textDisplay->setString(str);
     cursorIndex = str.getSize();
     updateCursorPosition();
+    return this;
 }
 
 sf::String TextInput::getTextString() const {
@@ -207,7 +208,7 @@ bool TextInput::hasKeyboardFocus() const {
     return hasFocus;
 }
 
-void TextInput::setKeyboardFocus(bool focus) {
+TextInput* TextInput::setKeyboardFocus(bool focus) {
     if (hasFocus != focus) {
         hasFocus = focus;
         blinkTimer = 0.f;
@@ -217,18 +218,22 @@ void TextInput::setKeyboardFocus(bool focus) {
         const auto& palette = ColorPaletteManager::getInstance().getPalette();
         backgroundShape.setOutlineColor(hasFocus ? palette.secondary : palette.primary);
     }
+    return this;
 }
 
-void TextInput::setOnTextChanged(std::function<void(const sf::String&)> callback) {
+TextInput* TextInput::setOnTextChanged(std::function<void(const sf::String&)> callback) {
     onTextChangedCallback = callback;
+    return this;
 }
 
-void TextInput::setOnEnterPressed(std::function<void()> callback) {
+TextInput* TextInput::setOnEnterPressed(std::function<void()> callback) {
     onEnterPressedCallback = callback;
+    return this;
 }
 
-void TextInput::setBlinkDuration(float durationInSeconds) {
+TextInput* TextInput::setBlinkDuration(float durationInSeconds) {
     blinkDuration = durationInSeconds;
+    return this;
 }
 
 float TextInput::getBlinkDuration() const {

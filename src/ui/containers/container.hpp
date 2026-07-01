@@ -4,6 +4,7 @@
 #include "../base/component.hpp"
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace UI {
 
@@ -17,6 +18,21 @@ enum class AlignmentY {
     Top,
     Middle,
     Bottom
+};
+
+struct Margin {
+    float top = 0.f;
+    float bottom = 0.f;
+    float left = 0.f;
+    float right = 0.f;
+};
+
+struct ChildDefaults {
+    std::optional<SizeMode> modeX;
+    std::optional<SizeMode> modeY;
+    std::optional<float>    fixedWidth;
+    std::optional<float>    fixedHeight;
+    std::optional<Margin>   margin;
 };
 
 // Container class managing a collection of children and resolving layout constraints
@@ -39,22 +55,28 @@ public:
 
     const std::vector<std::unique_ptr<Component>>& getChildren() const;
 
+    Container* setChildDefaults(ChildDefaults defaults);
+    Container* clearChildDefaults();
+    Container* pushChildDefaults(ChildDefaults defaults);
+    Container* popChildDefaults();
+    std::optional<ChildDefaults> activeChildDefaults() const;
+
     float getPaddingTop() const;
-    void setPaddingTop(float padding);
+    Container* setPaddingTop(float padding);
     float getPaddingBottom() const;
-    void setPaddingBottom(float padding);
+    Container* setPaddingBottom(float padding);
     float getPaddingLeft() const;
-    void setPaddingLeft(float padding);
+    Container* setPaddingLeft(float padding);
     float getPaddingRight() const;
-    void setPaddingRight(float padding);
-    void setPadding(float top, float bottom, float left, float right);
+    Container* setPaddingRight(float padding);
+    Container* setPadding(float top, float bottom, float left, float right);
 
     AlignmentX getAlignmentX() const;
-    void setAlignmentX(AlignmentX align);
+    Container* setAlignmentX(AlignmentX align);
     AlignmentY getAlignmentY() const;
-    void setAlignmentY(AlignmentY align);
+    Container* setAlignmentY(AlignmentY align);
 
-    void setRoot(bool isRoot);
+    Container* setRoot(bool isRoot);
     bool isRoot() const;
 
 protected:
@@ -69,6 +91,8 @@ protected:
     AlignmentY alignmentY;
     
     bool isRootNode;
+
+    std::vector<ChildDefaults> defaultsStack;
 };
 
 } // namespace UI

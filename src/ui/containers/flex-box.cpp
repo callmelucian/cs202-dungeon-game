@@ -19,8 +19,9 @@ float FlexBox<MainAxis>::getSpacing() const {
 }
 
 template <Axis MainAxis>
-void FlexBox<MainAxis>::setSpacing(float gap) {
+FlexBox<MainAxis>* FlexBox<MainAxis>::setSpacing(float gap) {
     spacing = gap;
+    return this;
 }
 
 template <Axis MainAxis>
@@ -29,8 +30,9 @@ Distribution FlexBox<MainAxis>::getDistribution() const {
 }
 
 template <Axis MainAxis>
-void FlexBox<MainAxis>::setDistribution(Distribution dist) {
+FlexBox<MainAxis>* FlexBox<MainAxis>::setDistribution(Distribution dist) {
     distribution = dist;
+    return this;
 }
 
 template <Axis MainAxis>
@@ -39,8 +41,9 @@ Overflow FlexBox<MainAxis>::getOverflow() const {
 }
 
 template <Axis MainAxis>
-void FlexBox<MainAxis>::setOverflow(Overflow flow) {
+FlexBox<MainAxis>* FlexBox<MainAxis>::setOverflow(Overflow flow) {
     overflow = flow;
+    return this;
 }
 
 template <Axis MainAxis>

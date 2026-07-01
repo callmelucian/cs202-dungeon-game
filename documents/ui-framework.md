@@ -10,6 +10,8 @@
 2. [Abstract Base — `UI::Component`](#2-abstract-base--uicomponent)
    - 2.1 [Sizing Modes](#21-sizing-modes)
    - 2.2 [Color Palette Observer](#22-color-palette-observer)
+   - 2.3 [Draw Order](#23-draw-order)
+   - 2.4 [Fluent Setter Interface (CRTP)](#24-fluent-setter-interface-crtp)
 3. [Text — `UI::Text`](#3-text--uitext)
 4. [Widgets](#4-widgets)
    - 4.1 [`UI::Button`](#41-uibutton)
@@ -21,6 +23,7 @@
      - 5.1.2 [Alignment](#512-alignment)
      - 5.1.3 [Box Model — Padding & Margin](#513-box-model--padding--margin)
      - 5.1.4 [Size Resolution Algorithm](#514-size-resolution-algorithm)
+     - 5.1.5 [Child Defaults (Default Child Styling)](#515-child-defaults-default-child-styling)
    - 5.2 [`UI::FlexBox`](#52-uiflexbox)
      - 5.2.1 [Template Instantiation & Type Aliases](#521-template-instantiation--type-aliases)
      - 5.2.2 [Main-Axis Distribution (no `Expanded` children)](#522-main-axis-distribution-no-expanded-children)
@@ -119,6 +122,57 @@ void Container::draw(sf::RenderTarget& target) const {
         child->draw(target);
 }
 ```
+
+---
+
+### 2.4 Fluent Setter Interface (CRTP)
+
+Every mutating setter on `UI::Component` and its subclasses returns a pointer to the **most-derived type**, not `Component*`, so a chain of setter calls never loses access to subclass-specific methods. This is what allows a single-expression construction pattern:
+
+```cpp
+button1 = mainMenu->createChild<UI::Button>("Button-1", "regular")
+    ->setModeY(UI::SizeMode::Expanded)
+    ->setFixedWidth(200.f);
+```
+
+**Why not just covariant virtual returns?** A virtual `Component* setModeX(...)` can only covariantly return `Derived*` if `Derived` itself overrides that function — which would mean re-implementing every inherited setter in every widget purely to fix up its return type. Instead, the framework inserts a CRTP (Curiously Recurring Template Pattern) mixin between `Component` and each concrete type:
+
+```cpp
+template <typename Derived>
+class SetterMixin {
+public:
+    Derived* setModeX(SizeMode mode) { self()->modeX = mode; return self(); }
+    Derived* setModeY(SizeMode mode) { self()->modeY = mode; return self(); }
+    Derived* setFixedWidth(float w)  { self()->fixedW = w;   return self(); }
+    Derived* setFixedHeight(float h) { self()->fixedH = h;   return self(); }
+    Derived* setPadding(float t, float r, float b, float l) { self()->applyPadding(t, r, b, l); return self(); }
+    Derived* setMargin(float t, float r, float b, float l)  { self()->applyMargin(t, r, b, l);  return self(); }
+
+private:
+    Derived* self() { return static_cast<Derived*>(this); }
+};
+```
+
+Concrete types derive from both `Component` (for the virtual interface) and `SetterMixin<Derived>` (for self-typed, chainable setters):
+
+```cpp
+class Button : public Component, public SetterMixin<Button> {
+public:
+    Button* setAlignmentY(UI::AlignmentY a) { alignmentY = a; return this; } // widget-specific, still chainable
+    // ...
+};
+
+template <Axis MainAxis>
+class FlexBox : public Container, public SetterMixin<FlexBox<MainAxis>> {
+public:
+    FlexBox* setDistribution(Distribution d) { distribution = d; return this; }
+    // ...
+};
+```
+
+Because `createChild<T>(...)` already returns `T*`, the first link in any chain is always the fully concrete type, so mixin setters and widget-specific setters can be freely interleaved in one expression.
+
+> **Rule for framework authors:** any new setter added to `Component`, `Container`, or a widget should return `Derived*` — via the mixin, or `this` for setters declared directly on the concrete class — rather than `void`. Only setters invoked from generic code that holds nothing but a `Component*` (rare) may keep a `Component*` return.
 
 ---
 
@@ -330,6 +384,62 @@ function resolveContained(container C):
 ```
 
 > `UI::Container` stacks children on top of each other (no automatic layout flow). `UI::FlexBox` (§5.2) applies directional layout.
+
+---
+
+### 5.1.5 Child Defaults (Default Child Styling)
+
+`UI::Container` (and by inheritance `UI::FlexBox`) can carry a **default child style**, applied to every child at the moment it is created via `createChild<T>()`, before the caller receives the pointer. This targets the common case where most or all children of one container share the same `modeX`/`modeY`/fixed-size configuration, and removes the copy/paste risk of a per-child setter call being duplicated onto the wrong variable or forgotten entirely.
+
+**Data structure:**
+
+```cpp
+struct ChildDefaults {
+    std::optional<SizeMode> modeX;
+    std::optional<SizeMode> modeY;
+    std::optional<float>    fixedWidth;
+    std::optional<float>    fixedHeight;
+    std::optional<Margin>   margin;
+};
+```
+
+Only fields that hold a value are applied; `std::nullopt` fields leave the child's own constructor-assigned defaults untouched. Restricting `ChildDefaults` to properties declared on `UI::Component` (§2 Data Members) plus `fixedWidth`/`fixedHeight` keeps it applicable across heterogeneous children — a `Button` and a `Slider` don't share a concrete type, but both understand `modeX`, `modeY`, and a fixed width.
+
+**Container API:**
+
+| Method | Effect |
+|---|---|
+| `setChildDefaults(ChildDefaults)` | Replaces the container's current default; applies to every child created **after** this call |
+| `clearChildDefaults()` | Equivalent to `setChildDefaults({})` — no defaults applied to subsequently created children |
+| `pushChildDefaults(ChildDefaults)` / `popChildDefaults()` | *(stack-based variant)* Scopes a default to a block of `createChild` calls, then restores the previous default — mirrors `ImGui::PushStyleVar` / `PopStyleVar` for containers whose children fall into more than one default-style group |
+
+**Application order inside `createChild<T>(Args&&... args)`:**
+
+```
+function createChild<T>(args...):
+    child = make_unique<T>(forward(args)...)          // 1. construct with widget-specific ctor args
+    applyDefaults(child.get(), this->childDefaults)    // 2. apply the container's ChildDefaults, field by field
+    children.push_back(move(child))
+    return children.back().get()                       // 3. caller may chain further setters here —
+                                                         //    these run after step 2 and override it
+```
+
+Because step 3 happens strictly after step 2, an explicit fluent setter at the call site always wins over the container's default; defaults establish a baseline, not a lock:
+
+```cpp
+mainMenu->setChildDefaults({ .modeY = SizeMode::Expanded, .fixedWidth = 200.f });
+
+button1   = mainMenu->createChild<UI::Button>("Button-1", "regular");     // inherits Expanded / 200.f
+button2   = mainMenu->createChild<UI::Button>("Button-2", "regular");     // inherits Expanded / 200.f
+button3   = mainMenu->createChild<UI::Button>("Button-3", "regular");     // inherits Expanded / 200.f
+slider    = mainMenu->createChild<UI::Slider>(0.f, 100.f, 50.f);          // inherits Expanded / 200.f
+textInput = mainMenu->createChild<UI::TextInput>("regular");              // inherits Expanded / 200.f — no setter to miss
+
+wideButton = mainMenu->createChild<UI::Button>("Wide", "regular")
+    ->setFixedWidth(320.f);                                                // explicit override wins
+```
+
+> **Scope:** widget-specific properties (e.g. `Slider`'s value range) are never defaulted — those must still be passed as constructor arguments or set explicitly per child. `ChildDefaults` only ever touches the size/layout fields listed above.
 
 ---
 

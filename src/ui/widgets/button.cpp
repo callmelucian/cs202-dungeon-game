@@ -123,21 +123,24 @@ void Button::setPosition(sf::Vector2f pos) {
     label->setPosition(labelPos);
 }
 
-void Button::setOnClick(std::function<void()> callback) {
+Button* Button::setOnClick(std::function<void()> callback) {
     onClickCallback = callback;
+    return this;
 }
 
-void Button::setOnPressed(std::function<void()> callback) {
+Button* Button::setOnPressed(std::function<void()> callback) {
     onPressedCallback = callback;
+    return this;
 }
 
-void Button::setLabelText(const sf::String& labelText) {
+Button* Button::setLabelText(const sf::String& labelText) {
     label->setString(labelText);
     label->computeSize(size);
     // Center it again after string changes
     sf::Vector2f labelSize = label->getSize();
     sf::Vector2f labelPos = position + (size - labelSize) / 2.f;
     label->setPosition(labelPos);
+    return this;
 }
 
 sf::String Button::getLabelText() const {
@@ -148,16 +151,17 @@ ButtonState Button::getState() const {
     return state;
 }
 
-void Button::setState(ButtonState newState) {
+Button* Button::setState(ButtonState newState) {
     state = newState;
     updateStyle();
+    return this;
 }
 
 bool Button::isEnabled() const {
     return state != ButtonState::Disabled;
 }
 
-void Button::setEnabled(bool enable) {
+Button* Button::setEnabled(bool enable) {
     if (enable) {
         if (state == ButtonState::Disabled) {
             state = ButtonState::Normal;
@@ -168,6 +172,7 @@ void Button::setEnabled(bool enable) {
         state = ButtonState::Disabled;
         updateStyle();
     }
+    return this;
 }
 
 bool Button::isInside(sf::Vector2f point) const {

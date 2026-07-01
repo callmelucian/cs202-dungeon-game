@@ -2,13 +2,26 @@
 #define SLIDER_HPP
 
 #include "../base/component.hpp"
+#include "../base/SetterMixin.hpp"
 #include <functional>
 
 namespace UI {
 
 // Draggable horizontal track-and-thumb value slider widget
-class Slider : public Component {
+class Slider : public Component, public SetterMixin<Slider> {
 public:
+    using SetterMixin<Slider>::setModeX;
+    using SetterMixin<Slider>::setModeY;
+    using SetterMixin<Slider>::setFixedWidth;
+    using SetterMixin<Slider>::setFixedHeight;
+    using SetterMixin<Slider>::setFixedSize;
+    using SetterMixin<Slider>::setMarginTop;
+    using SetterMixin<Slider>::setMarginBottom;
+    using SetterMixin<Slider>::setMarginLeft;
+    using SetterMixin<Slider>::setMarginRight;
+    using SetterMixin<Slider>::setMargins;
+    using SetterMixin<Slider>::setMargin;
+
     Slider(float minValue, float maxValue, float initialValue);
     virtual ~Slider();
 
@@ -20,13 +33,13 @@ public:
     void setPosition(sf::Vector2f pos) override;
 
     float getValue() const;
-    void setValue(float newValue);
+    Slider* setValue(float newValue);
 
     float getMinValue() const;
     float getMaxValue() const;
-    void setRange(float minVal, float maxVal);
+    Slider* setRange(float minVal, float maxVal);
 
-    void setOnValueChanged(std::function<void(float)> callback);
+    Slider* setOnValueChanged(std::function<void(float)> callback);
 
 private:
     float minValue;
