@@ -48,12 +48,12 @@ Once built, run the executable generated in the output directory:
 - Linking: Use the header guards instead of `#pragma once`, the keyword for header guards is the filename. Example of header guards:
 
 ```cpp
-#ifndef GAME
-#define GAME
+#ifndef GAME_HPP
+#define GAME_HPP
 
 // implementation of src/core/game.hpp
 
-#endif // GAME
+#endif // GAME_HPP
 ```
 - Folder structure: Every new files created must follow the proposed folder structure below, if any new files not included in the plan are needed, update the folder structure and notify the team.
 - Branching: For big modules with low-depency develop it on a separate branch and create a pull request later.

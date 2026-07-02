@@ -261,6 +261,8 @@ package "Entities" {
         + applyStatusEffect(effect : std::unique_ptr<StatusEffect>) : void
         + getPosition() : sf::Vector2f
         + getHp() : float
+        + getSpeed() : float
+        + setSpeed(speed : float) : void
     }
 
     abstract class StatusEffect {

@@ -52,6 +52,11 @@ add_executable(game
     src/ui/widgets/slider.cpp
     src/ui/widgets/text-input.cpp
     src/ui-test.cpp
+
+    # entities
+    src/entities/status-effect.cpp
+    src/entities/character.cpp
+    src/entities/effects/slowed-effect.cpp
 )
 
 # Link SFML and JSON libraries
