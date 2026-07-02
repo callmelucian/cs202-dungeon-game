@@ -57,6 +57,12 @@ add_executable(game
     src/entities/status-effect.cpp
     src/entities/character.cpp
     src/entities/effects/slowed-effect.cpp
+    src/entities/effects/paralyzed-effect.cpp
+    src/entities/player-form.cpp
+    src/entities/player.cpp
+    src/entities/forms/wraithblade-form.cpp
+    src/entities/forms/voidcaster-form.cpp
+    src/entities/forms/ironshell-form.cpp
 )
 
 # Link SFML and JSON libraries

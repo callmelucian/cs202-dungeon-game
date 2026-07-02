@@ -1,5 +1,7 @@
 #include "character.hpp"
 #include <algorithm>
+#include <cstdlib>
+#include "effects/paralyzed-effect.hpp"
 
 Character::Character()
     : position(0.0f, 0.0f),
@@ -25,9 +27,7 @@ void Character::update(float deltaTime) {
 
 void Character::takeDamage(float amount) {
     hp -= amount;
-    if (hp < 0.0f) {
-        hp = 0.0f;
-    }
+    if (hp < 0.0f) hp = 0.0f;
 }
 
 void Character::applyStatusEffect(std::unique_ptr<StatusEffect> effect) {
@@ -61,3 +61,16 @@ float Character::getSpeed() const {
 void Character::setSpeed(float speed) {
     moveSpeed = speed;
 }
+
+bool Character::canAct() {
+    for (const auto& effect : statusEffects) {
+        if (auto paralyzed = dynamic_cast<ParalyzedEffect*>(effect.get())) {
+            float roll = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+            if (roll < paralyzed->getMissChance()) {
+                return false; // Action fails!
+            }
+        }
+    }
+    return true; // Action succeeds
+}
+

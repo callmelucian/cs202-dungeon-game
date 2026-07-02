@@ -20,6 +20,7 @@ public:
     float getHp() const;
     float getSpeed() const;
     void setSpeed(float speed);
+    bool canAct();
 
 protected:
     sf::Vector2f position, velocity;

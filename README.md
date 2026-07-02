@@ -141,15 +141,15 @@ cs202-dungeon-game/
     ├── entities/                  # Entity Hierarchy & Action Strategy
     │   ├── character.hpp / character.cpp           # Abstract base character
     │   ├── player.hpp / player.cpp                 # Player class (owns forms)
+    │   ├── status-effect.hpp / status-effect.cpp   # Status effect base
+    │   ├── player-form.hpp / player-form.cpp       # Strategy base
     │   │
     │   ├── forms/                 # Player Forms (Strategy Pattern)
-    │   │   ├── player-form.hpp / player-form.cpp     # Strategy base
     │   │   ├── wraithblade-form.hpp / wraithblade-form.cpp
     │   │   ├── voidcaster-form.hpp / voidcaster-form.cpp
     │   │   └── ironshell-form.hpp / ironshell-form.cpp
     │   │
     │   ├── effects/               # Status Effects (Decorator/Strategy)
-    │   │   ├── status-effect.hpp / status-effect.cpp # Status effect base
     │   │   ├── burned-effect.hpp / burned-effect.cpp
     │   │   ├── paralyzed-effect.hpp / paralyzed-effect.cpp
     │   │   └── slowed-effect.hpp / slowed-effect.cpp

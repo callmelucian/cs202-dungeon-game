@@ -1,5 +1,5 @@
-#ifndef BURNED_EFFECT
-#define BURNED_EFFECT
+#ifndef BURNED_EFFECT_HPP
+#define BURNED_EFFECT_HPP
 
 #include "../status-effect.hpp"
 #include "../character.hpp"
@@ -17,4 +17,4 @@ private:
     float damagePerTick, countDown;
 };
 
-#endif BURNED_EFFECT
+#endif BURNED_EFFECT_HPP

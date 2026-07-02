@@ -290,13 +290,13 @@ package "Entities" {
         - wraithbladeMomentum : float
         - voidcasterMomentum : float
         - ironshellMomentum : float
-        + switchForm(newForm : PlayerFormType) : void
-        + gainMomentum(amount : float, form : PlayerFormType) : void
-        + triggerSpecial(abilityIndex : int) : void
+        + switchForm(newForm : FormType) : void
+        + gainMomentum(amount : float, form : FormType) : void
+        + triggerSpecial(abilityIndex : int, chamber : Chamber&) : void
     }
 
     abstract class PlayerForm << Strategy >> {
-        # formType : PlayerFormType
+        # formType : FormType
         # baseSpeed : float
         # baseDamage : float
         + {abstract} attack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
