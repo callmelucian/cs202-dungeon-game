@@ -24,7 +24,7 @@ public:
 private:
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
-    UI::HorizontalBox* buttonBox;
+    UI::VerticalBox* buttonBox;
     UI::Button* pauseButton;
     UI::Button* quitButton;
 };

@@ -12,6 +12,7 @@ public:
     void pushState (std::unique_ptr<GameState> state);
     void popState();
     void changeState (std::unique_ptr<GameState> state);
+    void clearAndSetState (std::unique_ptr<GameState> state);
     void update (float deltaTime);
     void draw() const;
     void handleEvents (sf::Event &event);
@@ -22,7 +23,8 @@ private:
     enum class ActionType {
         Push,
         Pop,
-        Change
+        Change,
+        ClearAndSet
     };
 
     struct PendingAction {

@@ -1,5 +1,5 @@
-#ifndef PAUSE_STATE
-#define PAUSE_STATE
+#ifndef SETTING_STATE
+#define SETTING_STATE
 
 #include <SFML/Graphics.hpp>
 #include "../game-state.hpp"
@@ -14,20 +14,23 @@
 #include "../../ui/containers/container.hpp"
 #include "../../ui/containers/flex-box.hpp"
 #include "../../ui/widgets/button.hpp"
+#include "../../ui/widgets/slider.hpp"
 #include "../../ui/base/text.hpp"
 
-// PauseState: Represents the overlay menu shown when the game is paused, allowing the player to resume or quit.
-class PauseState : public GameState {
+// SettingState: Represents the settings/options state, allowing changes to volume and other settings.
+class SettingState : public GameState {
 public:
-    PauseState(StateManager& manager);
+    SettingState(StateManager& manager);
 
 private:
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
-    UI::Button* resumeButton;
-    UI::Button* settingButton;
-    UI::Button* menuButton;
+    UI::Text* musicLabel;
+    UI::Slider* musicSlider;
+    UI::Text* sfxLabel;
+    UI::Slider* sfxSlider;
+    UI::Button* backButton;
 };
 
-#endif // PAUSE_STATE
+#endif // SETTING_STATE

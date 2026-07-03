@@ -37,6 +37,10 @@ void StateManager::changeState (std::unique_ptr<GameState> state) {
     pendingActions.push_back({ActionType::Change, std::move(state)});
 }
 
+void StateManager::clearAndSetState (std::unique_ptr<GameState> state) {
+    pendingActions.push_back({ActionType::ClearAndSet, std::move(state)});
+}
+
 GameState* StateManager::currentState() const {
     if (states.empty()) return nullptr;
     return states.back().get();
@@ -61,6 +65,10 @@ void StateManager::applyPendingChanges() {
                     if (!states.empty()) {
                         states.pop_back();
                     }
+                    states.push_back(std::move(action.state));
+                    break;
+                case ActionType::ClearAndSet:
+                    states.clear();
                     states.push_back(std::move(action.state));
                     break;
             }

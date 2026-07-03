@@ -44,6 +44,7 @@ package "Core" {
     class GameplayState extends GameState
     class PauseState extends GameState
     class GameOverState extends GameState
+    class SettingState extends GameState
     class VictoryState extends GameState
 
     Game o-- StateManager

@@ -34,6 +34,7 @@ add_executable(game
     src/core/states/game-play-state.cpp
     src/core/states/pause-state.cpp
     src/core/states/game-over-state.cpp
+    src/core/states/setting-state.cpp
 
     # global-settings
     src/global-settings/setting-manager.cpp

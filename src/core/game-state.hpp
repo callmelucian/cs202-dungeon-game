@@ -17,10 +17,8 @@ public:
     void draw (sf::RenderWindow& window) const;
     void handleEvents (sf::Event& event);
 
-private:
-    StateManager& stateManager;
-
 protected:
+    StateManager& stateManager;
     std::unique_ptr<UI::Container> root;
 };
 

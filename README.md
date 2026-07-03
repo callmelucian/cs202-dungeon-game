@@ -128,6 +128,7 @@ cs202-dungeon-game/
     │       ├── gameplay-state.hpp / gameplay-state.cpp
     │       ├── pause-state.hpp / pause-state.cpp
     │       ├── game-over-state.hpp / game-over-state.cpp
+    │       ├── setting-state.hpp / setting-state.cpp
     │       └── victory-state.hpp / victory-state.cpp
     │
     ├── global-settings/                 # Engine Subsystem Managers (Singletons)

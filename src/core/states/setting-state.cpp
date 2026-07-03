@@ -1,8 +1,6 @@
-#include "pause-state.hpp"
-#include "main-menu-state.hpp"
 #include "setting-state.hpp"
 
-PauseState::PauseState(StateManager& manager) : GameState(manager) {
+SettingState::SettingState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
     root->setAlignmentY(UI::AlignmentY::Middle);
 
@@ -16,16 +14,16 @@ PauseState::PauseState(StateManager& manager) : GameState(manager) {
 
     // Title Text (bold, size 54, auto-sized)
     titleText = layoutBox->createChild<UI::Text>("bold", 54)
-        ->setString("Game Paused");
+        ->setString("Settings");
 
-    // Vertical Box for buttons (contained to fit children)
+    // Vertical Box for buttons/sliders (contained to fit children)
     buttonBox = layoutBox->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setSpacing(25.f)
         ->setDistribution(UI::Distribution::SpaceBetween);
 
-    // Set defaults for buttons inside buttonBox
+    // Set defaults for widgets inside buttonBox (sliders and buttons)
     buttonBox->setChildDefaults({
         .modeX = UI::SizeMode::Fixed,
         .modeY = UI::SizeMode::Fixed,
@@ -33,17 +31,24 @@ PauseState::PauseState(StateManager& manager) : GameState(manager) {
         .fixedHeight = 50.f
     });
 
-    // Add buttons
-    resumeButton = buttonBox->createChild<UI::Button>("Resume", "regular", 25.f)
+    // Add labels and widgets
+    // Text labels override the default Fixed size to be Contained so they display properly
+    musicLabel = buttonBox->createChild<UI::Text>("regular", 20)
+        ->setString("Music Volume")
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained);
+
+    musicSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getMusicVolume());
+
+    sfxLabel = buttonBox->createChild<UI::Text>("regular", 20)
+        ->setString("SFX Volume")
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained);
+
+    sfxSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getSfxVolume());
+
+    backButton = buttonBox->createChild<UI::Button>("Back", "regular", 25.f)
         ->setOnClick([this]() {
             stateManager.popState();
-        });
-    settingButton = buttonBox->createChild<UI::Button>("Settings", "regular", 25.f)
-        ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<SettingState>(stateManager));
-        });
-    menuButton = buttonBox->createChild<UI::Button>("Main Menu", "regular", 25.f)
-        ->setOnClick([this]() {
-            stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
         });
 }
