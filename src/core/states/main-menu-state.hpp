@@ -21,10 +21,12 @@ public:
     MainMenuState(StateManager& manager);
 
 private:
-    UI::HorizontalBox *mainMenu;
-    UI::Button *button1, *button2, *button3;
-    UI::Slider *slider;
-    UI::TextInput *textInput;
+    UI::VerticalBox* layoutBox;
+    UI::Text* titleText;
+    UI::HorizontalBox* buttonBox;
+    UI::Button* playButton;
+    UI::Button* optionsButton;
+    UI::Button* exitButton;
 };
 
 #endif // MAIN_MENU_STATE

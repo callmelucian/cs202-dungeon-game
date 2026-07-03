@@ -19,7 +19,21 @@ public:
     GameState* currentState() const;
 
 private:
+    enum class ActionType {
+        Push,
+        Pop,
+        Change
+    };
+
+    struct PendingAction {
+        ActionType type;
+        std::unique_ptr<GameState> state;
+    };
+
     std::vector<std::unique_ptr<GameState>> states;
+    std::vector<PendingAction> pendingActions;
+
+    void applyPendingChanges();
 };
 
 #endif // STATE_MANAGER

@@ -9,6 +9,13 @@
 #include <iostream>
 #include <memory>
 
+// UI Framework
+#include "../../ui/base/component.hpp"
+#include "../../ui/containers/container.hpp"
+#include "../../ui/containers/flex-box.hpp"
+#include "../../ui/widgets/button.hpp"
+#include "../../ui/base/text.hpp"
+
 // EndingType: Defines the possible narrative/gameplay endings displayed on the game over screen.
 enum class EndingType {
     A,
@@ -23,6 +30,10 @@ public:
 
 private:
     EndingType endingType;
+    UI::VerticalBox* layoutBox;
+    UI::Text* titleText;
+    UI::Text* endingText;
+    UI::Button* menuButton;
 };
 
 #endif // GAME_OVER_STATE

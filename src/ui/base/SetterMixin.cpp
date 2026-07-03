@@ -95,49 +95,49 @@ requires requires(Derived* t_ptr) { t_ptr->getPaddingTop(); } {
 template <typename Derived>
 Derived* SetterMixin<Derived>::setPaddingTop(float padding)
 requires requires(Derived* t_ptr) { t_ptr->getPaddingTop(); } {
-    self()->setPaddingTop(padding);
+    static_cast<Container*>(self())->setPaddingTop(padding);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setPaddingBottom(float padding)
 requires requires(Derived* t_ptr) { t_ptr->getPaddingTop(); } {
-    self()->setPaddingBottom(padding);
+    static_cast<Container*>(self())->setPaddingBottom(padding);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setPaddingLeft(float padding)
 requires requires(Derived* t_ptr) { t_ptr->getPaddingTop(); } {
-    self()->setPaddingLeft(padding);
+    static_cast<Container*>(self())->setPaddingLeft(padding);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setPaddingRight(float padding)
 requires requires(Derived* t_ptr) { t_ptr->getPaddingTop(); } {
-    self()->setPaddingRight(padding);
+    static_cast<Container*>(self())->setPaddingRight(padding);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setAlignmentX(AlignmentX align)
 requires requires(Derived* t_ptr) { t_ptr->getAlignmentX(); } {
-    self()->setAlignmentX(align);
+    static_cast<Container*>(self())->setAlignmentX(align);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setAlignmentY(AlignmentY align)
 requires requires(Derived* t_ptr) { t_ptr->getAlignmentX(); } {
-    self()->setAlignmentY(align);
+    static_cast<Container*>(self())->setAlignmentY(align);
     return self();
 }
 
 template <typename Derived>
 Derived* SetterMixin<Derived>::setRoot(bool isRoot)
 requires requires(Derived* t_ptr) { t_ptr->isRoot(); } {
-    self()->setRoot(isRoot);
+    static_cast<Container*>(self())->setRoot(isRoot);
     return self();
 }
 

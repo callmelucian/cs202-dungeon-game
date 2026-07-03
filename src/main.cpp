@@ -11,7 +11,9 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    
     Game& game = Game::getInstance();
+    std::cerr << "Got here" << std::endl;
     game.runMainLoop();
 
     return 0;

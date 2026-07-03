@@ -1,25 +1,37 @@
 #include "main-menu-state.hpp"
+#include "../../ui/base/text.hpp"
+#include "../../ui/containers/flex-box.hpp"
 
 MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
 
-    mainMenu = root.createChild<UI::HorizontalBox>()
+    // Create a vertical layout box that expands to the full screen
+    layoutBox = root->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Expanded)
-        ->setFixedWidth(settings.getWindowWidth())
-        ->setModeY(UI::SizeMode::Fixed)
-        ->setFixedHeight(100.f)
-        ->setAlignmentY(UI::AlignmentY::Top)
-        ->setPadding(40.f, 40.f, 40.f, 40.f)
-        ->setDistribution(UI::Distribution::SpaceBetween);
+        ->setModeY(UI::SizeMode::Expanded)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setDistribution(UI::Distribution::SpaceEvenly);
 
-    mainMenu->setChildDefaults({
-        .modeY = UI::SizeMode::Expanded,
-        .fixedWidth = 200.f
+    // Title Text (bold, size 54, auto-sized)
+    titleText = layoutBox->createChild<UI::Text>("bold", 54)
+        ->setString("Echoes of the Ashen Vault");
+
+    // Horizontal Box for buttons (contained to fit children)
+    buttonBox = layoutBox->createChild<UI::HorizontalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setSpacing(25.f);
+
+    // Set defaults for buttons inside buttonBox
+    buttonBox->setChildDefaults({
+        .modeX = UI::SizeMode::Fixed,
+        .modeY = UI::SizeMode::Fixed,
+        .fixedWidth = 180.f,
+        .fixedHeight = 50.f
     });
 
-    button1   = mainMenu->createChild<UI::Button>("Button-1", "regular");
-    button2   = mainMenu->createChild<UI::Button>("Button-2", "regular");
-    button3   = mainMenu->createChild<UI::Button>("Button-3", "regular");
-    slider    = mainMenu->createChild<UI::Slider>(0.f, 100.f, 50.f);
-    textInput = mainMenu->createChild<UI::TextInput>("regular");
+    // Add buttons
+    playButton    = buttonBox->createChild<UI::Button>("Play", "regular");
+    optionsButton = buttonBox->createChild<UI::Button>("Options", "regular");
+    exitButton    = buttonBox->createChild<UI::Button>("Exit", "regular");
 }
