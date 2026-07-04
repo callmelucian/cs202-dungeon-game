@@ -32,7 +32,6 @@
 ## Week 2: Entity System & Player Forms (28.06 -> 04.07)
 
 * **Developer A (Player & Strategy Forms)**
-
   - [x] Implement abstract `Character` base class (position, velocity, HP/maxHP, moveSpeed, baseDamage, attackRange, attackRate, sprite, `vector<unique_ptr<StatusEffect>> activeEffects`, `takeDamage()`, `tickStatusEffects()`, `getEffectiveMoveSpeed()`).
   - [x] Implement `Player` class inheriting from `Character`. The player owns all three `PlayerForm` instances at all times (`unique_ptr` members) and holds a raw `PlayerForm*` pointing at whichever is active. Also track `switchCooldownTimer`, `inMidChamber` flag (suspends the 4.0s cooldown when true), and the shared HP pool sized to the active form's `maxHP`.
   - [x] Implement abstract `PlayerForm` Strategy base class with `attack()`, `useSpecial1()`, `useSpecial2()`, `onMomentumGainHit()`, `onMomentumGainDamageTaken()`, `addMomentum()`, `resetMomentum()`, and `setSpecial1Threshold()` (called at runtime by `RunState` when Hollow Bell is collected).
@@ -43,7 +42,6 @@
   - [ ] Weekly Report.
 
 * **Developer B (Movement, Input & Collisions)**
-
   - [ ] Bind WASD/D-pad to player velocity.
   - [ ] Implement `CollisionSolver` static utility class: `aabbIntersect()`, `circleIntersect()`, `resolveAABB()`, `lineIntersectsRect()`, and `lineIntersectsCircle()` (the last two are needed for Voidcaster's wall-piercing Special 1 in Week 5).
   - [ ] Implement the switch key binds (1, 2, 3) to swap active `PlayerForm` strategies. On switch: reset the outgoing form's Momentum to 0, carry the incoming form's frozen Momentum, apply the HP conversion formula `new_HP = (current_HP / old_max) × new_max`, and start the 4.0s `switchCooldownTimer`. Block switching if `switchCooldownTimer > 0` and `inMidChamber` is false.
@@ -51,7 +49,6 @@
   - [ ] Implement 4.0s switch cooldown timer that blocks swapping but does not inhibit movement or combat.
 
 * **AI Agent Tasks**
-
   - [ ] Standard vector math utility functions (normalization, dot product, distance checks).
   - [ ] Static class attributes and getters/setters for `Character` and `PlayerForm`.
   - [ ] 2D AABB intersection checking code.
@@ -60,31 +57,34 @@
 
 ---
 
-## Week 3: SpriteSheet System, Status Effects & Basic Enemies (05.07 -> 11.07)
+## Week 3: SpriteSheet System, Status Effects, Basic Enemies & Base Stat Model (05.07 -> 11.07)
 
-* **Developer A (SpriteSheet/Animation System & Status Effects)**
+* **Developer A (SpriteSheet/Animation System, Stats & Status Effects)**
   - [ ] Design and source/create sprite assets: player character (3 forms × idle/walk/attack frames), basic enemy sprites (WaterloggedScribe, ShardSoldier, BoneSprinter), tilemap tiles (stone floor, water, walls, barriers).
+  - [ ] Implement `Stats` and `StatModifier` structs. Add flat `defense` stat to forms (Wraithblade: 15, Voidcaster: 5, Ironshell: 35).
+  - [ ] Implement the Defense mitigation formula in `Character::calculateMitigatedDamage(rawAmount)`: `mitigated = rawAmount * 100 / (100 + defense)`, rounded, clamped to min 1. Wire into `Character::takeDamage(rawAmount)` as the single entry point for all hits.
+  - [ ] Implement decoupled visual Observer pattern: `CharacterObserver` interface (`onStateChanged`, `onDamaged`, `onDefeated`) and `CharacterAnimator` class (managing sprite, current animation key, hit flash timer, observers callbacks). Integrate with `Character::draw()`.
   - [ ] Implement `SpriteSheet` class: load texture atlas, define frame rects, support multi-row layouts for different animation states.
   - [ ] Implement `Animation` class: frame sequencing, timing (`frameDuration`), looping/non-looping modes, `play()`, `pause()`, `reset()`, `getCurrentFrame()`.
-  - [ ] Integrate `Animation` into `Character::draw()` — replace placeholder sprites with animated rendering.
-  - [ ] Refactor `Player` to use `PlayableCharacter` abstract factory (per architecture.puml): `Player` takes a `PlayableCharacter&` in constructor, stores forms in `std::array<unique_ptr<PlayerForm>, 3>`, generalizes momentum to `std::array<float, 3>`. Implement `Serin` as the concrete `PlayableCharacter` whose `createForm1/2/3()` return `WraithbladeForm`, `VoidcasterForm`, `IronshellForm`. This decouples `Player` from specific forms, enabling future characters without changing `Player` code.
+  - [ ] Refactor `Player` to use `PlayableCharacter` abstract factory (per architecture.puml): `Player` takes a `PlayableCharacter&` in constructor, stores forms in `std::map<FormType, std::unique_ptr<PlayerForm>>`, generalizes momentum to `std::map<FormType, float>`. Implement `Serin` as the concrete `PlayableCharacter` whose `createForm1/2/3()` return `WraithbladeForm`, `VoidcasterForm`, `IronshellForm`. Decouple `Player` from specific forms.
+  - [ ] Implement `PlayerCombatState` interface and `PlayerCombatStateMachine` (State pattern) to manage active combat states. Formulate `PlayerForm` as a concrete subclass of `PlayerForm` implementing `PlayerCombatState`.
   - [ ] Implement `StatusEffect` abstract base class with `apply(Character&)`, `remove(Character&)`, `update(dt, Character&) → bool` (per architecture.puml).
-  - [ ] Implement `BurnedEffect`: ticks once per second for 10 seconds, dealing `0.25 × dealerBaseDamage` per tick.
-  - [ ] Implement `ParalyzedEffect`: 10-second duration (or 1.5 seconds when applied by Aegis Pulse); exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
-  - [ ] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70`; supports a `permanent` flag for zone-based slow (Drowned Archive water field) that ignores the 10-second expiry rule.
-  - [ ] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()` to call `onTick()` on all active effects and remove expired ones.
+  - [ ] Implement `BurnedEffect`: ticks once per second for 10 seconds, dealing `0.25 × dealerBaseDamage` per tick (affected by target defense).
+  - [ ] Implement `ParalyzedEffect`: 10-second duration; exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
+  - [ ] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
+  - [ ] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
   - [ ] Implement player melee and ranged attack hitboxes that scale by active form parameters.
   - [ ] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
   - [ ] Weekly Report.
 
-* **Developer B (Enemy Base, BoneSprinter & Basic AI)**
-  - [ ] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `state : EnemyState`, `attackCooldown`, and `updateAI(dt, Chamber&)` abstract method (per architecture.puml).
-  - [ ] Define `EnemyState` enum (Idle, Seeking, Attacking, Staggered, Dead) and add to `enums.hpp`.
-  - [ ] Add `isCarrier`, `isDecoy`, `fragmentDropCount`, `isRealCarrier()` virtual method (decoys override to return false), and `onDeath()` abstract method to `Enemy`.
+* **Developer B (Enemy Base, BoneSprinter & Basic AI State)**
+  - [ ] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `aiState : EnemyAIState*`, `attackCooldown`, and `updateAI(dt, Chamber&)` method.
+  - [ ] Implement the **State Pattern** for enemy AI: `EnemyAIState` interface and concrete classes (`IdleAIState`, `ChasingAIState`, `AttackingAIState`, `StaggeredAIState` with timed auto-revert mechanism).
+  - [ ] Add `isCarrier`, `isDecoy`, `fragmentDropCount`, `isRealCarrier()` virtual method, and `onDeath()` abstract method to `Enemy`.
   - [ ] Implement `EnemyFactory::createEnemy(EnemyType, Player&) → unique_ptr<Enemy>` (per architecture.puml).
   - [ ] Code simple steering AI behaviors: **Seek** (chases player position) and **Evade** (moves away from threat) as shared methods on `Enemy`.
   - [ ] Implement `WaterloggedScribe` (HP 18, Dmg 5, Speed 1.5 — effective after chamber water-slow; no additional Slowed multiplier unless additionally afflicted).
-  - [ ] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method (heals 3% MaxHP/sec while not taking damage) — the flag is toggled on by `RunState` when Marrow Echo is stolen; defaults to false.
+  - [ ] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method.
   - [ ] Implement `BoneSprinter` (HP 14 carrier / HP 20 blocker, Speed 9.0 / 6.0). Include `isCarrier` flag for carrier/blocker variants.
   - [ ] Add `BONE_SPRINTER` and `SHARD_WRAITH` to `EnemyType` enum in `enums.hpp`.
   - [ ] Integrate enemy sprites from Dev A's sprite assets.
@@ -94,35 +94,41 @@
   - [ ] Standard steering behavior algorithms (Seek, Flee, Obstacle Avoidance).
   - [ ] Class constructors for basic enemies via the factory.
   - [ ] SpriteSheet frame-rect calculation utilities.
-  - **Prompt (Dev A provides):** *"Generate the SpriteSheet and Animation classes for SFML. SpriteSheet loads a texture atlas and stores frame rects. Animation sequences frames with configurable frameDuration and looping. Integrate with our existing Character::draw(). Also generate StatusEffect base class matching architecture.puml's signature: `apply(Character&)`, `remove(Character&)`, `update(dt, Character&) → bool`."*
+  - **Prompt (Dev A provides):** *"Generate the SpriteSheet and Animation classes for SFML. SpriteSheet loads a texture atlas and stores frame rects. Animation sequences frames with configurable frameDuration and looping. Integrate with our existing Character::draw() using CharacterAnimator and CharacterObserver. Also generate StatusEffect base class and StatModifier matching architecture.puml's signature."*
 
-* **Deliverable**: A playable scene containing animated player and basic spawned enemies (WaterloggedScribe, ShardSoldier) that chase the player. The player can attack, deal damage, and apply status effects (visible via icons or floating text above entities). Verify `SlowedEffect` permanent flag works correctly (zone slow persists beyond 10s). BoneSprinter basic movement is testable. Spawn basic enemies. Attack them to verify hitboxes register, damage is subtracted, and status icons (Burned/Slowed/Paralyzed) display correctly above target.
+* **Deliverable**: A playable scene containing animated player and basic spawned enemies (WaterloggedScribe, ShardSoldier) that chase the player. The player can attack, deal damage, and apply status effects. Verify `SlowedEffect` permanent flag works correctly. BoneSprinter basic movement is testable. Attack them to verify hitboxes register, damage is subtracted, and status icons display correctly above target. Verify that damage is correctly mitigated by target defense (Wraithblade 15, Voidcaster 5, Ironshell 35).
 
 ---
 
-## Week 4: Chamber System, Echo/Fragment Economy & Tilemap (12.07 -> 18.07)
+## Week 4: Chamber System, Specials Decorators & Echo/Fragment Economy (12.07 -> 18.07)
 
 *Mid-term week, reduce tasks for both developers.*
 
 * **Developer A (Chamber System & Tilemap Rendering)**
   - [ ] Implement abstract `Chamber` base class with `player : Player&`, `enemies : vector<unique_ptr<Enemy>>`, `items : vector<unique_ptr<Item>>`, `isCompleted`, `update(dt)`, `draw(window)`, `spawnEnemy()`, `checkCollisions()` (per architecture.puml).
   - [ ] Implement `ChamberFactory::createChamber(level, chamberIndex, Player&) → unique_ptr<Chamber>` (per architecture.puml).
-  - [ ] Implement `MapLoader` static class: `loadChamber(string path) → ChamberConfig` and `loadWaves(string path) → vector<WaveConfig>`. Define `ChamberConfig` (chamberName, type, associatedEcho, requiredCollectionTime, waves, wall rects, echoPosition, playerSpawn, exitPosition, carrierCount, decoyCount) and `WaveConfig` (enemyGroups, spawnDelay, spawnPositions) data structs.
+  - [ ] Implement `MapLoader` static class: `loadChamber(string path) → ChamberConfig` and `loadWaves(string path) → vector<WaveConfig>`. Define `ChamberConfig` and `WaveConfig` data structs.
   - [ ] Implement basic tilemap renderer: load tile textures, render floor/wall grid from `ChamberConfig` wall rects, support water tiles for Drowned Archive.
-  - [ ] Code `ProtectChamber`: collection radius 2.5 units, collection timer (counts up while Serin is in radius, pauses on exit, does not reset), `onEchoHit()` applying −8% Echo Power (floor 10%), `onFragmentCollected(bool midCollection)` granting +5% pre-collection or +2.5% mid-collection, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.
+  - [ ] Code `ProtectChamber`: collection radius 2.5 units, collection timer, `onEchoHit()` applying −8% Echo Power, `onFragmentCollected(bool midCollection)` granting +5% / +2.5% Echo Power, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.
   - [ ] Code `PreventChamber`: tracks `associatedEcho` field so it can write `RunState.echoOutcomes[associatedEcho] = STOLEN` if any real carrier reaches the exit. `onCarrierHit(Enemy*, bool lethal)` triggers the 0.5s stagger animation on real carriers (non-lethal hit only); decoys show no reaction.
   - [ ] *Seminar:* Detailed content for `Decorator` pattern (11 items) + `Strategy` pattern (11 items).
   - [ ] Weekly Report.
 
-* **Developer B (Echo Subject/Observer, Fragment Economy & Items)**
+* **Developer B (Specials Decorators, Echo Subject/Observer & Items)**
+  - [ ] Implement `SpecialAbilityState` abstract base class (Decorator / State pattern) which delegates to `innerState` and holds a `StatModifier` and duration timer.
+  - [ ] Implement the 6 concrete Special Ability Decorator states:
+    - Wraithblade: `WraithbladeRiftcrushState`, `WraithbladeCinderveilState`
+    - Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
+    - Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
+  - [ ] Wire these states into `Player::triggerSpecial()`, which instantiates the decorator state and enters it in `PlayerCombatStateMachine`.
   - [ ] Implement `Item` abstract base class with `position`, `bounds`, `onCollect(Player&, Chamber&)` (per architecture.puml Economy package).
   - [ ] Implement `EchoFragment` inheriting from `Item`: physics position/velocity, `value`, `update()`, `draw()`, `onCollect()`.
   - [ ] Implement `Echo` abstract Subject class: `name`, `echoPower` (float, clamped 10–100), `observers : vector<EchoObserver*>`, `takeDamage(penalty)`, `addPower(amount)`, `getPower()`, `attach(observer)`, `notify()` (per architecture.puml).
   - [ ] Implement concrete Echo subclasses: `ClarityShard`, `MarrowEcho`, `HollowBell`, `ResonanceCore`, `ObsidianKey` (per architecture.puml — each stores its specific collected/stolen effects).
-  - [ ] Implement `EchoObserver` interface with `onEchoPowerChanged(float power)`. Implement `GameplayState` as a concrete observer (per architecture.puml: `GameplayState ..|> EchoObserver`).
-  - [ ] Implement fragment multiplier logic by active form: Wraithblade knockback-wall collision → +1 extra fragment (add `checkKnockbackWallBonus(Enemy*, Chamber*)` to `WraithbladeForm`); Voidcaster pierce-kill chain → +1 per additional enemy beyond the first killed in one shot (add `checkCarrierReveal(vector<Enemy*>&)` to `VoidcasterForm`); Ironshell kill while enemy is Slowed → fragment drop doubled (handled in `Enemy::onDeath()` by checking active effects).
-  - [ ] Implement Prevent Chamber fragment bonus: carrier kill → 3 fragments instead of 1 (set `fragmentDropCount = 3` on carrier enemies in `EnemyFactory`).
-  - [ ] Create Level 1 chamber layout data files (JSON/CSV) for MapLoader: Drowned Archive, Bone Corridor, Collapsed Barracks.
+  - [ ] Implement `EchoObserver` interface with `onEchoPowerChanged(float power)`. Implement `GameplayState` as a concrete observer.
+  - [ ] Implement fragment multiplier logic by active form: Wraithblade knockback-wall collision → +1 extra fragment; Voidcaster pierce-kill chain → +1 per additional enemy beyond the first killed in one shot; Ironshell kill while enemy is Slowed → fragment drop doubled.
+  - [ ] Implement Prevent Chamber fragment bonus: carrier kill → 3 fragments instead of 1.
+  - [ ] Create Level 1 chamber layout data files (JSON/CSV) for MapLoader.
   - [ ] *Seminar:* Detailed content for `Facade` pattern (11 items) + LaTeX report.
 
 * **AI Agent Tasks**
@@ -130,9 +136,9 @@
   - [ ] Standard Observer pattern boilerplate for `Echo` → `EchoObserver`.
   - [ ] Basic fragment spawning physics (velocity scatter, gravity, collection magnet).
   - [ ] Tilemap rendering grid loop boilerplate.
-  - **Prompt (Dev B provides):** *"Generate the Echo Observer pattern: abstract `Echo` class as Subject with `attach()`, `notify()`, `takeDamage()`, `addPower()`. Generate `EchoObserver` interface with `onEchoPowerChanged(float)`. Generate 5 concrete Echo subclasses (ClarityShard, MarrowEcho, HollowBell, ResonanceCore, ObsidianKey) matching architecture.puml. Also generate JSON parser for MapLoader to read ChamberConfig and WaveConfig structs."*
+  - **Prompt (Dev B provides):** *"Generate the Echo Observer pattern: abstract Echo class as Subject. Generate EchoObserver interface. Also generate the SpecialAbilityState decorator base class and concrete special decorators (WraithbladeRiftcrushState, etc.) conforming to PlayerCombatState. Generate JSON parser for MapLoader to read ChamberConfig and WaveConfig structs."*
 
-* **Deliverable**: A fully playable Level 1 Chamber 1 (Protect) and Chamber 2 (Prevent) with tilemap rendering. Players can collect fragments pre- and mid-collection, defend the Echo (rendered with correct subclass), trigger form-specific fragment bonuses. Echo Observer pattern keeps GameplayState in sync. Verify that mid-collection fragments grant only +2.5% (not +5%) Echo Power and that Ironshell's Damage Redirect correctly subtracts from Serin's HP rather than the Echo's Power. Confirm hitting real carrier triggers the stagger animation; decoys show no reaction. Save and reload; verify `RunState` is restored identically.
+* **Deliverable**: A fully playable Level 1 Chamber 1 (Protect) and Chamber 2 (Prevent) with tilemap rendering. Players can collect fragments, defend the Echo, trigger form-specific fragment bonuses and special abilities (Riftcrush, Cinderveil, Lance, Detonation Field, Aegis Pulse, Veil of Thorns) that wrap combat states via Decorators. Echo Observer pattern keeps GameplayState in sync. Verify that mid-collection fragments grant only +2.5% Echo Power and that Ironshell's Damage Redirect correctly subtracts from Serin's HP (run through Defense mitigation). Confirm hitting real carrier triggers the stagger animation. Save and reload; verify `RunState` is restored identically.
 
 ---
 
@@ -141,9 +147,9 @@
 *VNOI Cup final week, reduce tasks for Developer A. More tasks shifted to Developer A from Week 6.*
 
 * **Developer A (Gauntlet, MidChamber & Level Progression)**
-  - [ ] Implement `GauntletChamber`: wave tracker, 0s gap between waves (next wave begins the instant the last enemy of the prior wave dies — no delay), `waves : vector<vector<EnemyType>>`, `currentWaveIndex`, and `applyGauntletHeal(Player&)` granting +25% Max HP heal on chamber clear (applied to whichever form is active at exit, using the HP conversion formula if the player switches afterward). This heal triggers at the end of Level 1 Ch.3, Level 2 Ch.3, and Level 3 Ch.3.
+  - [ ] Implement `GauntletChamber`: wave tracker, 0s gap between waves (next wave begins the instant the last enemy of the prior wave dies — no delay), `waves : vector<vector<EnemyType>>`, `currentWaveIndex`, and `applyGauntletHeal(Player&)` granting +25% Max HP heal on chamber clear. This heal triggers at the end of Level 1 Ch.3, Level 2 Ch.3, and Level 3 Ch.3.
   - [ ] Implement `MidChamber`: sets `Player::inMidChamber = true` on `onEnter()` (suspending the 4.0s switch cooldown entirely) and `false` on `onPlayerExit()`. On exit, grant the last-active form a flat +15 Momentum bonus (clamped to 100).
-  - [ ] Implement level progression flow in `GameplayState`: Level 1 (Ch.1 → Mid → Ch.2 → Mid → Ch.3) → Level 2 (Ch.1 → Mid → Ch.2 → Mid → Ch.3) → Level 3 (Ch.1 → Mid → Ch.2 → Mid → Ch.3 → Ch.4) → Boss. Wire chamber completion → next chamber transition with Mid-Chambers in between.
+  - [ ] Implement level progression flow in `GameplayState: Level 1 -> Level 2 -> Level 3 -> Boss`. Wire chamber completion → next chamber transition with Mid-Chambers in between.
   - [ ] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
   - [ ] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
   - [ ] Weekly Report.
@@ -155,7 +161,7 @@
   - [ ] Implement `HushedStalker` (HP 22, Dmg 9). Invisible until 0.4s attack wind-up telegraph. `onSlowedApplied()` sets `visible = true` for the Slowed effect's duration. Kills while Slowed drop 2 fragments and do not trigger the +1-spawn noise penalty for that specific kill. The noise mechanic (`+1 spawn per Serin offensive action`, hard cap +12 total) is tracked in `ProtectChamber` (Level 3, Chamber 1) and fed to `EnemyFactory`.
   - [ ] Implement `MirrorBearer` (HP 18 carrier / 24 guard, Speed 6.5). 1 real carrier, 2 decoys (randomised per attempt). Real carrier: `isRealCarrier()` returns true, staggers visibly for 0.5s on any non-lethal hit, drops 3 fragments on death. Decoy: no knockback reaction, no stagger, `isRealCarrier()` returns false, 0 fragments, shatters into smoke on death.
   - [ ] Implement `VoidShunter` (HP 25, Dmg 11 charge-only, Speed 6.0 when charging). Wraithblade knockback (4 units) and Riftcrush can push Shunters into the Hunger Pit void (instant kill). A Shunter's charge that connects while Serin is within 2 units of the pit edge pushes her 3 units — check `CollisionSolver` for pit boundary.
-  - [ ] Implement `SarcophagusWarden` (HP 28, Dmg 10, Speed 4.5). Every 6s one Warden enters Guard Stance for 2s: immune to knockback, +50% damage resistance. Voidcaster pierce shots bypass the resistance (check `FormType` in `takeDamage()` override).
+  - [ ] Implement `SarcophagusWarden` (HP 28, Dmg 10, Speed 4.5). Every 6s one Warden enters Guard Stance for 2s: immune to knockback, +50% damage resistance. Voidcaster pierce shots bypass the resistance.
   - [ ] LaTeX report for `Strategy` pattern.
 
 * **AI Agent Tasks**
@@ -165,7 +171,7 @@
   - [ ] Enemy sprite generation prompts for new enemy types.
   - **Prompt (Dev A provides):** *"Generate GauntletChamber and MidChamber classes inheriting from Chamber. GauntletChamber: wave spawning with 0s delay, +25% MaxHP heal on clear. MidChamber: suspend switch cooldown, +15 Momentum on exit. Also generate wave spawner utility that reads WaveConfig and spawns enemies via EnemyFactory with configurable spawn delays and positions."*
 
-* **Deliverable**: Complete playable Level 1 (all 3 chambers + mid-chambers) with level progression flow. Level 2/3 enemy behaviors testable. Verify: `MidChamber` suspends cooldown and grants +15 Momentum on exit; `GauntletChamber` wave gap is truly 0s; Gauntlet clear grants +25% MaxHP heal. Test all advanced enemy actions: Hushed Stalkers turn visible on `SlowedEffect` application; their kills while Slowed drop 2 fragments without triggering the noise-spawn penalty; Siege Wraith death AOE chains into adjacent enemies; MirrorBearer decoys show no knockback or stagger; VoidShunter can be knocked into the Hunger Pit void; SarcophagusWarden Guard Stance blocks normal damage but not Voidcaster pierce shots. Chamber retry on death restarts current chamber only.
+* **Deliverable**: Complete playable Level 1 (all 3 chambers + mid-chambers) with level progression flow. Level 2/3 enemy behaviors testable. Verify: `MidChamber` suspends cooldown and grants +15 Momentum on exit; `GauntletChamber` wave gap is truly 0s; Gauntlet clear grants +25% MaxHP heal. Test all advanced enemy actions. Enemy damage is correctly reduced by Serin's active form defense (mitigated via `calculateMitigatedDamage()`). Chamber retry on death restarts current chamber only.
 
 ---
 
@@ -212,7 +218,7 @@
   - [ ] Complete Level 3 Chamber 4 (Sarcophagus Approach) decoy reliquary: successful 10s collect grants +20% Max HP buff for the Final Chamber only.
   - [ ] Full end-to-end game flow testing: Level 1 → Mid → Level 2 → Mid → Level 3 → Boss → Ending.
   - [ ] Asset polish: finalize all sprite animations, ensure consistent art style.
-  - [ ] **Create OOP & Design Patterns documentation** for submission: describe all 6 patterns (Singleton, State, Strategy, Factory, Observer, Abstract Factory) with class examples and UML references. Frame the `PlayableCharacter` → `Serin` → 3 forms system as "multiple playable characters" per rubric criteria, showing how adding a new character requires only one new `PlayableCharacter` subclass.
+  - [ ] **Create OOP & Design Patterns documentation** for submission: describe all **7 patterns** (Singleton, State, Strategy, Factory, Observer, Abstract Factory, Decorator) with class examples and UML references. Frame the `PlayableCharacter` → `Serin` → 3 forms system as "multiple playable characters" per rubric criteria, showing how adding a new character requires only one new `PlayableCharacter` subclass.
   - [ ] **Export class diagram** from architecture.puml as PNG/PDF for submission.
   - [ ] Weekly Report.
 
