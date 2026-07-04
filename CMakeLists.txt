@@ -64,6 +64,9 @@ add_executable(game
     src/entities/forms/wraithblade-form.cpp
     src/entities/forms/voidcaster-form.cpp
     src/entities/forms/ironshell-form.cpp
+
+    # utils
+    src/utils/math-utility.cpp
 )
 
 # Link SFML and JSON libraries

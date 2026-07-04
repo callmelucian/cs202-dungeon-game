@@ -30,14 +30,18 @@ Momentum meters persist (frozen) while not active.
 
 ### 2.1 Base Stats
 
-| Form | Move Speed (units/s) | Max HP contribution* | Base Damage / hit | Attack Range | Attack Rate |
-|---|---|---|---|---|---|
-| Wraithblade | 7.0 | 100 | 12 | Melee (1.5 units) | 2 hits/sec |
-| Voidcaster | 5.0 | 70 | 22 | Ranged (12 units, piercing) | 1 hit/sec |
-| Ironshell | 2.5 | 160 | 6 | Melee (1.0 units, cleave) | 1 hit/sec |
+| Form | Move Speed (units/s) | Max HP contribution* | Base Damage / hit | Defense** | Attack Range | Attack Rate |
+|---|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 100 | 12 | 15 | Melee (1.5 units) | 2 hits/sec |
+| Voidcaster | 5.0 | 70 | 22 | 5 | Ranged (12 units, piercing) | 1 hit/sec |
+| Ironshell | 2.5 | 160 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec |
 
 *HP is a single shared pool sized to the **active** form's Max HP contribution (see §2.4
 for how HP converts when switching).
+
+**Defense reduces all incoming damage dealt to Serin while that form is active — it is
+a flat form stat (like Speed or Damage) and requires no conversion on switch, unlike HP.
+See §2.5 for the exact mitigation formula.
 
 ### 2.2 Form Switching Rules
 
@@ -71,6 +75,45 @@ new_HP = (current_HP / current_form_max_HP) × new_form_max_HP
 
 Example: Serin is Wraithblade at 50/100 HP (50%) and switches to Ironshell →
 new HP = 50% × 160 = 80/160 HP.
+
+### 2.5 Damage Mitigation Formula
+
+Every point of Defense gives diminishing-returns mitigation (armor-style scaling), so
+Ironshell's high Defense meaningfully reduces damage without ever making Serin
+unkillable, and Voidcaster's low Defense keeps it a glass cannon without one-shot
+fragility against basic attacks:
+
+```
+mitigated_damage = incoming_damage × ( 100 / (100 + active_form_Defense) )
+final_damage     = max( 1, round(mitigated_damage) )
+```
+
+- `incoming_damage` is the attacker's raw Damage stat (or ability damage, e.g. a
+  boss's Soul Lance) **before** mitigation — this is the value listed in every enemy
+  stat block in §10–§13.
+- `active_form_Defense` is whichever form Serin currently has active at the moment
+  the hit lands (Defense is read live, not carried over from the form that was active
+  when the attack was launched — e.g., if Serin switches mid-telegraph, the *new*
+  form's Defense applies when the hit actually connects).
+- **Minimum 1 damage per hit** — Defense can reduce a hit's damage but can never
+  reduce it to 0; every landed attack always costs at least 1 HP. This preserves
+  attrition pressure even for Ironshell against weak enemies.
+- Defense applies to **all** incoming damage to Serin's HP pool: regular enemy hits,
+  boss attacks (including Phase 2–4 movesets), Burned damage-over-time ticks, and
+  Echo-damage redirected to Serin via Ironshell's Damage Redirect (§5.4/§7.1).
+- Defense does **not** apply to Momentum gain — the "+0.4 per HP lost" /
+  "+1.2 per HP lost" rates in §3.2 are calculated from the **post-mitigation**
+  (actual) HP lost, since that is what the HP pool actually recorded.
+- Defense is **not** affected by HP's percentage-based switch conversion (§2.4) — it
+  is a flat, independent stat per form, exactly like Speed, Base Damage, or Attack
+  Rate, and simply takes on the newly-active form's value the instant a switch
+  completes (subject to the normal 4.0s switch cooldown before the *next* switch,
+  per §2.2).
+
+**Worked example:** A Sarcophagus Warden (Damage 10/hit, §11.4) hits Serin —
+- As Wraithblade (Defense 15): `10 × 100/115 = 8.70` → **9 damage**.
+- As Voidcaster (Defense 5): `10 × 100/105 = 9.52` → **10 damage**.
+- As Ironshell (Defense 35): `10 × 100/135 = 7.41` → **7 damage**.
 
 ---
 
@@ -179,7 +222,9 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
 - Ironshell standing exactly on the Echo's location **redirects 100% of
   would-be Echo damage to Serin's own HP instead** (see Protect chamber form
   approach, §7.1) — this is the mechanical implementation of "absorb the damage
-  through the shell."
+  through the shell." The redirected amount is still run through the §2.5
+  mitigation formula using Ironshell's Defense (35) before it is subtracted from
+  Serin's HP — the shell absorbs the hit, it doesn't ignore it.
 
 ### 5.5 Fragment Bonuses by Form
 
@@ -223,7 +268,17 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
 - Falling into the void in The Hunger Pit (§11.3.3) is an instant-death failure
   state, identical in consequence to HP reaching 0.
 
-### 6.3 Mid-Chamber Bonus Momentum
+### 6.3 Damage Application
+
+Every source of incoming damage to Serin — regular enemy hits, boss attacks and
+telegraphed abilities, Burned ticks, and Ironshell's redirected Echo damage — is
+applied to the shared HP pool **only after** being run through the Defense
+mitigation formula in §2.5, using whichever form is active the instant the hit
+lands. There is no separate "raw damage" bookkeeping anywhere else in the system;
+every enemy stat block's `Damage` value in §10–§13 is always the *pre-mitigation*
+number.
+
+### 6.4 Mid-Chamber Bonus Momentum
 
 - In a Mid-Chamber, the player may freely switch forms with **no cooldown
   restriction** (Mid-Chambers suspend the 4.0s switch cooldown entirely).
@@ -706,11 +761,11 @@ its darkest ending.)
 
 ### 14.1 Form Stat Block (Quick Reference)
 
-| Form | Speed | Max HP | Dmg | Range | Atk Rate | DPS (sustained) |
-|---|---|---|---|---|---|---|
-| Wraithblade | 7.0 | 100 | 12 | 1.5 (melee) | 2/s | 24 |
-| Voidcaster | 5.0 | 70 | 22 | 12 (ranged, piercing) | 1/s | 22 |
-| Ironshell | 2.5 | 160 | 6 | 1.0 (melee, cleave) | 1/s | 6 |
+| Form | Speed | Max HP | Dmg | Defense | Range | Atk Rate | DPS (sustained) |
+|---|---|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 100 | 12 | 15 | 1.5 (melee) | 2/s | 24 |
+| Voidcaster | 5.0 | 70 | 22 | 5 | 12 (ranged, piercing) | 1/s | 22 |
+| Ironshell | 2.5 | 160 | 6 | 35 | 1.0 (melee, cleave) | 1/s | 6 |
 
 ### 14.2 Effect Quick Reference
 
@@ -742,7 +797,20 @@ its darkest ending.)
 | 10% | Power floor (cannot go lower from damage) |
 | 90%+ | "Fully intact" threshold |
 
-### 14.5 Level & Echo Map (Quick Reference)
+### 14.5 Defense & Mitigation Quick Reference
+
+| Value | Meaning |
+|---|---|
+| `mitigated = incoming × 100/(100+Defense)` | Core formula (§2.5) |
+| Minimum damage per hit | 1 (Defense can never reduce a hit to 0) |
+| Defense read at | Moment of impact, using currently-active form |
+| Applies to | Enemy hits, boss attacks, Burned ticks, Ironshell Echo-redirect damage |
+| Does not apply to | Momentum gain (calculated from actual post-mitigation HP lost) |
+| Wraithblade Defense | 15 (≈13% reduction) |
+| Voidcaster Defense | 5 (≈5% reduction) |
+| Ironshell Defense | 35 (≈26% reduction) |
+
+### 14.6 Level & Echo Map (Quick Reference)
 
 | Level | Chambers | Echoes Introduced |
 |---|---|---|

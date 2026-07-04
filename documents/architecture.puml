@@ -244,27 +244,93 @@ package "UI Framework" {
 }
 
 ' ============================================================
-' PACKAGE: Entities
+' PACKAGE: Entities (Merged Entities & Enemies)
 ' ============================================================
 package "Entities" {
+
+    ' ---- Shared stat model (used by Player forms, specials AND fixed enemy stats) ----
+    class Stats <<struct>> {
+        + hp : float
+        + maxHp : float
+        + damage : float
+        + speed : float
+        + defense : float
+    }
+    note right of Stats
+        defense is a flat per-form stat
+        (Wraithblade 15 / Voidcaster 5 /
+        Ironshell 35), unlike hp it needs
+        no conversion on form switch.
+        See Game Description §2.1/§2.5.
+    end note
+
+    class StatModifier <<struct>> {
+        + hpMultiplier : float
+        + damageMultiplier : float
+        + speedMultiplier : float
+        + applyTo(base : const Stats&) : Stats
+    }
+
+    ' ---- Visual layer decoupled from logic via Observer ----
+    interface CharacterObserver {
+        + {abstract} onStateChanged(character : const Character&, visualKey : std::string) : void
+        + {abstract} onDamaged(character : const Character&, amount : float) : void
+        + {abstract} onDefeated(character : const Character&) : void
+    }
+
+    class CharacterAnimator << Observer >> {
+        - sprite : sf::Sprite
+        - currentAnimKey : std::string
+        - hitFlashTimer : float
+        + onStateChanged(character : const Character&, visualKey : std::string) : void
+        + onDamaged(character : const Character&, amount : float) : void
+        + onDefeated(character : const Character&) : void
+        + update(dt : float) : void
+        + draw(window : sf::RenderWindow&) : void
+    }
+    CharacterAnimator ..|> CharacterObserver
 
     abstract class Character {
         # position : sf::Vector2f
         # velocity : sf::Vector2f
-        # hp : float
-        # maxHp : float
-        # baseDamage : float
-        # moveSpeed : float
+        # baseStats : Stats
         # statusEffects : std::vector<std::unique_ptr<StatusEffect>>
+        # observers : std::vector<CharacterObserver*>
+        # animator : std::unique_ptr<CharacterAnimator>
         + {abstract} update(dt : float) : void
-        + {abstract} draw(window : sf::RenderWindow&) : void
-        + takeDamage(amount : float) : void
+        + draw(window : sf::RenderWindow&) : void
+        + getEffectiveStats() : Stats
+        + takeDamage(rawAmount : float) : void
+        # calculateMitigatedDamage(rawAmount : float) : float
+        + isAlive() : bool
         + applyStatusEffect(effect : std::unique_ptr<StatusEffect>) : void
+        + addObserver(observer : CharacterObserver*) : void
+        + removeObserver(observer : CharacterObserver*) : void
+        # notifyStateChanged(visualKey : std::string) : void
         + getPosition() : sf::Vector2f
         + getHp() : float
-        + getSpeed() : float
-        + setSpeed(speed : float) : void
     }
+    note right of Character
+        takeDamage(rawAmount) is the single
+        entry point for all incoming hits
+        (enemy attacks, boss abilities, Burned
+        ticks, Ironshell's redirected Echo
+        damage). It internally calls
+        calculateMitigatedDamage(rawAmount),
+        which implements:
+          mitigated = rawAmount * 100.0f /
+                      (100.0f + getEffectiveStats().defense);
+          return max(1.0f, round(mitigated));
+        before subtracting from hp. Defense is
+        read live from getEffectiveStats() at
+        the moment of impact, so a mid-telegraph
+        form switch uses the new form's defense.
+        See Game Description §2.5/§6.3.
+    end note
+
+    Character *-- Stats
+    Character o-- CharacterObserver
+    Character *-- CharacterAnimator
 
     abstract class StatusEffect {
         # duration : float
@@ -281,20 +347,119 @@ package "Entities" {
         - missChance : float
     }
     class SlowedEffect extends StatusEffect {
-        - speedReductionPercent : float
+        - modifier : StatModifier
     }
 
     Character *-- StatusEffect
+    StatusEffect ..> StatModifier : uses
+
+    ' ---- Player combat state machine (State pattern) ----
+    interface PlayerCombatState << State >> {
+        + {abstract} onEnter(player : Player&) : void
+        + {abstract} onExit(player : Player&) : void
+        + {abstract} update(player : Player&, dt : float) : void
+        + {abstract} onAttack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
+        + {abstract} modifyOutgoingDamage(baseAmount : float) : float
+        + {abstract} modifyIncomingDamage(player : Player&, amount : float) : float
+        + {abstract} getStats() : Stats
+        + {abstract} getVisualKey() : const std::string&
+        + {abstract} getRemainingDuration() : float
+    }
+    note right of PlayerCombatState
+        Order for a hit against Serin:
+        1. activeState->modifyIncomingDamage()
+           (state/special-specific pre-adjustment,
+           none currently defined, but the hook
+           exists for future specials)
+        2. Player::takeDamage(result of step 1)
+           calls Character::calculateMitigatedDamage(),
+           which applies the Defense formula using
+           getStats().defense from the active form
+        Defense mitigation always runs; it is not
+        something a special can bypass.
+    end note
+
+    class PlayerCombatStateMachine {
+        - baseState : PlayerForm*
+        - activeState : PlayerCombatState*
+        - ownedTemporaryState : std::unique_ptr<PlayerCombatState>
+        + setBaseState(form : PlayerForm*, player : Player&) : void
+        + enterTemporaryState(state : std::unique_ptr<PlayerCombatState>, player : Player&) : void
+        + update(player : Player&, dt : float) : void
+        + revertToBaseState(player : Player&) : void
+        + getActiveState() : PlayerCombatState*
+        + isInTemporaryState() : bool
+    }
+    PlayerCombatStateMachine o-- PlayerCombatState
+
+    abstract class PlayerForm << Strategy, State >> {
+        # formType : FormType
+        # formName : std::string
+        # baseStats : Stats
+        + attack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
+        + {abstract} createSpecialState(abilityIndex : int) : std::unique_ptr<SpecialAbilityState>
+        + onEnter(player : Player&) : void
+        + onExit(player : Player&) : void
+        + update(player : Player&, dt : float) : void
+        + modifyOutgoingDamage(baseAmount : float) : float
+        + modifyIncomingDamage(player : Player&, amount : float) : float
+        + getStats() : Stats
+        + getVisualKey() : const std::string&
+        + getRemainingDuration() : float
+        + getFormName() : const std::string&
+    }
+    PlayerForm ..|> PlayerCombatState
+
+    class WraithbladeForm extends PlayerForm
+    class VoidcasterForm extends PlayerForm
+    class IronshellForm extends PlayerForm
+
+    abstract class SpecialAbilityState << State, Decorator >> {
+        # innerState : PlayerCombatState*
+        # duration : float
+        # elapsedTime : float
+        + SpecialAbilityState(inner : PlayerCombatState*, duration : float)
+        + onEnter(player : Player&) : void
+        + onExit(player : Player&) : void
+        + update(player : Player&, dt : float) : void
+        + onAttack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
+        + modifyOutgoingDamage(baseAmount : float) : float
+        + modifyIncomingDamage(player : Player&, amount : float) : float
+        + getStats() : Stats
+        + getRemainingDuration() : float
+        + {abstract} getStatModifier() : StatModifier
+        + {abstract} getVisualKey() : const std::string&
+    }
+    SpecialAbilityState ..|> PlayerCombatState
+    SpecialAbilityState o-- PlayerCombatState : delegates to inner
+
+    ' ---- Concrete Special Ability Decorators ----
+    
+    ' Wraithblade Specials
+    class WraithbladeRiftcrushState extends SpecialAbilityState
+    class WraithbladeCinderveilState extends SpecialAbilityState
+
+    ' Voidcaster Specials
+    class VoidcasterLanceState extends SpecialAbilityState
+    class VoidcasterDetonationFieldState extends SpecialAbilityState
+
+    ' Ironshell Specials
+    class IronshellAegisPulseState extends SpecialAbilityState
+    class IronshellVeilOfThornsState extends SpecialAbilityState
 
     class Player extends Character {
         - character : PlayableCharacter*
-        - forms : std::array<std::unique_ptr<PlayerForm>, 3>
+        - forms : std::map<FormType, std::unique_ptr<PlayerForm>>
         - activeForm : PlayerForm*
-        - formMomentum : std::array<float, 3>
+        - formMomentum : std::map<FormType, float>
+        - stateMachine : PlayerCombatStateMachine
         + Player(character : PlayableCharacter&)
-        + switchForm(formIndex : int) : void
-        + gainMomentum(amount : float, formIndex : int) : void
+        + switchForm(newForm : FormType) : void
+        + gainMomentum(amount : float, form : FormType) : void
         + triggerSpecial(abilityIndex : int, chamber : Chamber&) : void
+        + attack(targetDir : sf::Vector2f, chamber : Chamber&) : void
+        + update(dt : float) : void
+        + takeDamage(rawAmount : float) : void
         + getCharacter() : const PlayableCharacter&
     }
 
@@ -319,38 +484,37 @@ package "Entities" {
         Form3 = IronshellForm
     end note
 
-    abstract class PlayerForm << Strategy >> {
-        # formType : FormType
-        # formName : std::string
-        # baseSpeed : float
-        # baseDamage : float
-        + {abstract} attack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
-        + {abstract} triggerSpecial1(player : Player&, chamber : Chamber&) : void
-        + {abstract} triggerSpecial2(player : Player&, chamber : Chamber&) : void
-        + getStats() : FormStats
-        + getFormName() : const std::string&
+    Player *-- PlayerCombatStateMachine
+    Player o-- PlayerForm
+    Player o-- PlayableCharacter
+    PlayableCharacter ..> PlayerForm : creates
+
+    ' ---- Enemy AI & Behaviors ----
+    abstract class EnemyAIState << State >> {
+        + {abstract} onEnter(enemy : Enemy&) : void
+        + {abstract} onExit(enemy : Enemy&) : void
+        + {abstract} update(enemy : Enemy&, dt : float, chamber : Chamber&) : void
     }
 
-    class WraithbladeForm extends PlayerForm
-    class VoidcasterForm extends PlayerForm
-    class IronshellForm extends PlayerForm
-
-    Player o-- PlayableCharacter
-    Player *-- PlayerForm
-    PlayableCharacter ..> PlayerForm : creates
-}
-
-' ============================================================
-' PACKAGE: Enemies
-' ============================================================
-package "Enemies" {
+    class IdleAIState extends EnemyAIState
+    class ChasingAIState extends EnemyAIState
+    class AttackingAIState extends EnemyAIState
+    class StaggeredAIState extends EnemyAIState
+    note right of StaggeredAIState
+        Timed state, same revert
+        mechanism as SpecialAbilityState:
+        auto-returns to previous
+        state when its timer elapses
+    end note
 
     abstract class Enemy extends Character {
         # playerRef : Player&
-        # state : EnemyState
+        # aiState : EnemyAIState*
         # attackCooldown : float
-        + {abstract} updateAI(dt : float, chamber : Chamber&) : void
+        + changeAIState(newState : EnemyAIState*) : void
+        + updateAI(dt : float, chamber : Chamber&) : void
     }
+    Enemy *-- EnemyAIState
 
     class WaterloggedScribe extends Enemy
     class BoneSprinter extends Enemy {
@@ -370,7 +534,7 @@ package "Enemies" {
     }
     class VoidShunter extends Enemy
     class SarcophagusWarden extends Enemy
-
+    class ShardWraith extends Enemy
     class BossMalachar extends Enemy {
         - currentPhase : int
         + transitionPhase(phase : int) : void
