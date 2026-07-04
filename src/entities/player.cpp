@@ -1,31 +1,40 @@
 #include "player.hpp"
-#include "forms/wraithblade-form.hpp"
-#include "forms/voidcaster-form.hpp"
-#include "forms/ironshell-form.hpp"
+#include "../utils/math-utility.hpp"
 #include <algorithm>
+#include <map>
 
-Player::Player()
-    : wraithbladeMomentum(0.0f),
-      voidcasterMomentum(0.0f),
-      ironshellMomentum(0.0f),
+Player::Player(PlayableCharacter& character)
+    : character(&character),
+      activeForm(nullptr),
       switchCooldownTimer(0.0f),
       isSwitchCooldownEnabled(true)
 {
-    // Start in Wraithblade form by default
-    activeForm = std::make_unique<WraithbladeForm>();
-    FormStats stats = activeForm->getStats();
-    
-    // Sync initial stats to Character base fields
-    hp = stats.maxHpContribution;
-    maxHp = stats.maxHpContribution;
-    moveSpeed = stats.baseSpeed;
-    baseDamage = stats.baseDamage;
-    attackRange = stats.attackRange;
-    attackRate = stats.attackRate;
+    // Create forms using the abstract factory
+    forms[FormType::WRAITHBLADE] = character.createForm1();
+    forms[FormType::VOIDCASTER] = character.createForm2();
+    forms[FormType::IRONSHELL] = character.createForm3();
+
+    // Initialize momentum map
+    formMomentum[FormType::WRAITHBLADE] = 0.0f;
+    formMomentum[FormType::VOIDCASTER] = 0.0f;
+    formMomentum[FormType::IRONSHELL] = 0.0f;
+
+    // Set default form
+    auto it = forms.find(FormType::WRAITHBLADE);
+    if (it != forms.end()) {
+        activeForm = it->second.get();
+        stateMachine.setBaseState(activeForm, *this);
+    }
+
+    // Set initial character baseStats
+    if (activeForm) {
+        baseStats = activeForm->getStats();
+        baseStats.hp = baseStats.maxHp;
+    }
 }
 
 void Player::update(float deltaTime) {
-    // 1. Update form switch cooldown
+    // 1. Update cooldown
     if (switchCooldownTimer > 0.0f) {
         switchCooldownTimer -= deltaTime;
         if (switchCooldownTimer < 0.0f) {
@@ -33,37 +42,38 @@ void Player::update(float deltaTime) {
         }
     }
 
-    // 2. Base Character update (updates active status effects)
-    Character::update(deltaTime);
+    // 2. State machine update (updates active state)
+    stateMachine.update(*this, deltaTime);
 
-    // 3. Ironshell aura application stub
-    if (activeForm && activeForm->getFormType() == FormType::IRONSHELL) {
-        // In actual implementation with Chamber:
-        // for (auto& enemy : chamber.getEnemies()) {
-        //     if (distance(getPosition(), enemy->getPosition()) <= 4.0f) {
-        //         enemy->applyStatusEffect(std::make_unique<SlowedEffect>());
-        //     }
-        // }
-    }
+    // 3. Character base update (updates status effects)
+    Character::update(deltaTime);
 }
 
 void Player::draw(sf::RenderWindow &window) {
-    // Stub draw implementation
+    Character::draw(window);
 }
 
-void Player::takeDamage(float amount) {
-    // Apply damage to HP
-    Character::takeDamage(amount);
+void Player::takeDamage(float rawAmount) {
+    // 1. Modify incoming damage via active state (Decorator)
+    float modifiedAmount = rawAmount;
+    if (stateMachine.getActiveState()) {
+        modifiedAmount = stateMachine.getActiveState()->modifyIncomingDamage(*this, rawAmount);
+    }
 
-    // Gain momentum on damage taken according to the active form's rules
-    if (activeForm) {
-        FormType currentForm = activeForm->getFormType();
+    // 2. Apply mitigated damage to base HP
+    float oldHp = baseStats.hp;
+    Character::takeDamage(modifiedAmount);
+    float actualHpLost = oldHp - baseStats.hp;
+
+    // 3. Gain momentum based on actual (post-mitigation) HP lost
+    if (actualHpLost > 0.0f) {
+        FormType currentForm = getActiveFormType();
         if (currentForm == FormType::WRAITHBLADE) {
-            gainMomentum(amount * 0.4f, FormType::WRAITHBLADE);
+            gainMomentum(actualHpLost * 0.4f, FormType::WRAITHBLADE);
         } else if (currentForm == FormType::VOIDCASTER) {
-            gainMomentum(amount * 0.4f, FormType::VOIDCASTER);
+            gainMomentum(actualHpLost * 0.4f, FormType::VOIDCASTER);
         } else if (currentForm == FormType::IRONSHELL) {
-            gainMomentum(amount * 1.2f, FormType::IRONSHELL);
+            gainMomentum(actualHpLost * 1.2f, FormType::IRONSHELL);
         }
     }
 }
@@ -72,48 +82,31 @@ void Player::switchForm(FormType newForm) {
     if (!activeForm) return;
     if (activeForm->getFormType() == newForm) return;
 
-    // Check switch cooldown
     if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) {
         return;
     }
 
-    // 1. Reset current form's momentum to 0 upon switching away
-    getFormMomentumRef(activeForm->getFormType()) = 0.0f;
+    // Reset momentum of form we are switching away from
+    formMomentum[activeForm->getFormType()] = 0.0f;
 
-    // 2. Store current HP percentage to apply conversion formula
-    float currentMaxHp = activeForm->getStats().maxHpContribution;
-
-    // 3. Swap form strategy
-    if (newForm == FormType::WRAITHBLADE) {
-        activeForm = std::make_unique<WraithbladeForm>();
-    } else if (newForm == FormType::VOIDCASTER) {
-        activeForm = std::make_unique<VoidcasterForm>();
-    } else if (newForm == FormType::IRONSHELL) {
-        activeForm = std::make_unique<IronshellForm>();
+    auto it = forms.find(newForm);
+    if (it != forms.end()) {
+        activeForm = it->second.get();
+        stateMachine.setBaseState(activeForm, *this);
     }
 
-    // 4. Update stats and apply HP conversion: new_HP = (current_HP / current_form_max_HP) * new_form_max_HP
-    FormStats stats = activeForm->getStats();
-    float newMaxHp = stats.maxHpContribution;
-    hp = (hp / currentMaxHp) * newMaxHp;
-    maxHp = newMaxHp;
+    baseStats.damage = activeForm->getStats().damage;
+    baseStats.speed = activeForm->getStats().speed;
+    baseStats.defense = activeForm->getStats().defense;
 
-    moveSpeed = stats.baseSpeed;
-    baseDamage = stats.baseDamage;
-    attackRange = stats.attackRange;
-    attackRate = stats.attackRate;
-
-    // 5. Trigger switch cooldown (4.0s)
     switchCooldownTimer = 4.0f;
 }
 
 void Player::gainMomentum(float amount, FormType form) {
-    float& momentum = getFormMomentumRef(form);
-    momentum += amount;
-    if (momentum > 100.0f) {
-        momentum = 100.0f;
-    } else if (momentum < 0.0f) {
-        momentum = 0.0f;
+    auto it = formMomentum.find(form);
+    if (it != formMomentum.end()) {
+        it->second += amount;
+        it->second = std::clamp(it->second, 0.0f, 100.0f);
     }
 }
 
@@ -121,35 +114,41 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
     if (!activeForm) return;
 
     FormType currentForm = activeForm->getFormType();
-    float& momentum = getFormMomentumRef(currentForm);
+    float& momentum = formMomentum[currentForm];
 
     if (abilityIndex == 1 && momentum >= 50.0f) {
-        activeForm->triggerSpecial1(*this, chamber);
-        momentum = 0.0f; // Reset to 0 upon use
+        auto specialState = activeForm->createSpecialState(1);
+        if (specialState) {
+            stateMachine.enterTemporaryState(std::move(specialState), *this);
+        }
+        momentum = 0.0f;
     } else if (abilityIndex == 2 && momentum >= 100.0f) {
-        activeForm->triggerSpecial2(*this, chamber);
-        momentum = 0.0f; // Reset to 0 upon use
+        auto specialState = activeForm->createSpecialState(2);
+        if (specialState) {
+            stateMachine.enterTemporaryState(std::move(specialState), *this);
+        }
+        momentum = 0.0f;
     }
 }
 
-float& Player::getFormMomentumRef(FormType form) {
-    if (form == FormType::WRAITHBLADE) {
-        return wraithbladeMomentum;
-    } else if (form == FormType::VOIDCASTER) {
-        return voidcasterMomentum;
-    } else {
-        return ironshellMomentum;
+void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
+    // check if it's ready to attack
+    if (!canAct()) {
+        // possibly render a paralyzing animation
+        return;
     }
+
+    // attack
+    if (stateMachine.getActiveState())
+        stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
 }
 
 float Player::getMomentum(FormType form) const {
-    if (form == FormType::WRAITHBLADE) {
-        return wraithbladeMomentum;
-    } else if (form == FormType::VOIDCASTER) {
-        return voidcasterMomentum;
-    } else {
-        return ironshellMomentum;
+    auto it = formMomentum.find(form);
+    if (it != formMomentum.end()) {
+        return it->second;
     }
+    return 0.0f;
 }
 
 void Player::setSwitchCooldownEnabled(bool enabled) {
@@ -158,4 +157,29 @@ void Player::setSwitchCooldownEnabled(bool enabled) {
 
 float Player::getSwitchCooldownTimer() const {
     return switchCooldownTimer;
+}
+
+FormType Player::getActiveFormType() const {
+    return activeForm ? activeForm->getFormType() : FormType::WRAITHBLADE;
+}
+
+const PlayableCharacter& Player::getCharacter() const {
+    return *character;
+}
+
+PlayerCombatStateMachine& Player::getStateMachine() {
+    return stateMachine;
+}
+
+Stats Player::getEffectiveStats() const {
+    Stats stats = baseStats;
+    if (stateMachine.getActiveState())
+        stats = stateMachine.getActiveState()->getStats();
+    // Shared HP pool is tracked on the character's baseStats.hp
+    stats.hp = baseStats.hp;
+    // Apply status effects modifiers on top of base/state stats
+    for (const auto& effect : statusEffects) {
+        stats = effect->getStatModifier().applyTo(stats);
+    }
+    return stats;
 }

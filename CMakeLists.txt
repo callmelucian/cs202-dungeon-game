@@ -55,12 +55,15 @@ add_executable(game
     src/ui-test.cpp
 
     # entities
-    src/entities/status-effect.cpp
     src/entities/character.cpp
+    src/entities/player.cpp
+    src/entities/player-form.cpp
+    src/entities/stats.cpp
+    src/entities/effects/status-effect.cpp
     src/entities/effects/slowed-effect.cpp
     src/entities/effects/paralyzed-effect.cpp
-    src/entities/player-form.cpp
-    src/entities/player.cpp
+    src/entities/effects/burned-effect.cpp
+    src/entities/playable-character.cpp
     src/entities/forms/wraithblade-form.cpp
     src/entities/forms/voidcaster-form.cpp
     src/entities/forms/ironshell-form.cpp

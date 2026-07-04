@@ -1,11 +1,14 @@
 #ifndef STATUS_EFFECT_HPP
 #define STATUS_EFFECT_HPP
 
+#include "../stats.hpp"
+
 class Character;
 
 class StatusEffect {
 public:
     StatusEffect (float duration);
+    StatusEffect (float duration, const StatModifier &statModifier);
     virtual ~StatusEffect() = default;
 
     virtual void apply (Character& character) = 0;
@@ -16,8 +19,11 @@ public:
 
     float getDuration() const;
     float getTimer() const;
+    
+    StatModifier getStatModifier() const;
 
 protected:
+    StatModifier statModifier;
     float duration, timer;
 };
 

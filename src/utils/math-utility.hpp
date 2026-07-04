@@ -10,6 +10,8 @@
  */
 
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <vector>
 
 namespace Math {
 
@@ -107,6 +109,33 @@ namespace Math {
      * @brief Clamps a vector's magnitude to a maximum length.
      */
     sf::Vector2f clampLength(const sf::Vector2f& v, float maxLength);
+
+    /**
+     * @brief Selects an index from a vector of weights based on their relative probabilities.
+     * @param weights A list of numerical weights.
+     * @return The selected index. If weights are empty, returns 0.
+     */
+    int weightedRandom(const std::vector<float>& weights);
+
+    /**
+     * @brief Decides an outcome based on a probability in the range [0.0, 1.0].
+     * @param probability The probability of returning true (0.0 to 1.0).
+     * @return True if the roll succeeds, false otherwise.
+     */
+    bool decide(float probability);
+
+    /**
+     * @brief Checks if two Axis-Aligned Bounding Boxes (AABB) intersect using float rects.
+     */
+    bool checkAABBIntersection(const sf::FloatRect& rect1, const sf::FloatRect& rect2);
+
+    /**
+     * @brief Checks if two Axis-Aligned Bounding Boxes (AABB) intersect using min/max bounds.
+     */
+    bool checkAABBIntersection(
+        float minX1, float minY1, float maxX1, float maxY1,
+        float minX2, float minY2, float maxX2, float maxY2
+    );
 
 } // namespace Math
 

@@ -2,18 +2,48 @@
 #include "../player.hpp"
 
 IronshellForm::IronshellForm()
-    : PlayerForm(FormType::IRONSHELL, 2.5f, 160.0f, 6.0f, 1.0f, 1.0f) {}
+    : PlayerForm(FormType::IRONSHELL, "Ironshell",
+                 Stats{100.0f, 100.0f, 6.0f, 2.5f, 35.0f},
+                 1.0f, 1.0f) {}
 
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
-    // Stub attack logic
     // Gain +3 momentum on hit
     player.gainMomentum(3.0f, FormType::IRONSHELL);
 }
 
-void IronshellForm::triggerSpecial1(Player& player, Chamber& chamber) {
-    // Aegis Pulse - Outward shockwave that staggers nearby enemies and knocks out fragments
+std::unique_ptr<SpecialAbilityState> IronshellForm::createSpecialState(int abilityIndex) {
+    if (abilityIndex == 1) {
+        return std::make_unique<IronshellAegisPulseState>(this);
+    } else if (abilityIndex == 2) {
+        return std::make_unique<IronshellVeilOfThornsState>(this);
+    }
+    return nullptr;
 }
 
-void IronshellForm::triggerSpecial2(Player& player, Chamber& chamber) {
-    // Veil of Thorns - Aura applies Paralyzed and knocks out fragments
+
+// ---- IronshellAegisPulseState ----
+IronshellAegisPulseState::IronshellAegisPulseState(PlayerCombatState* inner)
+    : SpecialAbilityState(inner, 1.0f) {}
+
+StatModifier IronshellAegisPulseState::getStatModifier() const {
+    return StatModifier{};
+}
+
+const std::string& IronshellAegisPulseState::getVisualKey() {
+    static const std::string key = "IronshellAegisPulse";
+    return key;
+}
+
+
+// ---- IronshellVeilOfThornsState ----
+IronshellVeilOfThornsState::IronshellVeilOfThornsState(PlayerCombatState* inner)
+    : SpecialAbilityState(inner, 10.0f) {}
+
+StatModifier IronshellVeilOfThornsState::getStatModifier() const {
+    return StatModifier{};
+}
+
+const std::string& IronshellVeilOfThornsState::getVisualKey() {
+    static const std::string key = "IronshellVeilOfThorns";
+    return key;
 }

@@ -259,8 +259,9 @@ package "Entities" {
     note right of Stats
         defense is a flat per-form stat
         (Wraithblade 15 / Voidcaster 5 /
-        Ironshell 35), unlike hp it needs
-        no conversion on form switch.
+        Ironshell 35). Both hp and defense
+        require no conversion on form switch
+        as all forms now share the exact same HP pool.
         See Game Description §2.1/§2.5.
     end note
 

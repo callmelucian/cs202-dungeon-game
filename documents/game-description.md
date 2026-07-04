@@ -30,18 +30,13 @@ Momentum meters persist (frozen) while not active.
 
 ### 2.1 Base Stats
 
-| Form | Move Speed (units/s) | Max HP contribution* | Base Damage / hit | Defense** | Attack Range | Attack Rate |
-|---|---|---|---|---|---|---|
-| Wraithblade | 7.0 | 100 | 12 | 15 | Melee (1.5 units) | 2 hits/sec |
-| Voidcaster | 5.0 | 70 | 22 | 5 | Ranged (12 units, piercing) | 1 hit/sec |
-| Ironshell | 2.5 | 160 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec |
+| Form | Move Speed (units/s) | Base Damage / hit | Defense* | Attack Range | Attack Rate |
+|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 12 | 15 | Melee (1.5 units) | 2 hits/sec |
+| Voidcaster | 5.0 | 22 | 5 | Ranged (12 units, piercing) | 1 hit/sec |
+| Ironshell | 2.5 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec |
 
-*HP is a single shared pool sized to the **active** form's Max HP contribution (see §2.4
-for how HP converts when switching).
-
-**Defense reduces all incoming damage dealt to Serin while that form is active — it is
-a flat form stat (like Speed or Damage) and requires no conversion on switch, unlike HP.
-See §2.5 for the exact mitigation formula.
+*Defense reduces all incoming damage dealt to Serin while that form is active. See §2.5 for the exact mitigation formula. All forms share a unified HP pool of **100 Max HP**, which does not change on form switch and requires no conversion.
 
 ### 2.2 Form Switching Rules
 
@@ -64,17 +59,12 @@ While Ironshell is the active form, a persistent aura applies **Slowed** (see §
 all enemies within **4.0 units** of Serin, refreshed continuously (no stacking
 duration — it's reapplied every tick while the enemy remains in range).
 
-### 2.4 HP Conversion on Switch
+### 2.4 Unified HP Pool
 
-HP is tracked as a **percentage of current form's max HP**, not a flat number, to
-keep switching fair regardless of form:
-
-```
-new_HP = (current_HP / current_form_max_HP) × new_form_max_HP
-```
+Every form shares the exact same HP pool (Max HP = 100). The current HP is preserved as a flat value when switching forms, and no percentage conversion is required.
 
 Example: Serin is Wraithblade at 50/100 HP (50%) and switches to Ironshell →
-new HP = 50% × 160 = 80/160 HP.
+HP remains exactly 50/100 HP.
 
 ### 2.5 Damage Mitigation Formula
 
@@ -104,11 +94,7 @@ final_damage     = max( 1, round(mitigated_damage) )
 - Defense does **not** apply to Momentum gain — the "+0.4 per HP lost" /
   "+1.2 per HP lost" rates in §3.2 are calculated from the **post-mitigation**
   (actual) HP lost, since that is what the HP pool actually recorded.
-- Defense is **not** affected by HP's percentage-based switch conversion (§2.4) — it
-  is a flat, independent stat per form, exactly like Speed, Base Damage, or Attack
-  Rate, and simply takes on the newly-active form's value the instant a switch
-  completes (subject to the normal 4.0s switch cooldown before the *next* switch,
-  per §2.2).
+- Defense is a flat, independent stat per form, exactly like Speed, Base Damage, or Attack Rate, and simply takes on the newly-active form's value the instant a switch completes (subject to the normal 4.0s switch cooldown before the *next* switch, per §2.2).
 
 **Worked example:** A Sarcophagus Warden (Damage 10/hit, §11.4) hits Serin —
 - As Wraithblade (Defense 15): `10 × 100/115 = 8.70` → **9 damage**.
@@ -253,8 +239,7 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
 - HP is **not restored** between chambers within a level, and **not restored**
   between Level 1 → Level 2 → Level 3, except for a single **+25% Max HP heal**
   granted automatically upon clearing each Gauntlet chamber (representing a brief
-  respite after attrition — applies to whichever form is active at chamber-exit,
-  using the §2.4 conversion if the player switches afterward). Across the full run
+  respite after attrition — applies directly to the shared HP pool). Across the full run
   this heal triggers three times: end of Level 1 Ch.3, end of Level 2 Ch.3, and end
   of Level 3 Ch.3.
 - Entering the Final Chamber, Serin's HP carries over exactly as it stood at the
@@ -764,8 +749,8 @@ its darkest ending.)
 | Form | Speed | Max HP | Dmg | Defense | Range | Atk Rate | DPS (sustained) |
 |---|---|---|---|---|---|---|---|
 | Wraithblade | 7.0 | 100 | 12 | 15 | 1.5 (melee) | 2/s | 24 |
-| Voidcaster | 5.0 | 70 | 22 | 5 | 12 (ranged, piercing) | 1/s | 22 |
-| Ironshell | 2.5 | 160 | 6 | 35 | 1.0 (melee, cleave) | 1/s | 6 |
+| Voidcaster | 5.0 | 100 | 22 | 5 | 12 (ranged, piercing) | 1/s | 22 |
+| Ironshell | 2.5 | 100 | 6 | 35 | 1.0 (melee, cleave) | 1/s | 6 |
 
 ### 14.2 Effect Quick Reference
 

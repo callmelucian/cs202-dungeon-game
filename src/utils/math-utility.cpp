@@ -1,5 +1,6 @@
 #include "math-utility.hpp"
 #include <cmath>
+#include <random>
 
 namespace Math {
 
@@ -86,6 +87,41 @@ namespace Math {
             return sf::Vector2f((v.x / len) * maxLength, (v.y / len) * maxLength);
         }
         return v;
+    }
+
+    int weightedRandom(const std::vector<float>& weights) {
+        if (weights.empty()) {
+            return 0;
+        }
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::discrete_distribution<int> dist(weights.begin(), weights.end());
+        return dist(gen);
+    }
+
+    bool decide(float probability) {
+        if (probability <= 0.0f) return false;
+        if (probability >= 1.0f) return true;
+
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+        return dist(gen) <= probability;
+    }
+
+    bool checkAABBIntersection(const sf::FloatRect& rect1, const sf::FloatRect& rect2) {
+        return rect1.position.x <= rect2.position.x + rect2.size.x &&
+               rect1.position.x + rect1.size.x >= rect2.position.x &&
+               rect1.position.y <= rect2.position.y + rect2.size.y &&
+               rect1.position.y + rect1.size.y >= rect2.position.y;
+    }
+
+    bool checkAABBIntersection(
+        float minX1, float minY1, float maxX1, float maxY1,
+        float minX2, float minY2, float maxX2, float maxY2
+    ) {
+        return minX1 <= maxX2 && maxX1 >= minX2 &&
+               minY1 <= maxY2 && maxY1 >= minY2;
     }
 
 } // namespace Math

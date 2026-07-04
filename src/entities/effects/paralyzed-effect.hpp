@@ -1,7 +1,7 @@
 #ifndef PARALYZED_EFFECT_HPP
 #define PARALYZED_EFFECT_HPP
 
-#include "../status-effect.hpp"
+#include "status-effect.hpp"
 #include "../character.hpp"
 
 class ParalyzedEffect : public StatusEffect {
@@ -11,11 +11,6 @@ public:
 
     void apply(Character& character) override;
     void remove(Character& character) override;
-
-    float getMissChance() const;
-
-private:
-    float missChance;
 };
 
 #endif // PARALYZED_EFFECT_HPP

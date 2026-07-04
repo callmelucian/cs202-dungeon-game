@@ -1,7 +1,7 @@
 #ifndef SLOWED_EFFECT_HPP
 #define SLOWED_EFFECT_HPP
 
-#include "../status-effect.hpp"
+#include "status-effect.hpp"
 #include "../character.hpp"
 
 class SlowedEffect : public StatusEffect {
@@ -11,9 +11,7 @@ public:
     
     void apply (Character &character) override;
     void remove (Character &character) override;
-
-private:
-    float speedReductionPercent, originalSpeed;
+    bool update(float dt, Character &character) override;
 };
 
 #endif // SLOWED_EFFECT_HPP

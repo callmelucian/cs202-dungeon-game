@@ -2,18 +2,52 @@
 #include "../player.hpp"
 
 VoidcasterForm::VoidcasterForm()
-    : PlayerForm(FormType::VOIDCASTER, 5.0f, 70.0f, 22.0f, 12.0f, 1.0f) {}
+    : PlayerForm(FormType::VOIDCASTER, "Voidcaster",
+                 Stats{100.0f, 100.0f, 22.0f, 5.0f, 5.0f},
+                 12.0f, 1.0f) {}
 
 void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
-    // Stub attack logic
     // Gain +8 momentum on hit (+4 bonus per additional enemy pierced)
     player.gainMomentum(8.0f, FormType::VOIDCASTER);
 }
 
-void VoidcasterForm::triggerSpecial1(Player& player, Chamber& chamber) {
-    // Lance of the Hollow - Straight line charged shot for 2.5x base damage
+std::unique_ptr<SpecialAbilityState> VoidcasterForm::createSpecialState(int abilityIndex) {
+    if (abilityIndex == 1) {
+        return std::make_unique<VoidcasterLanceState>(this);
+    } else if (abilityIndex == 2) {
+        return std::make_unique<VoidcasterDetonationFieldState>(this);
+    }
+    return nullptr;
 }
 
-void VoidcasterForm::triggerSpecial2(Player& player, Chamber& chamber) {
-    // Detonation Field - Landed shots trigger explosions for 0.75x base damage
+
+// ---- VoidcasterLanceState ----
+VoidcasterLanceState::VoidcasterLanceState(PlayerCombatState* inner)
+    : SpecialAbilityState(inner, 1.0f) {}
+
+StatModifier VoidcasterLanceState::getStatModifier() const {
+    return StatModifier{};
+}
+
+const std::string& VoidcasterLanceState::getVisualKey() {
+    static const std::string key = "VoidcasterLance";
+    return key;
+}
+
+float VoidcasterLanceState::modifyOutgoingDamage(float baseAmount) {
+    return baseAmount * 2.5f;
+}
+
+
+// ---- VoidcasterDetonationFieldState ----
+VoidcasterDetonationFieldState::VoidcasterDetonationFieldState(PlayerCombatState* inner)
+    : SpecialAbilityState(inner, 10.0f) {}
+
+StatModifier VoidcasterDetonationFieldState::getStatModifier() const {
+    return StatModifier{};
+}
+
+const std::string& VoidcasterDetonationFieldState::getVisualKey() {
+    static const std::string key = "VoidcasterDetonationField";
+    return key;
 }

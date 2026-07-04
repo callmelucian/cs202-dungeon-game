@@ -3,33 +3,42 @@
 
 #include "character.hpp"
 #include "player-form.hpp"
+#include "playable-character.hpp"
 #include "../core/enums.hpp"
 #include <memory>
+#include <map>
 
 class Player : public Character {
 public:
-    Player();
+    Player(PlayableCharacter& character);
     virtual ~Player() = default;
 
     void update(float deltaTime) override;
     void draw(sf::RenderWindow &window) override;
-    void takeDamage(float amount);
+    void takeDamage(float rawAmount) override;
 
     void switchForm(FormType newForm);
     void gainMomentum(float amount, FormType form);
     void triggerSpecial(int abilityIndex, class Chamber& chamber);
+    void attack(sf::Vector2f targetDir, class Chamber& chamber);
 
-    float& getFormMomentumRef(FormType form);
     float getMomentum(FormType form) const;
-
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
 
+    FormType getActiveFormType() const;
+    const PlayableCharacter& getCharacter() const;
+    PlayerCombatStateMachine& getStateMachine();
+
+    Stats getEffectiveStats() const override;
+
 private:
-    std::unique_ptr<PlayerForm> activeForm;
-    float wraithbladeMomentum;
-    float voidcasterMomentum;
-    float ironshellMomentum;
+    PlayableCharacter* character;
+    std::map<FormType, std::unique_ptr<PlayerForm>> forms;
+    PlayerForm* activeForm;
+    std::map<FormType, float> formMomentum;
+    PlayerCombatStateMachine stateMachine;
+
     float switchCooldownTimer;
     bool isSwitchCooldownEnabled;
 };

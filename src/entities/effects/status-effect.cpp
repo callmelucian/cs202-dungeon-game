@@ -1,7 +1,11 @@
 #include "status-effect.hpp"
-#include "character.hpp"
+#include "../character.hpp"
 
-StatusEffect::StatusEffect(float duration) : duration(duration), timer(0.0f) {}
+StatusEffect::StatusEffect (float duration) :
+    duration(duration), timer(0.0f) {}
+
+StatusEffect::StatusEffect (float duration, const StatModifier &statModifier) :
+    duration(duration), timer(0.0f), statModifier(statModifier) {}
 
 bool StatusEffect::update(float dt, Character& character) {
     timer += dt;
@@ -19,4 +23,8 @@ float StatusEffect::getDuration() const {
 
 float StatusEffect::getTimer() const {
     return timer;
+}
+
+StatModifier StatusEffect::getStatModifier() const {
+    return statModifier;
 }

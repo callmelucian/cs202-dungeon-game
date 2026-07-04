@@ -1,7 +1,7 @@
 #ifndef BURNED_EFFECT_HPP
 #define BURNED_EFFECT_HPP
 
-#include "../status-effect.hpp"
+#include "status-effect.hpp"
 #include "../character.hpp"
 
 class BurnedEffect : public StatusEffect {
@@ -17,4 +17,4 @@ private:
     float damagePerTick, countDown;
 };
 
-#endif BURNED_EFFECT_HPP
+#endif // BURNED_EFFECT_HPP
