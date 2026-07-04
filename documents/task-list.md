@@ -35,11 +35,11 @@
   - [x] Implement abstract `Character` base class (position, velocity, HP/maxHP, moveSpeed, baseDamage, attackRange, attackRate, sprite, `vector<unique_ptr<StatusEffect>> activeEffects`, `takeDamage()`, `tickStatusEffects()`, `getEffectiveMoveSpeed()`).
   - [x] Implement `Player` class inheriting from `Character`. The player owns all three `PlayerForm` instances at all times (`unique_ptr` members) and holds a raw `PlayerForm*` pointing at whichever is active. Also track `switchCooldownTimer`, `inMidChamber` flag (suspends the 4.0s cooldown when true), and the shared HP pool sized to the active form's `maxHP`.
   - [x] Implement abstract `PlayerForm` Strategy base class with `attack()`, `useSpecial1()`, `useSpecial2()`, `onMomentumGainHit()`, `onMomentumGainDamageTaken()`, `addMomentum()`, `resetMomentum()`, and `setSpecial1Threshold()` (called at runtime by `RunState` when Hollow Bell is collected).
-  - [ ] Code `WraithbladeForm` (Speed 7.0, MaxHP 100, Dmg 12, Range 1.5 melee, Rate 2/s; Momentum +6 per hit landed, +0.4 per Wraithblade-equivalent HP lost).
-  - [ ] Code `VoidcasterForm` (Speed 5.0, MaxHP 70, Dmg 22, Range 12 piercing, Rate 1/s; Momentum +8 per far-range hit, +4 per additional pierced enemy, +0.4 per HP lost).
-  - [ ] Code `IronshellForm` (Speed 2.5, MaxHP 160, Dmg 6, Range 1.0 cleave, Rate 1/s; Momentum +1.2 per Ironshell-equivalent HP lost, +3 per hit landed). Include `applySlowAura(vector<Enemy*>&)` as a per-tick method that applies/refreshes `SlowedEffect` on every enemy within 4.0 units — this is called by `Player::update()` whenever Ironshell is active.
-  - [ ] Planning for seminar & overall plan updates.
-  - [ ] Weekly Report.
+  - [x] Code `WraithbladeForm` (Speed 7.0, MaxHP 100, Dmg 12, Range 1.5 melee, Rate 2/s; Momentum +6 per hit landed, +0.4 per Wraithblade-equivalent HP lost).
+  - [x] Code `VoidcasterForm` (Speed 5.0, MaxHP 70, Dmg 22, Range 12 piercing, Rate 1/s; Momentum +8 per far-range hit, +4 per additional pierced enemy, +0.4 per HP lost).
+  - [x] Code `IronshellForm` (Speed 2.5, MaxHP 160, Dmg 6, Range 1.0 cleave, Rate 1/s; Momentum +1.2 per Ironshell-equivalent HP lost, +3 per hit landed).
+  - [x] Planning for seminar & overall plan updates.
+  - [x] Weekly Report.
 
 * **Developer B (Movement, Input & Collisions)**
   - [ ] Bind WASD/D-pad to player velocity.
@@ -49,9 +49,9 @@
   - [ ] Implement 4.0s switch cooldown timer that blocks swapping but does not inhibit movement or combat.
 
 * **AI Agent Tasks**
-  - [ ] Standard vector math utility functions (normalization, dot product, distance checks).
-  - [ ] Static class attributes and getters/setters for `Character` and `PlayerForm`.
-  - [ ] 2D AABB intersection checking code.
+  - [x] Standard vector math utility functions (normalization, dot product, distance checks).
+  - [x] Static class attributes and getters/setters for `Character` and `PlayerForm`.
+  - [x] 2D AABB intersection checking code.
 
 * **Deliverable**: A controllable player character who can navigate a test grid, collide with walls, and switch between 3 forms using hotkeys. The HUD displays the active form and shows health converting dynamically based on maximum HP contributions. Verify the 4.0s swap cooldown is enforced and that switching sets the outgoing form's Momentum to 0 and resumes the incoming form's frozen Momentum value. Temporarily set `inMidChamber = true` and confirm the cooldown is suspended.
 
@@ -61,17 +61,17 @@
 
 * **Developer A (SpriteSheet/Animation System, Stats & Status Effects)**
   - [ ] Design and source/create sprite assets: player character (3 forms × idle/walk/attack frames), basic enemy sprites (WaterloggedScribe, ShardSoldier, BoneSprinter), tilemap tiles (stone floor, water, walls, barriers).
-  - [ ] Implement `Stats` and `StatModifier` structs. Add flat `defense` stat to forms (Wraithblade: 15, Voidcaster: 5, Ironshell: 35).
-  - [ ] Implement the Defense mitigation formula in `Character::calculateMitigatedDamage(rawAmount)`: `mitigated = rawAmount * 100 / (100 + defense)`, rounded, clamped to min 1. Wire into `Character::takeDamage(rawAmount)` as the single entry point for all hits.
+  - [x] Implement `Stats` and `StatModifier` structs. Add flat `defense` stat to forms (Wraithblade: 15, Voidcaster: 5, Ironshell: 35).
+  - [x] Implement the Defense mitigation formula in `Character::calculateMitigatedDamage(rawAmount)`: `mitigated = rawAmount * 100 / (100 + defense)`, rounded, clamped to min 1. Wire into `Character::takeDamage(rawAmount)` as the single entry point for all hits.
   - [ ] Implement decoupled visual Observer pattern: `CharacterObserver` interface (`onStateChanged`, `onDamaged`, `onDefeated`) and `CharacterAnimator` class (managing sprite, current animation key, hit flash timer, observers callbacks). Integrate with `Character::draw()`.
   - [ ] Implement `SpriteSheet` class: load texture atlas, define frame rects, support multi-row layouts for different animation states.
   - [ ] Implement `Animation` class: frame sequencing, timing (`frameDuration`), looping/non-looping modes, `play()`, `pause()`, `reset()`, `getCurrentFrame()`.
-  - [ ] Refactor `Player` to use `PlayableCharacter` abstract factory (per architecture.puml): `Player` takes a `PlayableCharacter&` in constructor, stores forms in `std::map<FormType, std::unique_ptr<PlayerForm>>`, generalizes momentum to `std::map<FormType, float>`. Implement `Serin` as the concrete `PlayableCharacter` whose `createForm1/2/3()` return `WraithbladeForm`, `VoidcasterForm`, `IronshellForm`. Decouple `Player` from specific forms.
-  - [ ] Implement `PlayerCombatState` interface and `PlayerCombatStateMachine` (State pattern) to manage active combat states. Formulate `PlayerForm` as a concrete subclass of `PlayerForm` implementing `PlayerCombatState`.
-  - [ ] Implement `StatusEffect` abstract base class with `apply(Character&)`, `remove(Character&)`, `update(dt, Character&) → bool` (per architecture.puml).
-  - [ ] Implement `BurnedEffect`: ticks once per second for 10 seconds, dealing `0.25 × dealerBaseDamage` per tick (affected by target defense).
-  - [ ] Implement `ParalyzedEffect`: 10-second duration; exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
-  - [ ] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
+  - [x] Refactor `Player` to use `PlayableCharacter` abstract factory (per architecture.puml): `Player` takes a `PlayableCharacter&` in constructor, stores forms in `std::map<FormType, std::unique_ptr<PlayerForm>>`, generalizes momentum to `std::map<FormType, float>`. Implement `Serin` as the concrete `PlayableCharacter` whose `createForm1/2/3()` return `WraithbladeForm`, `VoidcasterForm`, `IronshellForm`. Decouple `Player` from specific forms.
+  - [x] Implement `PlayerCombatState` interface and `PlayerCombatStateMachine` (State pattern) to manage active combat states. Formulate `PlayerForm` as a concrete subclass of `PlayerForm` implementing `PlayerCombatState`.
+  - [x] Implement `StatusEffect` abstract base class with `apply(Character&)`, `remove(Character&)`, `update(dt, Character&) → bool` (per architecture.puml).
+  - [x] Implement `BurnedEffect`: ticks once per second for 10 seconds, dealing `0.25 × dealerBaseDamage` per tick (affected by target defense).
+  - [x] Implement `ParalyzedEffect`: 10-second duration; exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
+  - [x] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
   - [ ] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
   - [ ] Implement player melee and ranged attack hitboxes that scale by active form parameters.
   - [ ] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
@@ -111,6 +111,7 @@
   - [ ] Implement basic tilemap renderer: load tile textures, render floor/wall grid from `ChamberConfig` wall rects, support water tiles for Drowned Archive.
   - [ ] Code `ProtectChamber`: collection radius 2.5 units, collection timer, `onEchoHit()` applying −8% Echo Power, `onFragmentCollected(bool midCollection)` granting +5% / +2.5% Echo Power, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.
   - [ ] Code `PreventChamber`: tracks `associatedEcho` field so it can write `RunState.echoOutcomes[associatedEcho] = STOLEN` if any real carrier reaches the exit. `onCarrierHit(Enemy*, bool lethal)` triggers the 0.5s stagger animation on real carriers (non-lethal hit only); decoys show no reaction.
+  - [ ] *Task from week 2:* Include `applySlowAura(vector<Enemy*>&)` as a per-tick method that applies/refreshes `SlowedEffect` on every enemy within 4.0 units — this is called by `Player::update()` whenever Ironshell is active.
   - [ ] *Seminar:* Detailed content for `Decorator` pattern (11 items) + `Strategy` pattern (11 items).
   - [ ] Weekly Report.
 
