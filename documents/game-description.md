@@ -763,3 +763,23 @@ The expansion from 2 levels to 3 levels (§this revision) added Level 2 — The
 Sunken Choir and its Hollow Bell Echo, a 4th chamber to Level 3, and a 4th
 boss phase, while preserving every numeric value from the original 2-level
 spec for content that carried over unchanged.*
+
+## 15. OOP Architecture & Design Patterns Overview
+
+### 15.1 Core Object-Oriented Principles
+* **Abstraction**: High-level abstract base classes (`Character`, `PlayerForm`, `Chamber`, `Item`, `StatusEffect`) declare interface contracts (`update()`, `draw()`, `takeDamage()`) without exposing concrete implementations.
+* **Inheritance**: Models system relationships. `Player` and `Enemy` inherit from `Character`. Specific chamber types (`ProtectChamber`, `PreventChamber`, `GauntletChamber`, `MidChamber`, `BossChamber`) all inherit from `Chamber`.
+* **Polymorphism**: Enables runtime dynamic dispatch. A single `std::vector<std::unique_ptr<Enemy>>` processes all active enemies polymorphically, and `PlayerForm*` swaps dynamically to alter player behaviors.
+* **Encapsulation**: Keeps attributes `private` or `protected` and provides access control through setters/getters (e.g. `Character::takeDamage()`, `Player::gainMomentum()`).
+
+### 15.2 Integrated Design Patterns
+1. **Singleton Pattern**: Applies to `Game`, `AssetManager`, `SoundManager`, `SaveLoadManager`, and `SettingManager` to guarantee single instances controlling critical engine services.
+2. **State Pattern**: The stack-based `StateManager` manages active `GameState` implementations (`MainMenuState`, `GameplayState`, `PauseState`, `GameOverState`).
+3. **Strategy Pattern**: The player controls a dynamic `PlayerForm` reference, swapping between `WraithbladeForm`, `VoidcasterForm`, and `IronshellForm` at runtime. Because `special1Threshold` is mutable at runtime (Hollow Bell Echo reduces it from 50 → 42.5 → 35), `PlayerForm` exposes a `setSpecial1Threshold()` setter that `RunState` calls whenever an Echo outcome is resolved.
+4. **Factory Pattern**: `EnemyFactory` and `ChamberFactory` dynamically instantiate concrete classes from `EnemyType` enums and `ChamberConfig` data objects loaded by `MapLoader`.
+5. **Observer Pattern**: `Echo` acts as a subject notifying registered `EchoObserver` instances of power percentage updates. `HUD` is the primary concrete observer, implementing `EchoObserver` to keep the on-screen Echo Power bar in sync without `Echo` needing any knowledge of rendering.
+
+### 15.3 Additional Architecture Notes
+* **`RunState`** is a plain serialisable struct (no game-loop logic) that is the single source of truth for all persistent run data: current level/chamber, all five `EchoOutcome` values, HP carry-over, per-form Momentum snapshots, the Clarity Shard timer-reduction multiplier, the Hollow Bell `special1Threshold`, and the Foretell flag. Every system that needs to read or modify these values takes a `RunState&` parameter. `SaveLoadManager` serialises and deserialises it directly.
+* **`CollisionSolver`** is a stateless utility class of static methods shared by `Player`, `Enemy`, and `Chamber` subsystems. It covers AABB, circle, and line-vs-rect/circle checks (the last required by Voidcaster's Special 1 wall-piercing shot).
+* **`MapLoader`** is a stateless static class that reads structured external files and returns typed `ChamberConfig` and `WaveConfig` objects consumed by `ChamberFactory`. It is distinct from `SaveLoadManager`, which handles only player-progress serialisation.

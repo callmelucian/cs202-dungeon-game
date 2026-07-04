@@ -41,11 +41,11 @@ package "Core" {
     }
 
     class MainMenuState extends GameState
+    class CharacterSelectState extends GameState
     class GameplayState extends GameState
     class PauseState extends GameState
     class GameOverState extends GameState
     class SettingState extends GameState
-    class VictoryState extends GameState
 
     Game o-- StateManager
     StateManager *-- GameState
@@ -287,30 +287,57 @@ package "Entities" {
     Character *-- StatusEffect
 
     class Player extends Character {
-        - activeForm : std::unique_ptr<PlayerForm>
-        - wraithbladeMomentum : float
-        - voidcasterMomentum : float
-        - ironshellMomentum : float
-        + switchForm(newForm : FormType) : void
-        + gainMomentum(amount : float, form : FormType) : void
+        - character : PlayableCharacter*
+        - forms : std::array<std::unique_ptr<PlayerForm>, 3>
+        - activeForm : PlayerForm*
+        - formMomentum : std::array<float, 3>
+        + Player(character : PlayableCharacter&)
+        + switchForm(formIndex : int) : void
+        + gainMomentum(amount : float, formIndex : int) : void
         + triggerSpecial(abilityIndex : int, chamber : Chamber&) : void
+        + getCharacter() : const PlayableCharacter&
     }
+
+    abstract class PlayableCharacter << (A,#FF7F24) Abstract Factory >> {
+        # name : std::string
+        # description : std::string
+        + {abstract} createForm1() : std::unique_ptr<PlayerForm>
+        + {abstract} createForm2() : std::unique_ptr<PlayerForm>
+        + {abstract} createForm3() : std::unique_ptr<PlayerForm>
+        + getName() : const std::string&
+        + getDescription() : const std::string&
+    }
+
+    class Serin extends PlayableCharacter {
+        + createForm1() : std::unique_ptr<PlayerForm>
+        + createForm2() : std::unique_ptr<PlayerForm>
+        + createForm3() : std::unique_ptr<PlayerForm>
+    }
+    note right of Serin
+        Form1 = WraithbladeForm
+        Form2 = VoidcasterForm
+        Form3 = IronshellForm
+    end note
 
     abstract class PlayerForm << Strategy >> {
         # formType : FormType
+        # formName : std::string
         # baseSpeed : float
         # baseDamage : float
         + {abstract} attack(player : Player&, targetDir : sf::Vector2f, chamber : Chamber&) : void
         + {abstract} triggerSpecial1(player : Player&, chamber : Chamber&) : void
         + {abstract} triggerSpecial2(player : Player&, chamber : Chamber&) : void
         + getStats() : FormStats
+        + getFormName() : const std::string&
     }
 
     class WraithbladeForm extends PlayerForm
     class VoidcasterForm extends PlayerForm
     class IronshellForm extends PlayerForm
 
+    Player o-- PlayableCharacter
     Player *-- PlayerForm
+    PlayableCharacter ..> PlayerForm : creates
 }
 
 ' ============================================================
