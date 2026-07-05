@@ -21,50 +21,48 @@ void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::Fl
     sf::Vector2f vel = character.getVelocity();
     sf::Vector2f pos = character.getPosition();
 
-    // Apply full movement
-    pos += vel * deltaTime;
-    character.setPosition(pos);
+    auto checkOverlap = [](const sf::FloatRect& r1, const sf::FloatRect& r2) {
+        return r1.position.x < r2.position.x + r2.size.x &&
+               r1.position.x + r1.size.x > r2.position.x &&
+               r1.position.y < r2.position.y + r2.size.y &&
+               r1.position.y + r1.size.y > r2.position.y;
+    };
 
-    // Resolve each overlapping obstacle using minimum penetration depth
+    // 1. Move on X-axis and resolve
+    pos.x += vel.x * deltaTime;
+    character.setPosition(pos);
+    
     for (const auto& obs : obstacles) {
         sf::FloatRect bounds = character.getBounds();
-
-        // Strict < check: touching (flush) rects are NOT overlapping
-        bool overlapping =
-            bounds.position.x < obs.position.x + obs.size.x &&
-            bounds.position.x + bounds.size.x > obs.position.x &&
-            bounds.position.y < obs.position.y + obs.size.y &&
-            bounds.position.y + bounds.size.y > obs.position.y;
-
-        if (!overlapping) continue;
-
-        // Calculate penetration depth on all four sides
-        float pushLeft  = (bounds.position.x + bounds.size.x) - obs.position.x;       // push player left
-        float pushRight = (obs.position.x + obs.size.x) - bounds.position.x;           // push player right
-        float pushUp    = (bounds.position.y + bounds.size.y) - obs.position.y;         // push player up
-        float pushDown  = (obs.position.y + obs.size.y) - bounds.position.y;            // push player down
-
-        // Find the minimum push distance
-        float minPush = pushLeft;
-        int axis = 0; // 0=left, 1=right, 2=up, 3=down
-
-        if (pushRight < minPush) { minPush = pushRight; axis = 1; }
-        if (pushUp    < minPush) { minPush = pushUp;    axis = 2; }
-        if (pushDown  < minPush) { minPush = pushDown;  axis = 3; }
-
-        pos = character.getPosition();
-        vel = character.getVelocity();
-
-        switch (axis) {
-            case 0: pos.x -= minPush; vel.x = std::min(vel.x, 0.f); break; // push left
-            case 1: pos.x += minPush; vel.x = std::max(vel.x, 0.f); break; // push right
-            case 2: pos.y -= minPush; vel.y = std::min(vel.y, 0.f); break; // push up
-            case 3: pos.y += minPush; vel.y = std::max(vel.y, 0.f); break; // push down
+        if (checkOverlap(bounds, obs)) {
+            if (vel.x > 0) {
+                pos.x = obs.position.x - bounds.size.x / 2.0f;
+            } else if (vel.x < 0) {
+                pos.x = obs.position.x + obs.size.x + bounds.size.x / 2.0f;
+            }
+            vel.x = 0;
+            character.setPosition(pos);
         }
-
-        character.setPosition(pos);
-        character.setVelocity(vel);
     }
+
+    // 2. Move on Y-axis and resolve
+    pos.y += vel.y * deltaTime;
+    character.setPosition(pos);
+    
+    for (const auto& obs : obstacles) {
+        sf::FloatRect bounds = character.getBounds();
+        if (checkOverlap(bounds, obs)) {
+            if (vel.y > 0) {
+                pos.y = obs.position.y - bounds.size.y / 2.0f;
+            } else if (vel.y < 0) {
+                pos.y = obs.position.y + obs.size.y + bounds.size.y / 2.0f;
+            }
+            vel.y = 0;
+            character.setPosition(pos);
+        }
+    }
+
+    character.setVelocity(vel);
 }
 
 
