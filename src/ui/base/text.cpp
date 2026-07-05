@@ -57,7 +57,16 @@ void Text::computeSize(sf::Vector2f availableSize) {
 void Text::setPosition(sf::Vector2f pos) {
     position = pos;
     sf::FloatRect bounds = text.getLocalBounds();
-    text.setPosition(position - bounds.position);
+
+    // When fixedHeight is set, use a stable reference glyph for the Y offset
+    // to prevent vertical jitter when the string changes (e.g. a countdown timer).
+    // When fixedHeight is NOT set (e.g. inside a Button), use the actual string
+    // bounds so that centering calculations remain pixel-perfect.
+    if (fixedHeight > 0.f) {
+        bool isBold = (text.getStyle() & sf::Text::Bold) != 0;
+        float stableOffsetY = text.getFont().getGlyph('H', text.getCharacterSize(), isBold).bounds.position.y;
+        text.setPosition({position.x - bounds.position.x, position.y - stableOffsetY});
+    } else text.setPosition(position - bounds.position);
 }
 
 Text* Text::setString(const sf::String& str) {
