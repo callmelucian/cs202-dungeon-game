@@ -123,6 +123,18 @@ sf::Vector2f Character::getPosition() const {
     return position;
 }
 
+void Character::setPosition(const sf::Vector2f& pos) {
+    position = pos;
+}
+
+sf::Vector2f Character::getVelocity() const {
+    return velocity;
+}
+
+void Character::setVelocity(const sf::Vector2f& vel) {
+    velocity = vel;
+}
+
 float Character::getHp() const {
     return baseStats.hp;
 }
@@ -133,6 +145,11 @@ float Character::getSpeed() const {
 
 void Character::setSpeed(float speed) {
     baseStats.speed = speed;
+}
+
+sf::FloatRect Character::getBounds() const {
+    // A standard 32x32 bounding box centered on the character's position
+    return sf::FloatRect({position.x - 16.f, position.y - 16.f}, {32.f, 32.f});
 }
 
 bool Character::canAct() {

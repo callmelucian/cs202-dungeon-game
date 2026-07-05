@@ -49,10 +49,14 @@ public:
     void removeObserver(CharacterObserver* observer);
 
     sf::Vector2f getPosition() const;
+    void setPosition(const sf::Vector2f& pos);
+    sf::Vector2f getVelocity() const;
+    void setVelocity(const sf::Vector2f& vel);
     float getHp() const;
     float getSpeed() const;
     void setSpeed(float speed);
     bool canAct();
+    virtual sf::FloatRect getBounds() const;
 
     virtual Stats getEffectiveStats() const;
     bool isAlive() const;
