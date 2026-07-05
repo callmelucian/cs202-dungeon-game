@@ -43,9 +43,26 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
             stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
         });
 
+    // Create HUD at top left
+    hudBox = root->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Left)
+        ->setAlignmentY(UI::AlignmentY::Top)
+        ->setPadding(20.f, 20.f, 20.f, 20.f)
+        ->setSpacing(10.f);
+
+    formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade");
+    hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100");
+    momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0");
+    cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready");
+
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
     player->setPosition({300.f, 300.f}); // Spawn at coordinate (300, 300)
+    
+    // Temporarily set inMidChamber = true (which means disabling the switch cooldown)
+    player->setSwitchCooldownEnabled(false);
 
     // Add a couple of test wall obstacles
     obstacles.push_back(sf::FloatRect({150.f, 150.f}, {100.f, 100.f}));
@@ -84,6 +101,25 @@ void GameplayState::update(float deltaTime) {
 
     // Resolve movement: integrates velocity then depenetrates per axis
     CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
+
+    // Update HUD text
+    std::string formStr = "Unknown";
+    FormType type = player->getActiveFormType();
+    if (type == FormType::WRAITHBLADE) formStr = "Wraithblade";
+    else if (type == FormType::VOIDCASTER) formStr = "Voidcaster";
+    else if (type == FormType::IRONSHELL) formStr = "Ironshell";
+    formText->setString("Form: " + formStr);
+    
+    Stats currentStats = player->getEffectiveStats();
+    hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));
+    momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(type)));
+    
+    float cd = player->getSwitchCooldownTimer();
+    if (cd > 0.0f) {
+        cooldownText->setString("Cooldown: " + std::to_string(cd).substr(0, 4) + "s");
+    } else {
+        cooldownText->setString("Cooldown: Ready (or MidChamber)");
+    }
 
     // Base class updates UI layouts
     GameState::update(deltaTime);

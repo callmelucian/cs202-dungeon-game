@@ -34,6 +34,12 @@ private:
     UI::Button* pauseButton;
     UI::Button* quitButton;
 
+    UI::VerticalBox* hudBox;
+    UI::Text* formText;
+    UI::Text* hpText;
+    UI::Text* momentumText;
+    UI::Text* cooldownText;
+
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
     std::vector<sf::FloatRect> obstacles;
