@@ -70,6 +70,7 @@ add_executable(game
 
     # utils
     src/utils/math-utility.cpp
+    src/utils/collision-solver.cpp
 )
 
 # Link SFML and JSON libraries
