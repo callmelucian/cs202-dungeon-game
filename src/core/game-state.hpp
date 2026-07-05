@@ -13,9 +13,9 @@ public:
     GameState (StateManager& manager);
     virtual ~GameState();
 
-    void update (float deltaTime);
-    void draw (sf::RenderWindow& window) const;
-    void handleEvents (sf::Event& event);
+    virtual void update (float deltaTime);
+    virtual void draw (sf::RenderWindow& window) const;
+    virtual void handleEvents (sf::Event& event);
 
 protected:
     StateManager& stateManager;
