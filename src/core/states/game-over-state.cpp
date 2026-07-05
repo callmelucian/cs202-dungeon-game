@@ -22,13 +22,13 @@ GameOverState::GameOverState(StateManager& manager, EndingType endingType)
     // Subtitle / Ending Text (italic, size 24, auto-sized)
     std::string endingStr;
     switch (endingType) {
-        case EndingType::A:
+        case EndingType::ENDING_A_SHATTER:
             endingStr = "Ending A: The Vault Collapses";
             break;
-        case EndingType::B:
+        case EndingType::ENDING_B_RETREAT:
             endingStr = "Ending B: Ascended to Light";
             break;
-        case EndingType::C:
+        case EndingType::ENDING_C_WARNING:
             endingStr = "Ending C: Lost in the Dark";
             break;
     }

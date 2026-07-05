@@ -6,7 +6,11 @@
 #include "../state-manager.hpp"
 #include "../game.hpp"
 #include "../../global-settings/setting-manager.hpp"
+#include "../../entities/player.hpp"
+#include "../../entities/playable-character.hpp"
+#include "../../utils/collision-solver.hpp"
 #include <iostream>
+#include <vector>
 #include <memory>
 
 // UI Framework
@@ -29,6 +33,10 @@ private:
     UI::VerticalBox* buttonBox;
     UI::Button* pauseButton;
     UI::Button* quitButton;
+
+    std::unique_ptr<PlayableCharacter> playableChar;
+    std::unique_ptr<Player> player;
+    std::vector<sf::FloatRect> obstacles;
 };
 
 #endif // GAME_PLAY_STATE

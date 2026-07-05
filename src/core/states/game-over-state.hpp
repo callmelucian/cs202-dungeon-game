@@ -16,12 +16,7 @@
 #include "../../ui/widgets/button.hpp"
 #include "../../ui/base/text.hpp"
 
-// EndingType: Defines the possible narrative/gameplay endings displayed on the game over screen.
-enum class EndingType {
-    A,
-    B,
-    C
-};
+#include "../enums.hpp"
 
 // GameOverState: Represents the state when the game ends, displaying the corresponding EndingType (A, B, or C).
 class GameOverState : public GameState {
