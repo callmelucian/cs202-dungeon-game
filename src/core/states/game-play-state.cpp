@@ -43,19 +43,21 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
             stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
         });
 
-    // Create HUD at top left
+    // Create HUD at bottom left with a fixed width to prevent text layout jitter
     hudBox = root->createChild<UI::VerticalBox>()
-        ->setModeX(UI::SizeMode::Contained)
+        ->setModeX(UI::SizeMode::Fixed)
+        ->setFixedWidth(300.f)
         ->setModeY(UI::SizeMode::Contained)
         ->setAlignmentX(UI::AlignmentX::Left)
-        ->setAlignmentY(UI::AlignmentY::Top)
-        ->setPadding(20.f, 20.f, 20.f, 20.f)
-        ->setSpacing(10.f);
+        ->setAlignmentY(UI::AlignmentY::Bottom)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+        // Note: setSpacing() is ignored by FlexBox when using FlexStart distribution without Expanded children,
+        // so we use setMarginBottom on the text elements instead.
 
-    formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade");
-    hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100");
-    momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0");
-    cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready");
+    formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready")->setFixedHeight(30.f);
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
