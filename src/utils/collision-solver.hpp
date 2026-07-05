@@ -20,7 +20,8 @@ public:
     // Circle intersection check
     static bool circleIntersect(const sf::Vector2f& center1, float radius1, const sf::Vector2f& center2, float radius2);
 
-    // Resolves AABB collision between a character and solid walls
+    // Resolves AABB collision between a character and solid walls.
+    // Integrates velocity per-axis then snaps the character flush to any wall it hits.
     static void resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime);
 
     // Checks if a line segment intersects a rectangle and returns the closest intersection point

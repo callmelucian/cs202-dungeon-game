@@ -51,10 +51,10 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     obstacles.push_back(sf::FloatRect({150.f, 150.f}, {100.f, 100.f}));
     obstacles.push_back(sf::FloatRect({600.f, 200.f}, {200.f, 80.f}));
     // Add screen boundaries (Borders)
-    obstacles.push_back(sf::FloatRect({0.f, 0.f}, {1800.f, 10.f}));   // Top
-    obstacles.push_back(sf::FloatRect({0.f, 890.f}, {1800.f, 10.f})); // Bottom
-    obstacles.push_back(sf::FloatRect({0.f, 0.f}, {10.f, 900.f}));    // Left
-    obstacles.push_back(sf::FloatRect({1790.f, 0.f}, {10.f, 900.f}));  // Right
+    // obstacles.push_back(sf::FloatRect({0.f, 0.f}, {1800.f, 10.f}));   // Top
+    // obstacles.push_back(sf::FloatRect({0.f, 890.f}, {1800.f, 10.f})); // Bottom
+    // obstacles.push_back(sf::FloatRect({0.f, 0.f}, {10.f, 900.f}));    // Left
+    // obstacles.push_back(sf::FloatRect({1790.f, 0.f}, {10.f, 900.f}));  // Right
 }
 
 void GameplayState::update(float deltaTime) {
@@ -75,18 +75,20 @@ void GameplayState::update(float deltaTime) {
     }
 
     // Convert speed stat (e.g. 7.0f) to screen pixel units using a multiplier
-    float screenScale = 60.f; 
-    player->setVelocity(dir * player->getSpeed() * screenScale);
+    float screenScale = 60.f;
+    sf::Vector2f vel = dir * player->getSpeed() * screenScale;
+    player->setVelocity(vel);
 
     // Update character cooldowns & effects
     player->update(deltaTime);
 
-    // Resolve movement physics and collisions
+    // Resolve movement: integrates velocity then depenetrates per axis
     CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
 
     // Base class updates UI layouts
     GameState::update(deltaTime);
 }
+
 
 void GameplayState::draw(sf::RenderWindow& window) const {
     // Draw red obstacles

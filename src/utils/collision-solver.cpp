@@ -18,53 +18,55 @@ bool CollisionSolver::circleIntersect(const sf::Vector2f& center1, float radius1
 }
 
 void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
-    sf::Vector2f pos = character.getPosition();
     sf::Vector2f vel = character.getVelocity();
+    sf::Vector2f pos = character.getPosition();
 
-    // 1. Move along X axis first
-    pos.x += vel.x * deltaTime;
+    // Apply full movement
+    pos += vel * deltaTime;
     character.setPosition(pos);
-    sf::FloatRect bounds = character.getBounds();
 
+    // Resolve each overlapping obstacle using minimum penetration depth
     for (const auto& obs : obstacles) {
-        if (aabbIntersect(bounds, obs)) {
-            float overlapX = 0.f;
-            if (vel.x > 0.0f) { // Moving Right -> push Left
-                overlapX = (bounds.position.x + bounds.size.x) - obs.position.x;
-                pos.x -= overlapX;
-            } else if (vel.x < 0.0f) { // Moving Left -> push Right
-                overlapX = (obs.position.x + obs.size.x) - bounds.position.x;
-                pos.x += overlapX;
-            }
-            character.setPosition(pos);
-            vel.x = 0.f; // Stop X velocity on collision
-            character.setVelocity(vel);
-            bounds = character.getBounds(); // Refresh bounds for next check
-        }
-    }
+        sf::FloatRect bounds = character.getBounds();
 
-    // 2. Move along Y axis second
-    pos.y += vel.y * deltaTime;
-    character.setPosition(pos);
-    bounds = character.getBounds();
+        // Strict < check: touching (flush) rects are NOT overlapping
+        bool overlapping =
+            bounds.position.x < obs.position.x + obs.size.x &&
+            bounds.position.x + bounds.size.x > obs.position.x &&
+            bounds.position.y < obs.position.y + obs.size.y &&
+            bounds.position.y + bounds.size.y > obs.position.y;
 
-    for (const auto& obs : obstacles) {
-        if (aabbIntersect(bounds, obs)) {
-            float overlapY = 0.f;
-            if (vel.y > 0.0f) { // Moving Down -> push Up
-                overlapY = (bounds.position.y + bounds.size.y) - obs.position.y;
-                pos.y -= overlapY;
-            } else if (vel.y < 0.0f) { // Moving Up -> push Down
-                overlapY = (obs.position.y + obs.size.y) - bounds.position.y;
-                pos.y += overlapY;
-            }
-            character.setPosition(pos);
-            vel.y = 0.f; // Stop Y velocity on collision
-            character.setVelocity(vel);
-            bounds = character.getBounds(); // Refresh bounds for next check
+        if (!overlapping) continue;
+
+        // Calculate penetration depth on all four sides
+        float pushLeft  = (bounds.position.x + bounds.size.x) - obs.position.x;       // push player left
+        float pushRight = (obs.position.x + obs.size.x) - bounds.position.x;           // push player right
+        float pushUp    = (bounds.position.y + bounds.size.y) - obs.position.y;         // push player up
+        float pushDown  = (obs.position.y + obs.size.y) - bounds.position.y;            // push player down
+
+        // Find the minimum push distance
+        float minPush = pushLeft;
+        int axis = 0; // 0=left, 1=right, 2=up, 3=down
+
+        if (pushRight < minPush) { minPush = pushRight; axis = 1; }
+        if (pushUp    < minPush) { minPush = pushUp;    axis = 2; }
+        if (pushDown  < minPush) { minPush = pushDown;  axis = 3; }
+
+        pos = character.getPosition();
+        vel = character.getVelocity();
+
+        switch (axis) {
+            case 0: pos.x -= minPush; vel.x = std::min(vel.x, 0.f); break; // push left
+            case 1: pos.x += minPush; vel.x = std::max(vel.x, 0.f); break; // push right
+            case 2: pos.y -= minPush; vel.y = std::min(vel.y, 0.f); break; // push up
+            case 3: pos.y += minPush; vel.y = std::max(vel.y, 0.f); break; // push down
         }
+
+        character.setPosition(pos);
+        character.setVelocity(vel);
     }
 }
+
 
 // Helper to check intersection of two line segments: AB and CD
 static bool lineSegmentIntersection(const sf::Vector2f& A, const sf::Vector2f& B,
