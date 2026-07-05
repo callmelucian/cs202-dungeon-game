@@ -60,9 +60,6 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
     player->setPosition({300.f, 300.f}); // Spawn at coordinate (300, 300)
-    
-    // Temporarily set inMidChamber = true (which means disabling the switch cooldown)
-    player->setSwitchCooldownEnabled(false);
 
     // Add a couple of test wall obstacles
     obstacles.push_back(sf::FloatRect({150.f, 150.f}, {100.f, 100.f}));
