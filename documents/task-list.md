@@ -42,7 +42,7 @@
   - [x] Weekly Report.
 
 * **Developer B (Movement, Input & Collisions)**
-  - [ ] Bind WASD/D-pad to player velocity.
+  - [x] Bind WASD/D-pad to player velocity.
   - [x] Implement `CollisionSolver` static utility class: `aabbIntersect()`, `circleIntersect()`, `resolveAABB()`, `lineIntersectsRect()`, and `lineIntersectsCircle()` (the last two are needed for Voidcaster's wall-piercing Special 1 in Week 5).
   - [ ] Implement the switch key binds (1, 2, 3) to swap active `PlayerForm` strategies. On switch: reset the outgoing form's Momentum to 0, carry the incoming form's frozen Momentum, apply the HP conversion formula `new_HP = (current_HP / old_max) × new_max`, and start the 4.0s `switchCooldownTimer`. Block switching if `switchCooldownTimer > 0` and `inMidChamber` is false. *(Note: HP conversion removed, `inMidChamer` is determined by `Player::isSwitchCooldownEnabled`)*
   - [ ] Implement 4.0s switch cooldown timer that blocks swapping but does not inhibit movement or combat.
