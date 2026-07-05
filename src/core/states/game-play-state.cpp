@@ -132,12 +132,8 @@ void GameplayState::draw(sf::RenderWindow& window) const {
         window.draw(shape);
     }
 
-    // Draw green player box
-    sf::FloatRect bounds = player->getBounds();
-    sf::RectangleShape pShape({bounds.size.x, bounds.size.y});
-    pShape.setPosition(bounds.position);
-    pShape.setFillColor(sf::Color(50, 180, 50));
-    window.draw(pShape);
+    // Draw player
+    player->draw(window);
 
     // Draw UI components on top
     GameState::draw(window);

@@ -50,7 +50,25 @@ void Player::update(float deltaTime) {
 }
 
 void Player::draw(sf::RenderWindow &window) {
+    // Let the base animator draw the sprite if implemented
     Character::draw(window);
+
+    // Fallback: draw the bounding box as a green square
+    sf::FloatRect bounds = getBounds();
+    sf::RectangleShape pShape(bounds.size);
+    pShape.setPosition(bounds.position);
+    
+    // Change color based on active form just for visual flair
+    FormType currentForm = getActiveFormType();
+    if (currentForm == FormType::WRAITHBLADE) {
+        pShape.setFillColor(sf::Color(50, 180, 50)); // Green
+    } else if (currentForm == FormType::VOIDCASTER) {
+        pShape.setFillColor(sf::Color(150, 50, 180)); // Purple
+    } else {
+        pShape.setFillColor(sf::Color(180, 100, 50)); // Orange
+    }
+    
+    window.draw(pShape);
 }
 
 void Player::takeDamage(float rawAmount) {
