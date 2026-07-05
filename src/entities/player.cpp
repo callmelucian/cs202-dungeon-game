@@ -138,18 +138,11 @@ void Player::takeDamage(float rawAmount) {
 }
 
 bool Player::switchForm(FormType newForm) {
-    if (activeForm && activeForm->getFormType() == newForm) {
-        return false;
-    }
-
-    if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) {
-        return false;
-    }
+    if (activeForm && activeForm->getFormType() == newForm) return false;
+    if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) return false;
 
     // Reset momentum of form we are switching away from
-    if (activeForm) {
-        formMomentum[activeForm->getFormType()] = 0.0f;
-    }
+    if (activeForm) formMomentum[activeForm->getFormType()] = 0.0f;
 
     auto it = forms.find(newForm);
     if (it != forms.end()) {
