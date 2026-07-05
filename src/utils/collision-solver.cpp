@@ -65,7 +65,6 @@ void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::Fl
     character.setVelocity(vel);
 }
 
-
 // Helper to check intersection of two line segments: AB and CD
 static bool lineSegmentIntersection(const sf::Vector2f& A, const sf::Vector2f& B,
                                     const sf::Vector2f& C, const sf::Vector2f& D,

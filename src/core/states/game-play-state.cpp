@@ -63,14 +63,7 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     player = std::make_unique<Player>(*playableChar);
     player->setPosition({300.f, 300.f}); // Spawn at coordinate (300, 300)
 
-    // Add a couple of test wall obstacles
-    obstacles.push_back(sf::FloatRect({150.f, 150.f}, {100.f, 100.f}));
-    obstacles.push_back(sf::FloatRect({600.f, 200.f}, {200.f, 80.f}));
-    // Add screen boundaries (Borders)
-    // obstacles.push_back(sf::FloatRect({0.f, 0.f}, {1800.f, 10.f}));   // Top
-    // obstacles.push_back(sf::FloatRect({0.f, 890.f}, {1800.f, 10.f})); // Bottom
-    // obstacles.push_back(sf::FloatRect({0.f, 0.f}, {10.f, 900.f}));    // Left
-    // obstacles.push_back(sf::FloatRect({1790.f, 0.f}, {10.f, 900.f}));  // Right
+    setupTestRoom();
 }
 
 void GameplayState::update(float deltaTime) {
@@ -78,6 +71,9 @@ void GameplayState::update(float deltaTime) {
     player->update(deltaTime);
 
     // 2. Resolve movement collisions
+    // NOTE: CollisionSolver::resolveAABB applies velocity to position internally.
+    // Do NOT manually integrate position (pos += vel * dt) in Character::update() 
+    // or Player::update() to prevent double-movement bugs!
     CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
 
     // 3. Update HUD text
@@ -118,10 +114,23 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     }
 
     // Draw player
-    player->draw(window);
-
-    // Draw UI components on top
+    if (player) player->draw(window);
+    
     GameState::draw(window);
+}
+
+void GameplayState::setupTestRoom() {
+    // Setup test environment barriers (Blocks & 1800x900 Screen Borders)
+    obstacles = {
+        // Inner obstacles
+        sf::FloatRect({150.f, 150.f}, {100.f, 100.f}),
+        sf::FloatRect({600.f, 200.f}, {200.f, 80.f}),
+        // Room boundaries
+        sf::FloatRect({0.f, 0.f}, {1800.f, 10.f}),   // Top
+        sf::FloatRect({0.f, 890.f}, {1800.f, 10.f}), // Bottom
+        sf::FloatRect({0.f, 0.f}, {10.f, 900.f}),    // Left
+        sf::FloatRect({1790.f, 0.f}, {10.f, 900.f})  // Right
+    };
 }
 
 void GameplayState::handleEvents(sf::Event& event) {

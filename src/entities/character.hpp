@@ -26,7 +26,7 @@ public:
     void onDefeated(const Character& character) override;
     
     void update(float dt);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window) const;
 
 private:
     std::unique_ptr<sf::Sprite> sprite;
@@ -40,7 +40,7 @@ public:
     virtual ~Character() = default;
 
     virtual void update(float deltaTime) = 0;
-    virtual void draw(sf::RenderWindow &window) = 0;
+    virtual void draw(sf::RenderWindow &window) const = 0;
     
     virtual void takeDamage(float rawAmount);
     void applyStatusEffect(std::unique_ptr<StatusEffect> effect);
@@ -55,7 +55,7 @@ public:
     float getHp() const;
     float getSpeed() const;
     void setSpeed(float speed);
-    bool canAct();
+    bool canAct() const;
     virtual sf::FloatRect getBounds() const;
 
     virtual Stats getEffectiveStats() const;

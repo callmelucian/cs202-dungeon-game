@@ -72,8 +72,8 @@ void Player::update(float deltaTime) {
         dir.y /= length;
     }
 
-    float screenScale = 60.f;
-    setVelocity(dir * getSpeed() * screenScale);
+    const float SPEED_TO_PIXELS = 60.f;
+    setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
 
     // 2. Update cooldown
     if (switchCooldownTimer > 0.0f) {
@@ -83,14 +83,14 @@ void Player::update(float deltaTime) {
         }
     }
 
-    // 2. State machine update (updates active state)
+    // 3. State machine update (updates active state)
     stateMachine.update(*this, deltaTime);
 
-    // 3. Character base update (updates status effects)
+    // 4. Character base update (updates status effects)
     Character::update(deltaTime);
 }
 
-void Player::draw(sf::RenderWindow &window) {
+void Player::draw(sf::RenderWindow &window) const {
     // Let the base animator draw the sprite if implemented
     Character::draw(window);
 

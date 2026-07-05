@@ -43,6 +43,8 @@ private:
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
     std::vector<sf::FloatRect> obstacles;
+
+    void setupTestRoom();
 };
 
 #endif // GAME_PLAY_STATE

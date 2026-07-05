@@ -26,7 +26,7 @@ void CharacterAnimator::update(float dt) {
     }
 }
 
-void CharacterAnimator::draw(sf::RenderWindow& window) {
+void CharacterAnimator::draw(sf::RenderWindow& window) const {
     // Draw logic placeholder using sprite
 }
 
@@ -60,7 +60,7 @@ void Character::update(float deltaTime) {
     }
 }
 
-void Character::draw(sf::RenderWindow &window) {
+void Character::draw(sf::RenderWindow &window) const {
     if (animator) {
         animator->draw(window);
     }
@@ -152,7 +152,7 @@ sf::FloatRect Character::getBounds() const {
     return sf::FloatRect({position.x - 16.f, position.y - 16.f}, {32.f, 32.f});
 }
 
-bool Character::canAct() {
+bool Character::canAct() const {
     return !Math::decide(getEffectiveStats().missChance);
 }
 

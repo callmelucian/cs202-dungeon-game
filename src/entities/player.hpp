@@ -17,7 +17,7 @@ public:
     void handleInput(const sf::Event& event);
 
     void update(float deltaTime) override;
-    void draw(sf::RenderWindow &window) override;
+    void draw(sf::RenderWindow &window) const override;
     void takeDamage(float rawAmount) override;
 
     bool switchForm(FormType newForm);
