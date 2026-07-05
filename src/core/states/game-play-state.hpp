@@ -20,7 +20,9 @@
 class GameplayState : public GameState {
 public:
     GameplayState(StateManager& manager);
-
+    void update(float deltaTime) override;
+    void draw(sf::RenderWindow& window) const override;
+    void handleEvents(sf::Event& event) override;
 private:
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;

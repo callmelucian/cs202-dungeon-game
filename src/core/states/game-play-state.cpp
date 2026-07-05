@@ -43,3 +43,15 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
             stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::A));
         });
 }
+
+void GameplayState::update(float deltaTime) {
+    GameState::update(deltaTime);
+}
+
+void GameplayState::draw(sf::RenderWindow& window) const {
+    GameState::draw(window);
+}
+
+void GameplayState::handleEvents(sf::Event& event) {
+    GameState::handleEvents(event);
+}
