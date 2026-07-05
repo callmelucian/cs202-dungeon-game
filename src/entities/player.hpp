@@ -5,6 +5,7 @@
 #include "player-form.hpp"
 #include "playable-character.hpp"
 #include "../core/enums.hpp"
+#include <SFML/Window/Event.hpp>
 #include <memory>
 #include <map>
 
@@ -13,11 +14,13 @@ public:
     Player(PlayableCharacter& character);
     virtual ~Player() = default;
 
+    void handleInput(const sf::Event& event);
+
     void update(float deltaTime) override;
     void draw(sf::RenderWindow &window) override;
     void takeDamage(float rawAmount) override;
 
-    void switchForm(FormType newForm);
+    bool switchForm(FormType newForm);
     void gainMomentum(float amount, FormType form);
     void triggerSpecial(int abilityIndex, class Chamber& chamber);
     void attack(sf::Vector2f targetDir, class Chamber& chamber);

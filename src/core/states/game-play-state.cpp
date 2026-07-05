@@ -72,59 +72,42 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
 }
 
 void GameplayState::update(float deltaTime) {
-    SettingManager& settings = SettingManager::getInstance();
-    sf::Vector2f dir(0.f, 0.f);
-
-    // Check real-time keyboard inputs
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveUp"))) dir.y -= 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveDown"))) dir.y += 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f;
-
-    // Normalize diagonal movement speed
-    if (dir.x != 0.f || dir.y != 0.f) {
-        float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-        dir.x /= length;
-        dir.y /= length;
-    }
-
-    // Convert speed stat (e.g. 7.0f) to screen pixel units using a multiplier
-    float screenScale = 60.f;
-    sf::Vector2f vel = dir * player->getSpeed() * screenScale;
-    player->setVelocity(vel);
-
-    // Update character cooldowns & effects
+    // 1. Update player logic (including real-time WASD movement)
     player->update(deltaTime);
 
-    // Resolve movement: integrates velocity then depenetrates per axis
+    // 2. Resolve movement collisions
     CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
 
-    // Update HUD text
+    // 3. Update HUD text
+    FormType currentForm = player->getActiveFormType();
     std::string formStr = "Unknown";
-    FormType type = player->getActiveFormType();
-    if (type == FormType::WRAITHBLADE) formStr = "Wraithblade";
-    else if (type == FormType::VOIDCASTER) formStr = "Voidcaster";
-    else if (type == FormType::IRONSHELL) formStr = "Ironshell";
+    if (currentForm == FormType::WRAITHBLADE) formStr = "Wraithblade";
+    else if (currentForm == FormType::VOIDCASTER) formStr = "Voidcaster";
+    else if (currentForm == FormType::IRONSHELL) formStr = "Ironshell";
     formText->setString("Form: " + formStr);
     
     Stats currentStats = player->getEffectiveStats();
     hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));
-    momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(type)));
+    momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(currentForm)));
     
     float cd = player->getSwitchCooldownTimer();
     if (cd > 0.0f) {
-        cooldownText->setString("Cooldown: " + std::to_string(cd).substr(0, 4) + "s");
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "Cooldown: %.1fs", cd);
+        cooldownText->setString(buffer);
     } else {
-        cooldownText->setString("Cooldown: Ready (or MidChamber)");
+        cooldownText->setString("Cooldown: Ready");
     }
 
-    // Base class updates UI layouts
+    // 4. Base class updates UI layouts
     GameState::update(deltaTime);
 }
 
-
 void GameplayState::draw(sf::RenderWindow& window) const {
-    // Draw red obstacles
+    // Draw background
+    window.clear(sf::Color(20, 20, 25));
+
+    // Draw obstacles
     for (const auto& obs : obstacles) {
         sf::RectangleShape shape({obs.size.x, obs.size.y});
         shape.setPosition(obs.position);
@@ -140,22 +123,9 @@ void GameplayState::draw(sf::RenderWindow& window) const {
 }
 
 void GameplayState::handleEvents(sf::Event& event) {
-    SettingManager& settings = SettingManager::getInstance();
+    // 1. Let the player handle its own single-press inputs
+    player->handleInput(event);
 
-    // Listen for single KeyPressed events
-    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
-        if (keyEvent->scancode == settings.getKeyBinding("SwitchForm1")) {
-            player->switchForm(FormType::WRAITHBLADE);
-            std::cout << "Switched to Wraithblade! Speed: " << player->getSpeed() << std::endl;
-        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm2")) {
-            player->switchForm(FormType::VOIDCASTER);
-            std::cout << "Switched to Voidcaster! Speed: " << player->getSpeed() << std::endl;
-        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
-            player->switchForm(FormType::IRONSHELL);
-            std::cout << "Switched to Ironshell! Speed: " << player->getSpeed() << std::endl;
-        }
-    }
-
-    // Pass down to UI components
+    // 2. Pass down to UI components
     GameState::handleEvents(event);
 }

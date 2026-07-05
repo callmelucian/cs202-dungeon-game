@@ -1,7 +1,9 @@
 #include "player.hpp"
 #include "../utils/math-utility.hpp"
+#include "../global-settings/setting-manager.hpp"
 #include <algorithm>
 #include <map>
+#include <iostream>
 
 Player::Player(PlayableCharacter& character)
     : character(&character),
@@ -33,8 +35,47 @@ Player::Player(PlayableCharacter& character)
     }
 }
 
+void Player::handleInput(const sf::Event& event) {
+    SettingManager& settings = SettingManager::getInstance();
+
+    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+        if (keyEvent->scancode == settings.getKeyBinding("SwitchForm1")) {
+            if (switchForm(FormType::WRAITHBLADE)) {
+                std::cout << "Switched to Wraithblade! Speed: " << getSpeed() << std::endl;
+            }
+        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm2")) {
+            if (switchForm(FormType::VOIDCASTER)) {
+                std::cout << "Switched to Voidcaster! Speed: " << getSpeed() << std::endl;
+            }
+        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
+            if (switchForm(FormType::IRONSHELL)) {
+                std::cout << "Switched to Ironshell! Speed: " << getSpeed() << std::endl;
+            }
+        }
+    }
+}
+
 void Player::update(float deltaTime) {
-    // 1. Update cooldown
+    // 1. Handle real-time movement input
+    SettingManager& settings = SettingManager::getInstance();
+    sf::Vector2f dir(0.f, 0.f);
+
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveUp"))) dir.y -= 1.f;
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveDown"))) dir.y += 1.f;
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f;
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f;
+
+    // Normalize diagonal movement speed
+    if (dir.x != 0.f || dir.y != 0.f) {
+        float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        dir.x /= length;
+        dir.y /= length;
+    }
+
+    float screenScale = 60.f;
+    setVelocity(dir * getSpeed() * screenScale);
+
+    // 2. Update cooldown
     if (switchCooldownTimer > 0.0f) {
         switchCooldownTimer -= deltaTime;
         if (switchCooldownTimer < 0.0f) {
@@ -96,16 +137,19 @@ void Player::takeDamage(float rawAmount) {
     }
 }
 
-void Player::switchForm(FormType newForm) {
-    if (!activeForm) return;
-    if (activeForm->getFormType() == newForm) return;
+bool Player::switchForm(FormType newForm) {
+    if (activeForm && activeForm->getFormType() == newForm) {
+        return false;
+    }
 
     if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) {
-        return;
+        return false;
     }
 
     // Reset momentum of form we are switching away from
-    formMomentum[activeForm->getFormType()] = 0.0f;
+    if (activeForm) {
+        formMomentum[activeForm->getFormType()] = 0.0f;
+    }
 
     auto it = forms.find(newForm);
     if (it != forms.end()) {
@@ -118,6 +162,7 @@ void Player::switchForm(FormType newForm) {
     baseStats.defense = activeForm->getStats().defense;
 
     switchCooldownTimer = 4.0f;
+    return true;
 }
 
 void Player::gainMomentum(float amount, FormType form) {
