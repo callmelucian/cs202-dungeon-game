@@ -6,17 +6,24 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
     root->setAlignmentY(UI::AlignmentY::Middle);
 
+    // Create an overlaying container
+    overlays = root->createChild<UI::Container>()
+        ->setModeX(UI::SizeMode::Fixed)
+        ->setModeY(UI::SizeMode::Fixed)
+        ->setFixedWidth(SettingManager::getInstance().getWindowWidth())
+        ->setFixedHeight(SettingManager::getInstance().getWindowHeight())
+        ->setAlignmentX(UI::AlignmentX::Right)
+        ->setAlignmentY(UI::AlignmentY::Top)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+
     // Create a vertical layout box that expands to the full screen
-    layoutBox = root->createChild<UI::VerticalBox>()
-        ->setModeX(UI::SizeMode::Expanded)
+    layoutBox = overlays->createChild<UI::HorizontalBox>()
+        ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setAlignmentX(UI::AlignmentX::Center)
         ->setSpacing(50.f)
-        ->setDistribution(UI::Distribution::SpaceBetween);
-
-    // Title Text (bold, size 54, auto-sized)
-    titleText = layoutBox->createChild<UI::Text>("bold", 54)
-        ->setString("Gameplay State");
+        ->setDistribution(UI::Distribution::SpaceBetween)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
 
     // Horizontal Box for buttons (contained to fit children)
     buttonBox = layoutBox->createChild<UI::VerticalBox>()

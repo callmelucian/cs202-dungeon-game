@@ -146,6 +146,7 @@ template class SetterMixin<Text>;
 template class SetterMixin<Button>;
 template class SetterMixin<Slider>;
 template class SetterMixin<TextInput>;
+template class SetterMixin<Container>;
 template class SetterMixin<HorizontalBox>;
 template class SetterMixin<VerticalBox>;
 

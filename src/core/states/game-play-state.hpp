@@ -28,7 +28,8 @@ public:
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;
 private:
-    UI::VerticalBox* layoutBox;
+    UI::Container* overlays;
+    UI::HorizontalBox* layoutBox;
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
     UI::Button* pauseButton;

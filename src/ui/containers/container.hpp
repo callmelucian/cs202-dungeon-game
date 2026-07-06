@@ -2,6 +2,7 @@
 #define CONTAINER_HPP
 
 #include "../base/component.hpp"
+#include "../base/SetterMixin.hpp"
 #include <vector>
 #include <memory>
 #include <optional>
@@ -36,8 +37,20 @@ struct ChildDefaults {
 };
 
 // Container class managing a collection of children and resolving layout constraints
-class Container : public Component {
+class Container : public Component, public SetterMixin<Container> {
 public:
+    using SetterMixin<Container>::setModeX;
+    using SetterMixin<Container>::setModeY;
+    using SetterMixin<Container>::setFixedWidth;
+    using SetterMixin<Container>::setFixedHeight;
+    using SetterMixin<Container>::setFixedSize;
+    using SetterMixin<Container>::setMarginTop;
+    using SetterMixin<Container>::setMarginBottom;
+    using SetterMixin<Container>::setMarginLeft;
+    using SetterMixin<Container>::setMarginRight;
+    using SetterMixin<Container>::setMargins;
+    using SetterMixin<Container>::setMargin;
+
     Container();
     virtual ~Container();
 
