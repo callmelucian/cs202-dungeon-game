@@ -47,6 +47,7 @@ public:
     using SetterMixin<FlexBox<MainAxis>>::setAlignmentX;
     using SetterMixin<FlexBox<MainAxis>>::setAlignmentY;
     using SetterMixin<FlexBox<MainAxis>>::setRoot;
+    using SetterMixin<FlexBox<MainAxis>>::setColor;
 
     FlexBox();
     virtual ~FlexBox() = default;

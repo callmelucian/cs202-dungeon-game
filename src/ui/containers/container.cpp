@@ -10,7 +10,8 @@ Container::Container()
       paddingRight(0.f),
       alignmentX(AlignmentX::Left),
       alignmentY(AlignmentY::Top),
-      isRootNode(false) {
+      isRootNode(false),
+      backgroundColor(std::nullopt) {
     fixedWidth = 50.f;
     fixedHeight = 50.f;
 }
@@ -19,6 +20,12 @@ Container::~Container() {
 }
 
 void Container::draw(sf::RenderTarget& target) const {
+    if (backgroundColor.has_value()) {
+        sf::RectangleShape bg(size);
+        bg.setPosition(position);
+        bg.setFillColor(*backgroundColor);
+        target.draw(bg);
+    }
     for (const auto& child : children) {
         child->draw(target);
     }
@@ -241,5 +248,14 @@ Container* Container::setAlignmentY(AlignmentY align) { alignmentY = align; retu
 
 Container* Container::setRoot(bool isRoot) { isRootNode = isRoot; return this; }
 bool Container::isRoot() const { return isRootNode; }
+
+Container* Container::setColor(const sf::Color& color) {
+    backgroundColor = color;
+    return this;
+}
+
+std::optional<sf::Color> Container::getColor() const {
+    return backgroundColor;
+}
 
 } // namespace UI

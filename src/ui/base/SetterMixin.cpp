@@ -141,6 +141,13 @@ requires requires(Derived* t_ptr) { t_ptr->isRoot(); } {
     return self();
 }
 
+template <typename Derived>
+Derived* SetterMixin<Derived>::setColor(const sf::Color& color)
+requires requires(Derived* t_ptr) { t_ptr->getColor(); } {
+    static_cast<Container*>(self())->setColor(color);
+    return self();
+}
+
 // Explicit template instantiations
 template class SetterMixin<Text>;
 template class SetterMixin<Button>;

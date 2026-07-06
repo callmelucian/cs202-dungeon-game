@@ -103,22 +103,52 @@ void testPushPopScoping() {
 }
 
 void runUITests() {
-    std::cout << "[RUNNING UI TESTS]\n";
+    std::cout << "[RUNNING UI TESTS]" << std::endl;
     try {
         compileTimeChecks();
-        std::cout << "Compile-time checks passed (via static_assert).\n";
+        std::cout << "Compile-time checks passed (via static_assert)." << std::endl;
 
         initializeAssetManager();
-        std::cout << "AssetManager initialized.\n";
+        std::cout << "AssetManager initialized." << std::endl;
 
         testChildDefaultsRegression();
-        std::cout << "testChildDefaultsRegression passed.\n";
+        std::cout << "testChildDefaultsRegression passed." << std::endl;
 
         testOverrideWins();
         std::cout << "testOverrideWins passed.\n";
 
         testPushPopScoping();
         std::cout << "testPushPopScoping passed.\n";
+
+        // Test user's crashing case (using chained setters)
+        std::cout << "Running testCrashIssue (chained setters)..." << std::endl;
+        {
+            UI::Container root;
+            root.setModeX(UI::SizeMode::Fixed);
+            root.setModeY(UI::SizeMode::Fixed);
+            root.setFixedWidth(800.f);
+            root.setFixedHeight(600.f);
+
+            UI::Container* overlays = root.createChild<UI::Container>()
+                ->setModeX(UI::SizeMode::Fixed)
+                ->setModeY(UI::SizeMode::Fixed)
+                ->setFixedWidth(800.f)
+                ->setFixedHeight(600.f)
+                ->setAlignmentX(UI::AlignmentX::Right)
+                ->setAlignmentY(UI::AlignmentY::Top)
+                ->setPadding(20.f, 20.f, 20.f, 20.f);
+
+            auto buttonBox = overlays->createChild<UI::HorizontalBox>()
+                ->setModeX(UI::SizeMode::Contained)
+                ->setModeY(UI::SizeMode::Contained)
+                ->setSpacing(25.f)
+                ->setDistribution(UI::Distribution::SpaceBetween)
+                ->setPadding(20.f, 20.f, 20.f, 20.f)
+                ->setColor(sf::Color(255, 255, 255, 1));
+
+            root.computeSize(sf::Vector2f(800.f, 600.f));
+            root.setPosition(sf::Vector2f(0.f, 0.f));
+        }
 
         std::cout << "[ALL UI TESTS PASSED SUCCESSFULLY]\n";
     } catch (const std::exception& e) {

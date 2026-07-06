@@ -47,6 +47,9 @@ public:
     Derived* setRoot(bool isRoot)
         requires requires(Derived* t) { t->isRoot(); };
 
+    Derived* setColor(const sf::Color& color)
+        requires requires(Derived* t) { t->getColor(); };
+
 private:
     Derived* self();
 };

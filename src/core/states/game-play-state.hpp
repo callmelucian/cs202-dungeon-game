@@ -29,9 +29,8 @@ public:
     void handleEvents(sf::Event& event) override;
 private:
     UI::Container* overlays;
-    UI::HorizontalBox* layoutBox;
     UI::Text* titleText;
-    UI::VerticalBox* buttonBox;
+    UI::HorizontalBox* buttonBox;
     UI::Button* pauseButton;
     UI::Button* quitButton;
 

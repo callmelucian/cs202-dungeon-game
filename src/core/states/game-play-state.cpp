@@ -16,21 +16,14 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
         ->setAlignmentY(UI::AlignmentY::Top)
         ->setPadding(20.f, 20.f, 20.f, 20.f);
 
-    // Create a vertical layout box that expands to the full screen
-    layoutBox = overlays->createChild<UI::HorizontalBox>()
-        ->setModeX(UI::SizeMode::Contained)
-        ->setModeY(UI::SizeMode::Contained)
-        ->setAlignmentX(UI::AlignmentX::Center)
-        ->setSpacing(50.f)
-        ->setDistribution(UI::Distribution::SpaceBetween)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
-
     // Horizontal Box for buttons (contained to fit children)
-    buttonBox = layoutBox->createChild<UI::VerticalBox>()
+    buttonBox = overlays->createChild<UI::HorizontalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setSpacing(25.f)
-        ->setDistribution(UI::Distribution::SpaceBetween);
+        ->setDistribution(UI::Distribution::SpaceBetween)
+        ->setPadding(20.f, 20.f, 20.f, 20.f)
+        ->setColor(sf::Color({255, 255, 255, 10}));
 
     // Set defaults for buttons inside buttonBox
     buttonBox->setChildDefaults({

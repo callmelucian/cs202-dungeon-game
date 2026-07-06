@@ -54,6 +54,9 @@ public:
     Container();
     virtual ~Container();
 
+    Container* setColor(const sf::Color& color);
+    std::optional<sf::Color> getColor() const;
+
     void draw(sf::RenderTarget& target) const override;
     void handleEvent(const sf::Event& event) override;
     void update(float dt) override;
@@ -104,6 +107,8 @@ protected:
     AlignmentY alignmentY;
     
     bool isRootNode;
+
+    std::optional<sf::Color> backgroundColor;
 
     std::vector<ChildDefaults> defaultsStack;
 };
