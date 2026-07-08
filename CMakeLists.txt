@@ -42,6 +42,7 @@ add_executable(game
     src/global-settings/color-palette-manager.cpp
     src/global-settings/asset-manager.cpp
     src/global-settings/save-load-manager.cpp
+    src/global-settings/animation-manager.cpp
 
     # ui
     src/ui/base/component.cpp
@@ -56,6 +57,8 @@ add_executable(game
 
     # entities
     src/entities/character.cpp
+    src/entities/animation/animation.cpp
+    src/entities/animation/character-animator.cpp
     src/entities/player.cpp
     src/entities/player-form.cpp
     src/entities/stats.cpp

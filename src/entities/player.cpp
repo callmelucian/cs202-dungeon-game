@@ -1,12 +1,14 @@
 #include "player.hpp"
 #include "../utils/math-utility.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "animation/character-animator.hpp"
 #include <algorithm>
 #include <map>
 #include <iostream>
 
 Player::Player(PlayableCharacter& character)
-    : character(&character),
+    : Character(character.getName()),
+      character(&character),
       activeForm(nullptr),
       switchCooldownTimer(0.0f),
       isSwitchCooldownEnabled(true)
@@ -96,20 +98,20 @@ void Player::draw(sf::RenderWindow &window) const {
 
     // Fallback: draw the bounding box as a green square
     sf::FloatRect bounds = getBounds();
-    sf::RectangleShape pShape(bounds.size);
-    pShape.setPosition(bounds.position);
+    // sf::RectangleShape pShape(bounds.size);
+    // pShape.setPosition(bounds.position);
     
     // Change color based on active form just for visual flair
-    FormType currentForm = getActiveFormType();
-    if (currentForm == FormType::WRAITHBLADE) {
-        pShape.setFillColor(sf::Color(50, 180, 50)); // Green
-    } else if (currentForm == FormType::VOIDCASTER) {
-        pShape.setFillColor(sf::Color(150, 50, 180)); // Purple
-    } else {
-        pShape.setFillColor(sf::Color(180, 100, 50)); // Orange
-    }
+    // FormType currentForm = getActiveFormType();
+    // if (currentForm == FormType::WRAITHBLADE) {
+    //     pShape.setFillColor(sf::Color(50, 180, 50)); // Green
+    // } else if (currentForm == FormType::VOIDCASTER) {
+    //     pShape.setFillColor(sf::Color(150, 50, 180)); // Purple
+    // } else {
+    //     pShape.setFillColor(sf::Color(180, 100, 50)); // Orange
+    // }
     
-    window.draw(pShape);
+    animator->draw(window, getPosition(), bounds.size);
 }
 
 void Player::takeDamage(float rawAmount) {

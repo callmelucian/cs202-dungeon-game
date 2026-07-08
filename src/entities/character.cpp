@@ -4,38 +4,13 @@
 #include <cmath>
 #include "effects/paralyzed-effect.hpp"
 #include "../utils/math-utility.hpp"
-
-// ---- CharacterAnimator implementation ----
-CharacterAnimator::CharacterAnimator() : hitFlashTimer(0.0f) {}
-
-void CharacterAnimator::onStateChanged(const Character& character, std::string visualKey) {
-    currentAnimKey = visualKey;
-}
-
-void CharacterAnimator::onDamaged(const Character& character, float amount) {
-    hitFlashTimer = 0.2f;
-}
-
-void CharacterAnimator::onDefeated(const Character& character) {
-    // Play defeat animations / effects
-}
-
-void CharacterAnimator::update(float dt) {
-    if (hitFlashTimer > 0.0f) {
-        hitFlashTimer -= dt;
-    }
-}
-
-void CharacterAnimator::draw(sf::RenderWindow& window) const {
-    // Draw logic placeholder using sprite
-}
-
+#include "animation/character-animator.hpp"
 
 // ---- Character implementation ----
-Character::Character()
+Character::Character(const std::string& characterKey)
     : position(0.0f, 0.0f),
       velocity(0.0f, 0.0f),
-      animator(std::make_unique<CharacterAnimator>())
+      animator(std::make_unique<CharacterAnimator>(characterKey))
 {
     baseStats.hp = 100.0f;
     baseStats.maxHp = 100.0f;
@@ -43,6 +18,8 @@ Character::Character()
     baseStats.speed = 100.0f;
     baseStats.defense = 0.0f;
 }
+
+Character::~Character() = default;
 
 void Character::update(float deltaTime) {
     if (animator) {
@@ -62,7 +39,7 @@ void Character::update(float deltaTime) {
 
 void Character::draw(sf::RenderWindow &window) const {
     if (animator) {
-        animator->draw(window);
+        animator->draw(window, getPosition(), getBounds().size);
     }
 }
 

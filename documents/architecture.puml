@@ -86,6 +86,14 @@ package "Global Settings" {
         + getFont(name : std::string) : const sf::Font&
     }
 
+    class AnimationManager << (S,#FF7F24) Singleton >> {
+        - animationSets : std::unordered_map<std::string, AnimationSet>
+        - AnimationManager()
+        + {static} getInstance() : AnimationManager&
+        + loadAnimationSet(character : std::string, filepath : std::string) : bool
+        + getAnimationSet(character : std::string) : const AnimationSet&
+    }
+
     class SoundManager << (S,#FF7F24) Singleton >> {
         - soundBuffers : std::unordered_map<std::string, sf::SoundBuffer>
         - music : sf::Music
@@ -279,10 +287,37 @@ package "Entities" {
         + {abstract} onDefeated(character : const Character&) : void
     }
 
+    class AnimationFrame <<struct>> {
+        + frameRegion : sf::IntRect
+        + duration : float
+    }
+
+    class Animation {
+        - frames : std::vector<AnimationFrame>
+        - checkpoints : std::vector<double>
+        - looping : bool
+        + Animation(frames : std::vector<AnimationFrame>, looping : bool)
+        + getFrame(elapsed : float) : const AnimationFrame&
+        + isFinished(elapsed : float) : bool
+    }
+
+    class AnimationSet <<struct>> {
+        + textureKey : std::string
+        + animations : std::unordered_map<std::string, Animation>
+        + addAnimation(animationKey : std::string, animation : Animation) : void
+        + getAnimation(animationKey : std::string) : const Animation&
+    }
+
+    Animation *-- AnimationFrame
+    AnimationSet *-- Animation
+
     class CharacterAnimator << Observer >> {
-        - sprite : sf::Sprite
-        - currentAnimKey : std::string
+        - sprite : std::unique_ptr<sf::Sprite>
+        - characterKey : std::string
+        - currentAnimationKey : std::string
         - hitFlashTimer : float
+        - currentAnimationElapsed : float
+        + CharacterAnimator(characterKey : std::string)
         + onStateChanged(character : const Character&, visualKey : std::string) : void
         + onDamaged(character : const Character&, amount : float) : void
         + onDefeated(character : const Character&) : void

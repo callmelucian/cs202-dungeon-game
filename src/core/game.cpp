@@ -2,6 +2,7 @@
 #include "../global-settings/color-palette-manager.hpp"
 #include "../global-settings/asset-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
+#include "../global-settings/animation-manager.hpp"
 #include <filesystem>
 
 #include "states/main-menu-state.hpp"
@@ -31,12 +32,17 @@ Game::Game() : running(false) {
     assets.loadFont("italic", resolvePath("assets/typeface/GoogleSansCode-Italic.ttf"));
     assets.loadFont("bold", resolvePath("assets/typeface/GoogleSansCode-Bold.ttf"));
     assets.loadFont("bold-italic", resolvePath("assets/typeface/GoogleSansCode-BoldItalic.ttf"));
+    assets.loadTexture("character-sprite-sheet", resolvePath("assets/textures/character-sprite-sheet.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();
     sounds.loadSound("menu-nav", resolvePath("assets/sounds/menu-nav.wav"));
     sounds.loadSound("menu-select", resolvePath("assets/sounds/menu-select.wav"));
     sounds.playMusic(resolvePath("assets/music/fallen-down-reprise.ogg"), true);
+
+    // load animations
+    AnimationManager &animations = AnimationManager::getInstance();
+    animations.loadAnimationSet("Serin", resolvePath("assets/animations/serin.json"));
 
     // setup render window
     renderWindow.create(

@@ -8,36 +8,13 @@
 #include "effects/status-effect.hpp"
 #include "stats.hpp"
 
-class Character;
-
-class CharacterObserver {
-public:
-    virtual ~CharacterObserver() = default;
-    virtual void onStateChanged(const Character& character, std::string visualKey) = 0;
-    virtual void onDamaged(const Character& character, float amount) = 0;
-    virtual void onDefeated(const Character& character) = 0;
-};
-
-class CharacterAnimator : public CharacterObserver {
-public:
-    CharacterAnimator();
-    void onStateChanged(const Character& character, std::string visualKey) override;
-    void onDamaged(const Character& character, float amount) override;
-    void onDefeated(const Character& character) override;
-    
-    void update(float dt);
-    void draw(sf::RenderWindow& window) const;
-
-private:
-    std::unique_ptr<sf::Sprite> sprite;
-    std::string currentAnimKey;
-    float hitFlashTimer;
-};
+class CharacterObserver;
+class CharacterAnimator;
 
 class Character {
 public:
-    Character();
-    virtual ~Character() = default;
+    Character(const std::string& characterKey);
+    virtual ~Character();
 
     virtual void update(float deltaTime) = 0;
     virtual void draw(sf::RenderWindow &window) const = 0;

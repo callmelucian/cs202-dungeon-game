@@ -1,0 +1,16 @@
+{
+    "textureKey": "character-sprite-sheet",
+    "animations": {
+        "idle": {
+            "looping": true,
+            "frames": [
+                { "x": 100, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
+                { "x": 160, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
+                { "x": 220, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
+                { "x": 280, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
+                { "x": 340, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
+                { "x": 400, "y": 67, "width": 50, "height": 50, "duration": 0.2 }
+            ]
+        }
+    }
+}
