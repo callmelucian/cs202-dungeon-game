@@ -77,11 +77,11 @@
   - [ ] Weekly Report.
 
 * **Developer B (Enemy Base, BoneSprinter & Basic AI State)**
-  - [ ] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `aiState : EnemyAIState*`, `attackCooldown`, and `updateAI(dt, Chamber&)` method.
-  - [ ] Implement the **State Pattern** for enemy AI: `EnemyAIState` interface and concrete classes (`IdleAIState`, `ChasingAIState`, `AttackingAIState`, `StaggeredAIState` with timed auto-revert mechanism).
-  - [ ] Add `isCarrier`, `isDecoy`, `fragmentDropCount`, `isRealCarrier()` virtual method, and `onDeath()` abstract method to `Enemy`.
+  - [ ] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `currentState : EnemyState*`, `steeringStrategy : unique_ptr<EnemySteeringStrategy>`, `attackCooldown`, and `updateState(dt, Chamber&)` method.
+  - [ ] Implement the **State Pattern** for enemy behavior: `EnemyState` interface and concrete classes (`IdleState`, `ChasingState`, `AttackingState`, `StaggeredState` with timed auto-revert mechanism).
+  - [ ] Implement the **Strategy Pattern** for enemy steering: `EnemySteeringStrategy` interface and concrete classes (`SeekStrategy`, `EvadeStrategy`). Let `ChasingState` delegate movement to the enemy's active strategy.
+  - [ ] Add `fragmentDropCount` and `onDeath()` abstract method to `Enemy`.
   - [ ] Implement `EnemyFactory::createEnemy(EnemyType, Player&) → unique_ptr<Enemy>` (per architecture.puml).
-  - [ ] Code simple steering AI behaviors: **Seek** (chases player position) and **Evade** (moves away from threat) as shared methods on `Enemy`.
   - [ ] Implement `WaterloggedScribe` (HP 18, Dmg 5, Speed 1.5 — effective after chamber water-slow; no additional Slowed multiplier unless additionally afflicted).
   - [ ] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method.
   - [ ] Implement `BoneSprinter` (HP 14 carrier / HP 20 blocker, Speed 9.0 / 6.0). Include `isCarrier` flag for carrier/blocker variants.
