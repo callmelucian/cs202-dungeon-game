@@ -22,6 +22,9 @@ public:
     void playMusic(const std::string& filepath, bool loop);
     void stopMusic();
 
+    void setMusicVolume(float volume);
+    void setSfxVolume(float volume);
+
 private:
     SoundManager();
     ~SoundManager() = default;

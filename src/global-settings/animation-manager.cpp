@@ -37,14 +37,39 @@ bool AnimationManager::loadAnimationSet(const std::string &character, const std:
                 looping = animData["looping"].get<bool>();
             }
 
+            bool mirrorX = false;
+            if (animData.contains("mirrorX")) {
+                mirrorX = animData["mirrorX"].get<bool>();
+            }
+            
+            bool mirrorY = false;
+            if (animData.contains("mirrorY")) {
+                mirrorY = animData["mirrorY"].get<bool>();
+            }
+
             std::vector<AnimationFrame> frames;
             if (animData.contains("frames")) {
                 for (const auto& frameData : animData["frames"]) {
                     AnimationFrame frame;
-                    frame.frameRegion.position.x = frameData["x"].get<int>();
-                    frame.frameRegion.position.y = frameData["y"].get<int>();
-                    frame.frameRegion.size.x = frameData["width"].get<int>();
-                    frame.frameRegion.size.y = frameData["height"].get<int>();
+                    
+                    int x = frameData["x"].get<int>();
+                    int y = frameData["y"].get<int>();
+                    int width = frameData["width"].get<int>();
+                    int height = frameData["height"].get<int>();
+                    
+                    if (mirrorX) {
+                        x = x + width;
+                        width = -width;
+                    }
+                    if (mirrorY) {
+                        y = y + height;
+                        height = -height;
+                    }
+
+                    frame.frameRegion.position.x = x;
+                    frame.frameRegion.position.y = y;
+                    frame.frameRegion.size.x = width;
+                    frame.frameRegion.size.y = height;
                     frame.duration = frameData["duration"].get<float>();
                     frames.push_back(frame);
                 }

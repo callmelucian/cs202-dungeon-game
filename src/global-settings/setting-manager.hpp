@@ -31,6 +31,9 @@ public:
     float getSfxVolume() const;
     void setSfxVolume(float volume);
 
+    float getSpriteMultiplier() const;
+    float getCharacterSize() const;
+
     unsigned int getWindowWidth() const;
     unsigned int getWindowHeight() const;
     void setResolution(unsigned int width, unsigned int height);
@@ -45,8 +48,10 @@ public:
     void setKeyBinding(const std::string& action, sf::Keyboard::Scancode scancode);
 
 private:
-    float musicVolume;
-    float sfxVolume;
+    float musicVolume, sfxVolume;
+    float spriteSizeMultiplier;
+    float characterSize;
+
     unsigned int windowWidth;
     unsigned int windowHeight;
     bool fullscreen;

@@ -1,15 +1,46 @@
 {
-    "textureKey": "character-sprite-sheet",
+    "textureKey": "serin-demo",
     "animations": {
-        "idle": {
+        "idle-facing-left": {
+            "looping": true,
+            "mirrorX": true,
+            "frames": [
+                { "x": 0, "y": 0, "width": 64, "height": 64, "duration": 0.3 },
+                { "x": 64, "y": 0, "width": 64, "height": 64, "duration": 0.3 }
+            ]
+        },
+        "idle-facing-right": {
             "looping": true,
             "frames": [
-                { "x": 100, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
-                { "x": 160, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
-                { "x": 220, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
-                { "x": 280, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
-                { "x": 340, "y": 67, "width": 50, "height": 50, "duration": 0.2 },
-                { "x": 400, "y": 67, "width": 50, "height": 50, "duration": 0.2 }
+                { "x": 0, "y": 0, "width": 64, "height": 64, "duration": 0.3 },
+                { "x": 64, "y": 0, "width": 64, "height": 64, "duration": 0.3 }
+            ]
+        },
+        "running-facing-left": {
+            "looping": true,
+            "mirrorX": true,
+            "frames": [
+                { "x": 0, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 64, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 128, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 192, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 0, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 64, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 128, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 192, "y": 64, "width": 64, "height": 64, "duration": 0.2 }
+            ]
+        },
+        "running-facing-right": {
+            "looping": true,
+            "frames": [
+                { "x": 0, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 64, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 128, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 192, "y": 0, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 0, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 64, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 128, "y": 64, "width": 64, "height": 64, "duration": 0.2 },
+                { "x": 192, "y": 64, "width": 64, "height": 64, "duration": 0.2 }
             ]
         }
     }

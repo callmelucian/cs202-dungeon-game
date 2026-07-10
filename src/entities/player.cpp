@@ -5,13 +5,15 @@
 #include <algorithm>
 #include <map>
 #include <iostream>
+#include <string>
 
 Player::Player(PlayableCharacter& character)
     : Character(character.getName()),
       character(&character),
       activeForm(nullptr),
       switchCooldownTimer(0.0f),
-      isSwitchCooldownEnabled(true)
+      isSwitchCooldownEnabled(true),
+      isFacingRight(true)
 {
     // Create forms using the abstract factory
     forms[FormType::WRAITHBLADE] = character.createForm1();
@@ -64,15 +66,18 @@ void Player::update(float deltaTime) {
 
     if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveUp"))) dir.y -= 1.f;
     if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveDown"))) dir.y += 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f;
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f, isFacingRight = false;
+    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f, isFacingRight = true;
 
     // Normalize diagonal movement speed
+    std::string direction = (isFacingRight ? "right" : "left");
     if (dir.x != 0.f || dir.y != 0.f) {
         float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         dir.x /= length;
         dir.y /= length;
+        notifyStateChanged(std::string("running-facing-") + direction);
     }
+    else notifyStateChanged(std::string("idle-facing-") + direction);
 
     const float SPEED_TO_PIXELS = 60.f;
     setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
@@ -98,20 +103,7 @@ void Player::draw(sf::RenderWindow &window) const {
 
     // Fallback: draw the bounding box as a green square
     sf::FloatRect bounds = getBounds();
-    // sf::RectangleShape pShape(bounds.size);
-    // pShape.setPosition(bounds.position);
-    
-    // Change color based on active form just for visual flair
-    // FormType currentForm = getActiveFormType();
-    // if (currentForm == FormType::WRAITHBLADE) {
-    //     pShape.setFillColor(sf::Color(50, 180, 50)); // Green
-    // } else if (currentForm == FormType::VOIDCASTER) {
-    //     pShape.setFillColor(sf::Color(150, 50, 180)); // Purple
-    // } else {
-    //     pShape.setFillColor(sf::Color(180, 100, 50)); // Orange
-    // }
-    
-    animator->draw(window, getPosition(), bounds.size);
+    animator->draw(window, getPosition(), bounds.size * SettingManager::getInstance().getSpriteMultiplier());
 }
 
 void Player::takeDamage(float rawAmount) {

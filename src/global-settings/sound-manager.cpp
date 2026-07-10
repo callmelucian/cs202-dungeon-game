@@ -1,4 +1,5 @@
 #include "sound-manager.hpp"
+#include "setting-manager.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -36,6 +37,7 @@ void SoundManager::playSound(const std::string& name) {
         if (!soundPool[i].has_value() || soundPool[i]->getStatus() == sf::Sound::Status::Stopped) {
             // emplace() cleanly constructs a new sf::Sound directly in the pre-allocated memory slot
             soundPool[i].emplace(*soundBuffers[name]);
+            soundPool[i]->setVolume(SettingManager::getInstance().getSfxVolume());
             soundPool[i]->play();
             return;
         }
@@ -52,9 +54,22 @@ void SoundManager::playMusic(const std::string& filepath, bool loop) {
     }
 
     music.setLooping(loop);
+    music.setVolume(SettingManager::getInstance().getMusicVolume());
     music.play();
 }
 
 void SoundManager::stopMusic() {
     music.stop();
+}
+
+void SoundManager::setMusicVolume(float volume) {
+    music.setVolume(volume);
+}
+
+void SoundManager::setSfxVolume(float volume) {
+    for (auto& soundOpt : soundPool) {
+        if (soundOpt.has_value()) {
+            soundOpt->setVolume(volume);
+        }
+    }
 }

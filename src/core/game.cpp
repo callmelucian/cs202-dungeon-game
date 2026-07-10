@@ -33,6 +33,7 @@ Game::Game() : running(false) {
     assets.loadFont("bold", resolvePath("assets/typeface/GoogleSansCode-Bold.ttf"));
     assets.loadFont("bold-italic", resolvePath("assets/typeface/GoogleSansCode-BoldItalic.ttf"));
     assets.loadTexture("character-sprite-sheet", resolvePath("assets/textures/character-sprite-sheet.png"));
+    assets.loadTexture("serin-demo", resolvePath("assets/textures/serin-demo.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();

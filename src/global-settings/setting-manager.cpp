@@ -19,6 +19,8 @@ void SettingManager::loadDefaults() {
     sfxVolume = 50.0f;
     windowWidth = 1800;
     windowHeight = 900;
+    spriteSizeMultiplier = 1.2f;
+    characterSize = 80.f;
     fullscreen = false;
     difficulty = Difficulty::Normal;
 
@@ -152,6 +154,14 @@ float SettingManager::getSfxVolume() const {
 
 void SettingManager::setSfxVolume(float volume) {
     sfxVolume = volume;
+}
+
+float SettingManager::getSpriteMultiplier() const {
+    return spriteSizeMultiplier;
+}
+
+float SettingManager::getCharacterSize() const {
+    return characterSize;
 }
 
 unsigned int SettingManager::getWindowWidth() const {

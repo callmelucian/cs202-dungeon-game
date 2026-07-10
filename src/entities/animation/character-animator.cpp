@@ -2,11 +2,13 @@
 #include "../../global-settings/animation-manager.hpp"
 #include "../../global-settings/asset-manager.hpp"
 
+#include <iostream>
+
 // ---- CharacterAnimator implementation ----
 CharacterAnimator::CharacterAnimator(const std::string& characterKey) 
     : sprite(nullptr),
       characterKey(characterKey),
-      currentAnimationKey("idle"),
+      currentAnimationKey("idle-facing-right"),
       hitFlashTimer(0.0f),
       currentAnimationElapsed(0.0f) 
 {
@@ -30,6 +32,7 @@ void CharacterAnimator::onStateChanged(const Character& character, std::string a
     if (currentAnimationKey != animationKey) {
         currentAnimationKey = animationKey;
         currentAnimationElapsed = 0.0f;
+        std::cerr << "New key " << animationKey << std::endl;
     }
 }
 
