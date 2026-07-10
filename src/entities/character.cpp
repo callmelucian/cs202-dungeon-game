@@ -5,6 +5,7 @@
 #include "effects/paralyzed-effect.hpp"
 #include "../utils/math-utility.hpp"
 #include "animation/character-animator.hpp"
+#include "../global-settings/setting-manager.hpp"
 
 // ---- Character implementation ----
 Character::Character(const std::string& characterKey)
@@ -17,6 +18,8 @@ Character::Character(const std::string& characterKey)
     baseStats.damage = 10.0f;
     baseStats.speed = 100.0f;
     baseStats.defense = 0.0f;
+    
+    addObserver(animator.get());
 }
 
 Character::~Character() = default;
@@ -126,7 +129,8 @@ void Character::setSpeed(float speed) {
 
 sf::FloatRect Character::getBounds() const {
     // A standard 32x32 bounding box centered on the character's position
-    return sf::FloatRect({position.x - 16.f, position.y - 16.f}, {32.f, 32.f});
+    float size = SettingManager::getInstance().getCharacterSize();
+    return sf::FloatRect({position.x - size / 2, position.y - size / 2}, {size, size});
 }
 
 bool Character::canAct() const {

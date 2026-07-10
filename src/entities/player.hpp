@@ -44,6 +44,7 @@ private:
 
     float switchCooldownTimer;
     bool isSwitchCooldownEnabled;
+    bool isFacingRight;
 };
 
 #endif // PLAYER_HPP

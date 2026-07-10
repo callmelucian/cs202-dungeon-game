@@ -1,4 +1,5 @@
 #include "setting-state.hpp"
+#include "../../global-settings/sound-manager.hpp"
 
 SettingState::SettingState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
@@ -38,14 +39,22 @@ SettingState::SettingState(StateManager& manager) : GameState(manager) {
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained);
 
-    musicSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getMusicVolume());
+    musicSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getMusicVolume())
+        ->setOnValueChanged([](float val) {
+            SettingManager::getInstance().setMusicVolume(val);
+            SoundManager::getInstance().setMusicVolume(val);
+        });
 
     sfxLabel = buttonBox->createChild<UI::Text>("regular", 20)
         ->setString("SFX Volume")
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained);
 
-    sfxSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getSfxVolume());
+    sfxSlider = buttonBox->createChild<UI::Slider>(0.f, 100.f, settings.getSfxVolume())
+        ->setOnValueChanged([](float val) {
+            SettingManager::getInstance().setSfxVolume(val);
+            SoundManager::getInstance().setSfxVolume(val);
+        });
 
     backButton = buttonBox->createChild<UI::Button>("Back", "regular", 25.f)
         ->setOnClick([this]() {
