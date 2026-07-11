@@ -76,7 +76,7 @@ add_executable(game
     src/entities/enemy/enemy-state.cpp
     src/entities/enemy/waterlogged-scribe.cpp
     src/entities/enemy/shard-soldier.cpp
-    rc/entities/enemy/bone-sprinter.cpp
+    src/entities/enemy/bone-sprinter.cpp
 
     # utils
     src/utils/math-utility.cpp
