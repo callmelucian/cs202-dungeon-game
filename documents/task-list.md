@@ -82,9 +82,9 @@
   - [x] Implement the **Strategy Pattern** for enemy steering: `EnemySteeringStrategy` interface and concrete classes (`SeekStrategy`, `EvadeStrategy`). Let `ChasingState` delegate movement to the enemy's active strategy.
   - [x] Add `fragmentDropCount` and `onDeath()` abstract method to `Enemy`.
   - [ ] Implement `EnemyFactory::createEnemy(EnemyType, Player&) → unique_ptr<Enemy>` (per architecture.puml).
-  - [ ] Implement `WaterloggedScribe` (HP 18, Dmg 5, Speed 1.5 — effective after chamber water-slow; no additional Slowed multiplier unless additionally afflicted).
+  - [x] Implement `WaterloggedScribe` (HP 18, Dmg 5, Speed 1.5 — effective after chamber water-slow; no additional Slowed multiplier unless additionally afflicted).
   - [ ] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method.
-  - [ ] Implement `BoneSprinter` (HP 14 carrier / HP 20 blocker, Speed 9.0 / 6.0). Include `isCarrier` flag for carrier/blocker variants.
+  - [x] Implement `BoneSprinter` (HP 14 carrier / HP 20 blocker, Speed 9.0 / 6.0). Include `isCarrier` flag for carrier/blocker variants.
   - [ ] Add `BONE_SPRINTER` and `SHARD_WRAITH` to `EnemyType` enum in `enums.hpp`.
   - [ ] Integrate enemy sprites from Dev A's sprite assets.
 
