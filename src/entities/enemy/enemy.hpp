@@ -12,7 +12,7 @@ class EnemySteeringStrategy;
 class Enemy : public Character {
 protected:
     Player& playerRef;
-    EmemyState* currentState;
+    EnemyState* currentState;
     std::unique_ptr<EnemySteeringStrategy> steeringStrategy;
     float attackCooldown;
     int fragmentDropCount;
@@ -26,12 +26,12 @@ public:
     virtual void updateState(float dt, Chamber& chamber);
     void changeState(EnemyState* newState);
 
-    void setSteeringStratgety(std::unique<EnemySteeringStrategy> strategy);
-    EnemySteeringStrategy* getSteeringStrategy const;
+    void setSteeringStrategy(std::unique_ptr<EnemySteeringStrategy> strategy);
+    EnemySteeringStrategy* getSteeringStrategy() const;
     
     virtual void onDeath() = 0;
 
     Player& getPlayer() const;
-}
+};
 
 #endif // ENEMY_HPP
