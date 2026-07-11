@@ -41,10 +41,12 @@ public:
 protected:
     void notifyStateChanged(std::string visualKey);
     float calculateMitigatedDamage(float rawAmount);
+    void tickStatusEffects(float dt);
 
     sf::Vector2f position, velocity;
     Stats baseStats;
     std::vector<std::unique_ptr<StatusEffect>> statusEffects;
+    std::vector<std::unique_ptr<StatusEffect>> pendingStatusEffects;
     std::vector<CharacterObserver*> observers;
     std::unique_ptr<CharacterAnimator> animator;
 };

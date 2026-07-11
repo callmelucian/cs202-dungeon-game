@@ -3,6 +3,7 @@
 #include "../../global-settings/asset-manager.hpp"
 
 #include <iostream>
+#include <cmath>
 
 // ---- CharacterAnimator implementation ----
 CharacterAnimator::CharacterAnimator(const std::string& characterKey) 
@@ -20,19 +21,19 @@ CharacterAnimator::CharacterAnimator(const std::string& characterKey)
         // set initial frame if available
         const Animation& anim = animSet.getAnimation(currentAnimationKey);
         const AnimationFrame& frame = anim.getFrame(0.0f);
-        if (frame.frameRegion.size.x > 0 && frame.frameRegion.size.y > 0) {
+        if (frame.frameRegion.size.x != 0 && frame.frameRegion.size.y != 0) {
             sprite->setTextureRect(frame.frameRegion);
-            // set origin to center
-            sprite->setOrigin(sf::Vector2f(frame.frameRegion.size.x / 2.0f, frame.frameRegion.size.y / 2.0f));
+            // set origin to center, using absolute size because mirrored frames have negative size
+            sprite->setOrigin(sf::Vector2f(std::abs(frame.frameRegion.size.x) / 2.0f, std::abs(frame.frameRegion.size.y) / 2.0f));
         }
     }
 }
 
 void CharacterAnimator::onStateChanged(const Character& character, std::string animationKey) {
     if (currentAnimationKey != animationKey) {
+        std::cerr << "STATE CHANGED " << animationKey << std::endl;
         currentAnimationKey = animationKey;
         currentAnimationElapsed = 0.0f;
-        std::cerr << "New key " << animationKey << std::endl;
     }
 }
 
@@ -57,10 +58,10 @@ void CharacterAnimator::update(float dt) {
         const Animation& anim = animSet.getAnimation(currentAnimationKey);
         const AnimationFrame& frame = anim.getFrame(currentAnimationElapsed);
         
-        if (frame.frameRegion.size.x > 0 && frame.frameRegion.size.y > 0) {
+        if (frame.frameRegion.size.x != 0 && frame.frameRegion.size.y != 0) {
             sprite->setTextureRect(frame.frameRegion);
-            // Keep origin centered
-            sprite->setOrigin(sf::Vector2f(frame.frameRegion.size.x / 2.0f, frame.frameRegion.size.y / 2.0f));
+            // Keep origin centered, using absolute size
+            sprite->setOrigin(sf::Vector2f(std::abs(frame.frameRegion.size.x) / 2.0f, std::abs(frame.frameRegion.size.y) / 2.0f));
         }
     }
 }

@@ -29,9 +29,30 @@ void Character::update(float deltaTime) {
         animator->update(deltaTime);
     }
 
+    // Process pending status effects to avoid iterator invalidation
+    for (auto& effect : pendingStatusEffects) {
+        bool found = false;
+        for (auto& activeEffect : statusEffects) {
+            if (typeid(*activeEffect) == typeid(*effect)) {
+                activeEffect->refresh(*effect);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            effect->apply(*this);
+            statusEffects.push_back(std::move(effect));
+        }
+    }
+    pendingStatusEffects.clear();
+
+    tickStatusEffects(deltaTime);
+}
+
+void Character::tickStatusEffects(float dt) {
     // Update active status effects and remove finished ones
     for (auto it = statusEffects.begin(); it != statusEffects.end(); ) {
-        bool active = (*it)->update(deltaTime, *this);
+        bool active = (*it)->update(dt, *this);
         if (!active) {
             (*it)->remove(*this);
             it = statusEffects.erase(it);
@@ -69,18 +90,7 @@ float Character::calculateMitigatedDamage(float rawAmount) {
 
 void Character::applyStatusEffect(std::unique_ptr<StatusEffect> effect) {
     if (!effect) return;
-
-    // Check if an effect of the same type is already applied
-    for (auto& activeEffect : statusEffects) {
-        if (typeid(*activeEffect) == typeid(*effect)) {
-            activeEffect->refresh(*effect);
-            return;
-        }
-    }
-
-    // Apply the effect and store it
-    effect->apply(*this);
-    statusEffects.push_back(std::move(effect));
+    pendingStatusEffects.push_back(std::move(effect));
 }
 
 void Character::addObserver(CharacterObserver* observer) {
@@ -94,6 +104,7 @@ void Character::removeObserver(CharacterObserver* observer) {
 }
 
 void Character::notifyStateChanged(std::string visualKey) {
+    // std::cerr << "NOTIFY " << visualKey << std::endl;
     for (auto observer : observers) {
         observer->onStateChanged(*this, visualKey);
     }

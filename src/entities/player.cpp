@@ -44,17 +44,11 @@ void Player::handleInput(const sf::Event& event) {
 
     if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
         if (keyEvent->scancode == settings.getKeyBinding("SwitchForm1")) {
-            if (switchForm(FormType::WRAITHBLADE)) {
-                std::cout << "Switched to Wraithblade! Speed: " << getSpeed() << std::endl;
-            }
+            switchForm(FormType::WRAITHBLADE);
         } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm2")) {
-            if (switchForm(FormType::VOIDCASTER)) {
-                std::cout << "Switched to Voidcaster! Speed: " << getSpeed() << std::endl;
-            }
+            switchForm(FormType::VOIDCASTER);
         } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
-            if (switchForm(FormType::IRONSHELL)) {
-                std::cout << "Switched to Ironshell! Speed: " << getSpeed() << std::endl;
-            }
+            switchForm(FormType::IRONSHELL);
         }
     }
 }
@@ -75,7 +69,7 @@ void Player::update(float deltaTime) {
         float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         dir.x /= length;
         dir.y /= length;
-        notifyStateChanged(std::string("running-facing-") + direction);
+        notifyStateChanged(std::string("run-facing-") + direction);
     }
     else notifyStateChanged(std::string("idle-facing-") + direction);
 

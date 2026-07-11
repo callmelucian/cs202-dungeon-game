@@ -71,7 +71,7 @@
   - [x] Implement `BurnedEffect`: ticks once per second for 10 seconds, dealing `0.25 × dealerBaseDamage` per tick (affected by target defense).
   - [x] Implement `ParalyzedEffect`: 10-second duration; exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
   - [x] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
-  - [ ] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
+  - [x] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
   - [ ] Implement player melee and ranged attack hitboxes that scale by active form parameters.
   - [ ] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
   - [ ] Weekly Report.
