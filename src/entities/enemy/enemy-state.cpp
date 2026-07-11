@@ -10,8 +10,8 @@ void IdleState::onEnter(Enemy& enemy) {
 void IdleState::onExit(Enemy& enemy) {}
 
 void IdleState::update(Enemy& enemy, float dt, Chamber& chamber) {
-    // Default: enemies will immediately wake up and start chasing
-    enemy.changeState(new ChasingState());
+    // Placeholder: switch to ChasingState if player is near
+    // enemy.changeState(std::make_unique<ChasingState>());
 }
 
 void ChasingState::onEnter(Enemy& enemy) {}
@@ -35,8 +35,7 @@ void AttackingState::update(Enemy& enemy, float dt, Chamber& chamber) {
     // Waiting for other features to be implemented (like attacking animation)
 }
 
-// ================= STAGGERED STATE =================
-StaggeredState::StaggeredState(float duration, EnemyState* previous) : duration(duration), elapsedTime(0.0f), previousState(previous) {}
+StaggeredState::StaggeredState(float duration, std::unique_ptr<EnemyState> previous) : duration(duration), elapsedTime(0.0f), previousState(std::move(previous)) {}
 
 void StaggeredState::onEnter(Enemy& enemy) {
     enemy.setVelocity(sf::Vector2f(0.0f, 0.0f));
@@ -46,5 +45,5 @@ void StaggeredState::onExit(Enemy& enemy) {}
 
 void StaggeredState::update(Enemy& enemy, float dt, Chamber& chamber) {
     elapsedTime += dt;
-    if (elapsedTime >= duration) enemy.changeState(previousState);
+    if (elapsedTime >= duration) enemy.changeState(std::move(previousState));
 }

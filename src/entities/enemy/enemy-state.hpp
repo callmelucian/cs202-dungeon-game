@@ -1,7 +1,9 @@
 #ifndef ENEMY_STATE_HPP
 #define ENEMY_STATE_HPP
 
-class Enemy;
+#include "enemy.hpp"
+#include <memory>
+
 class Chamber;
 
 class EnemyState {
@@ -39,10 +41,10 @@ class StaggeredState : public EnemyState {
 private:
     float duration;
     float elapsedTime;
-    EnemyState* previousState;
+    std::unique_ptr<EnemyState> previousState;
 
 public:
-    StaggeredState(float duration, EnemyState* previous);
+    StaggeredState(float duration, std::unique_ptr<EnemyState> previous);
     
     void onEnter(Enemy& enemy) override;
     void onExit(Enemy& enemy) override;

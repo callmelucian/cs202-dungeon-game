@@ -20,9 +20,9 @@ void Enemy::updateState(float dt, Chamber& chamber) {
     if (currentState) currentState->update(*this, dt, chamber);
 }
 
-void Enemy::changeState(EnemyState* newState) {
-    if (currentState) currentState->onExit(*this);    
-    currentState = newState;
+void Enemy::changeState(std::unique_ptr<EnemyState> newState) {
+    if (currentState) currentState->onExit(*this);
+    currentState = std::move(newState);
     if (currentState) currentState->onEnter(*this);
 }
 
