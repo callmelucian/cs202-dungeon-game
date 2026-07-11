@@ -72,6 +72,7 @@ add_executable(game
     src/entities/forms/ironshell-form.cpp
     src/entities/enemy/enemy.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
+    src/entities/enemy/enemy-state.cpp
 
     # utils
     src/utils/math-utility.cpp
