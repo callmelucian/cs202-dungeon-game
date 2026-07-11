@@ -78,9 +78,9 @@
 
 * **Developer B (Enemy Base, BoneSprinter & Basic AI State)**
   - [x] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `currentState : EnemyState*`, `steeringStrategy : unique_ptr<EnemySteeringStrategy>`, `attackCooldown`, and `updateState(dt, Chamber&)` method.
-  - [ ] Implement the **State Pattern** for enemy behavior: `EnemyState` interface and concrete classes (`IdleState`, `ChasingState`, `AttackingState`, `StaggeredState` with timed auto-revert mechanism).
+  - [x] Implement the **State Pattern** for enemy behavior: `EnemyState` interface and concrete classes (`IdleState`, `ChasingState`, `AttackingState`, `StaggeredState` with timed auto-revert mechanism).
   - [x] Implement the **Strategy Pattern** for enemy steering: `EnemySteeringStrategy` interface and concrete classes (`SeekStrategy`, `EvadeStrategy`). Let `ChasingState` delegate movement to the enemy's active strategy.
-  - [ ] Add `fragmentDropCount` and `onDeath()` abstract method to `Enemy`.
+  - [x] Add `fragmentDropCount` and `onDeath()` abstract method to `Enemy`.
   - [ ] Implement `EnemyFactory::createEnemy(EnemyType, Player&) → unique_ptr<Enemy>` (per architecture.puml).
   - [ ] Implement `WaterloggedScribe` (HP 18, Dmg 5, Speed 1.5 — effective after chamber water-slow; no additional Slowed multiplier unless additionally afflicted).
   - [ ] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method.
