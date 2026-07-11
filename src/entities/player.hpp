@@ -28,6 +28,7 @@ public:
     float getMomentum(FormType form) const;
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
+    bool getIsFacingRight() const;
 
     FormType getActiveFormType() const;
     const PlayableCharacter& getCharacter() const;
@@ -45,6 +46,7 @@ private:
     float switchCooldownTimer;
     bool isSwitchCooldownEnabled;
     bool isFacingRight;
+    bool isAttacking;
 };
 
 #endif // PLAYER_HPP

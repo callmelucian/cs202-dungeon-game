@@ -10,7 +10,7 @@ AnimationManager& AnimationManager::getInstance() {
     return instance;
 }
 
-bool AnimationManager::loadAnimationSet(const std::string &character, const std::string &filePath) {
+bool AnimationManager::loadAnimationSet(const std::string &character, const std::string &filePath, const std::string& textureKeyOverride) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Failed to open animation set file: " << filePath << std::endl;
@@ -26,7 +26,9 @@ bool AnimationManager::loadAnimationSet(const std::string &character, const std:
     }
 
     AnimationSet set;
-    if (j.contains("textureKey")) {
+    if (!textureKeyOverride.empty()) {
+        set.textureKey = textureKeyOverride;
+    } else if (j.contains("textureKey")) {
         set.textureKey = j["textureKey"].get<std::string>();
     }
 

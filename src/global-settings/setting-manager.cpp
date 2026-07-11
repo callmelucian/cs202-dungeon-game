@@ -31,6 +31,7 @@ void SettingManager::loadDefaults() {
     keyBindings["SwitchForm1"] = sf::Keyboard::Scancode::Num1;
     keyBindings["SwitchForm2"] = sf::Keyboard::Scancode::Num2;
     keyBindings["SwitchForm3"] = sf::Keyboard::Scancode::Num3;
+    keyBindings["Attack"] = sf::Keyboard::Scancode::J;
 }
 
 bool SettingManager::loadSettings(const std::string& filepath) {

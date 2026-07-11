@@ -1,5 +1,8 @@
 #include "wraithblade-form.hpp"
 #include "../player.hpp"
+#include "../../chambers/chamber.hpp"
+#include "../../utils/math-utility.hpp"
+#include <cmath>
 
 WraithbladeForm::WraithbladeForm()
     : PlayerForm(FormType::WRAITHBLADE, "Wraithblade",
@@ -7,8 +10,24 @@ WraithbladeForm::WraithbladeForm()
                  1.5f, 2.0f) {}
 
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
-    // Gain +6 momentum on hit
-    player.gainMomentum(6.0f, FormType::WRAITHBLADE);
+    // Gain +5 momentum on hit
+    player.gainMomentum(5.0f, FormType::WRAITHBLADE);
+
+    // Wraithblade: Melee (1.5 units) - Cone shape in target direction
+    float rangePixels = getAttackRange() * 60.0f; // 1.5 * 60 = 90
+    
+    // Normalize targetDir
+    float len = std::sqrt(targetDir.x * targetDir.x + targetDir.y * targetDir.y);
+    if (len > 0) targetDir /= len;
+    else targetDir = sf::Vector2f(1.0f, 0.0f);
+
+    ConeHitbox cone;
+    cone.origin = player.getPosition();
+    cone.direction = targetDir;
+    cone.length = rangePixels;
+    cone.angleDegrees = 90.0f; // 90 degree arc
+
+    chamber.processPlayerAttack(cone);
 }
 
 std::unique_ptr<SpecialAbilityState> WraithbladeForm::createSpecialState(int abilityIndex) {

@@ -173,3 +173,94 @@ bool CollisionSolver::lineIntersectsCircle(const sf::Vector2f& p1, const sf::Vec
 
     return false;
 }
+
+bool CollisionSolver::checkCollision(const CircleHitbox& circle, const sf::FloatRect& rect) {
+    float testX = circle.center.x;
+    float testY = circle.center.y;
+
+    if (circle.center.x < rect.position.x)         testX = rect.position.x;      // test left edge
+    else if (circle.center.x > rect.position.x + rect.size.x) testX = rect.position.x + rect.size.x;   // right edge
+    if (circle.center.y < rect.position.y)         testY = rect.position.y;      // top edge
+    else if (circle.center.y > rect.position.y + rect.size.y) testY = rect.position.y + rect.size.y;   // bottom edge
+
+    float distX = circle.center.x - testX;
+    float distY = circle.center.y - testY;
+    float distanceSq = (distX * distX) + (distY * distY);
+
+    return distanceSq <= (circle.radius * circle.radius);
+}
+
+bool CollisionSolver::checkCollision(const LineHitbox& line, const sf::FloatRect& rect) {
+    sf::Vector2f dummy;
+    return lineIntersectsRect(line.start, line.end, rect, dummy);
+}
+
+bool CollisionSolver::checkCollision(const ConeHitbox& cone, const sf::FloatRect& rect) {
+    // Basic approximation: Check if the closest point on the rect is within the cone.
+    float testX = cone.origin.x;
+    float testY = cone.origin.y;
+
+    if (cone.origin.x < rect.position.x)         testX = rect.position.x;
+    else if (cone.origin.x > rect.position.x + rect.size.x) testX = rect.position.x + rect.size.x;
+    if (cone.origin.y < rect.position.y)         testY = rect.position.y;
+    else if (cone.origin.y > rect.position.y + rect.size.y) testY = rect.position.y + rect.size.y;
+
+    sf::Vector2f closestPoint(testX, testY);
+    sf::Vector2f toPoint = closestPoint - cone.origin;
+    float distSq = Math::dot(toPoint, toPoint);
+
+    if (distSq > cone.length * cone.length) return false;
+
+    if (distSq < 1e-4f) return true; // Origin is inside the rect
+
+    toPoint /= std::sqrt(distSq); // Normalize
+    
+    // Check angle
+    float dot = Math::dot(cone.direction, toPoint);
+    float angleRad = std::acos(std::clamp(dot, -1.0f, 1.0f));
+    float halfAngleRad = (cone.angleDegrees / 2.0f) * (3.14159265f / 180.0f);
+
+    return angleRad <= halfAngleRad;
+}
+
+bool CollisionSolver::checkCollision(const Hitbox& hitbox, const sf::FloatRect& rect) {
+    return std::visit([&rect](auto&& arg) {
+        return CollisionSolver::checkCollision(arg, rect);
+    }, hitbox);
+}
+
+void CollisionSolver::drawDebug(sf::RenderTarget& target, const Hitbox& hitbox, sf::Color color) {
+    std::visit([&](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, CircleHitbox>) {
+            sf::CircleShape shape(arg.radius);
+            shape.setOrigin({arg.radius, arg.radius});
+            shape.setPosition(arg.center);
+            shape.setFillColor(color);
+            target.draw(shape);
+        }
+        else if constexpr (std::is_same_v<T, LineHitbox>) {
+            sf::Vertex line[] = {
+                sf::Vertex(arg.start, color),
+                sf::Vertex(arg.end, color)
+            };
+            target.draw(line, 2, sf::PrimitiveType::Lines);
+        }
+        else if constexpr (std::is_same_v<T, ConeHitbox>) {
+            int points = 16;
+            sf::ConvexShape shape(points + 2);
+            shape.setPoint(0, arg.origin);
+            shape.setFillColor(color);
+            
+            float baseAngle = std::atan2(arg.direction.y, arg.direction.x);
+            float halfAngle = (arg.angleDegrees / 2.0f) * (3.14159265f / 180.0f);
+            
+            for (int i = 0; i <= points; ++i) {
+                float a = baseAngle - halfAngle + (2.0f * halfAngle * i / points);
+                sf::Vector2f p(arg.origin.x + std::cos(a) * arg.length, arg.origin.y + std::sin(a) * arg.length);
+                shape.setPoint(i + 1, p);
+            }
+            target.draw(shape);
+        }
+    }, hitbox);
+}

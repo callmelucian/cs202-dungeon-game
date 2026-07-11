@@ -13,7 +13,8 @@ Player::Player(PlayableCharacter& character)
       activeForm(nullptr),
       switchCooldownTimer(0.0f),
       isSwitchCooldownEnabled(true),
-      isFacingRight(true)
+      isFacingRight(true),
+      isAttacking(false)
 {
     // Create forms using the abstract factory
     forms[FormType::WRAITHBLADE] = character.createForm1();
@@ -36,6 +37,10 @@ Player::Player(PlayableCharacter& character)
     if (activeForm) {
         baseStats = activeForm->getStats();
         baseStats.hp = baseStats.maxHp;
+        
+        if (animator) {
+            animator->setCharacterKey(this->character->getName() + "_" + activeForm->getVisualKey());
+        }
     }
 }
 
@@ -63,15 +68,29 @@ void Player::update(float deltaTime) {
     if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f, isFacingRight = false;
     if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f, isFacingRight = true;
 
+    if (isAttacking) {
+        if (animator && animator->isCurrentAnimationFinished()) {
+            isAttacking = false;
+        }
+    }
+
     // Normalize diagonal movement speed
     std::string direction = (isFacingRight ? "right" : "left");
-    if (dir.x != 0.f || dir.y != 0.f) {
-        float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-        dir.x /= length;
-        dir.y /= length;
-        notifyStateChanged(std::string("run-facing-") + direction);
+    if (!isAttacking) {
+        if (dir.x != 0.f || dir.y != 0.f) {
+            float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+            dir.x /= length;
+            dir.y /= length;
+            notifyStateChanged(std::string("run-facing-") + direction);
+        }
+        else notifyStateChanged(std::string("idle-facing-") + direction);
+    } else {
+        if (dir.x != 0.f || dir.y != 0.f) {
+            float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+            dir.x /= length;
+            dir.y /= length;
+        }
     }
-    else notifyStateChanged(std::string("idle-facing-") + direction);
 
     const float SPEED_TO_PIXELS = 60.f;
     setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
@@ -142,6 +161,10 @@ bool Player::switchForm(FormType newForm) {
     baseStats.speed = activeForm->getStats().speed;
     baseStats.defense = activeForm->getStats().defense;
 
+    if (animator) {
+        animator->setCharacterKey(getCharacter().getName() + "_" + activeForm->getVisualKey());
+    }
+
     switchCooldownTimer = 4.0f;
     return true;
 }
@@ -181,6 +204,22 @@ void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
         // possibly render a paralyzing animation
         return;
     }
+
+    // We only use left and right sprite directions in this game
+    std::string attackDir = isFacingRight ? "right" : "left";
+
+    std::string animName;
+    FormType type = getActiveFormType();
+    if (type == FormType::VOIDCASTER) {
+        animName = "shoot-facing-";
+    } else if (type == FormType::WRAITHBLADE) {
+        animName = "backslash-facing-";
+    } else {
+        animName = "slash-facing-";
+    }
+    
+    isAttacking = true;
+    notifyStateChanged(animName + attackDir);
 
     // attack
     if (stateMachine.getActiveState())
@@ -226,4 +265,8 @@ Stats Player::getEffectiveStats() const {
         stats = effect->getStatModifier().applyTo(stats);
     }
     return stats;
+}
+
+bool Player::getIsFacingRight() const {
+    return isFacingRight;
 }

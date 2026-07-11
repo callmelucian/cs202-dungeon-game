@@ -59,7 +59,7 @@
 ## Week 3: SpriteSheet System, Status Effects, Basic Enemies & Base Stat Model (05.07 -> 11.07)
 
 * **Developer A (SpriteSheet/Animation System, Stats & Status Effects)**
-  - [ ] Design and source/create sprite assets: player character (3 forms × idle/walk/attack frames), basic enemy sprites (WaterloggedScribe, ShardSoldier, BoneSprinter), tilemap tiles (stone floor, water, walls, barriers).
+  - [x] Design and source/create sprite assets: player character (3 forms × idle/walk/attack frames), basic enemy sprites (WaterloggedScribe, ShardSoldier, BoneSprinter), tilemap tiles (stone floor, water, walls, barriers).
   - [x] Implement `Stats` and `StatModifier` structs. Add flat `defense` stat to forms (Wraithblade: 15, Voidcaster: 5, Ironshell: 35).
   - [x] Implement the Defense mitigation formula in `Character::calculateMitigatedDamage(rawAmount)`: `mitigated = rawAmount * 100 / (100 + defense)`, rounded, clamped to min 1. Wire into `Character::takeDamage(rawAmount)` as the single entry point for all hits.
   - [x] Implement decoupled visual Observer pattern: `CharacterObserver` interface (`onStateChanged`, `onDamaged`, `onDefeated`) and `CharacterAnimator` class (managing sprite, current animation key, hit flash timer, observers callbacks). Integrate with `Character::draw()`.
@@ -72,7 +72,7 @@
   - [x] Implement `ParalyzedEffect`: 10-second duration; exposes `rollMiss()` returning true 40% of the time, re-rolled per action attempt.
   - [x] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
   - [x] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
-  - [ ] Implement player melee and ranged attack hitboxes that scale by active form parameters.
+  - [x] Implement player melee and ranged attack hitboxes that scale by active form parameters.
   - [ ] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
   - [ ] Weekly Report.
 

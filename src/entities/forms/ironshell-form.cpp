@@ -1,5 +1,6 @@
 #include "ironshell-form.hpp"
 #include "../player.hpp"
+#include "../../chambers/chamber.hpp"
 
 IronshellForm::IronshellForm()
     : PlayerForm(FormType::IRONSHELL, "Ironshell",
@@ -9,6 +10,15 @@ IronshellForm::IronshellForm()
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     // Gain +3 momentum on hit
     player.gainMomentum(3.0f, FormType::IRONSHELL);
+    
+    // Ironshell: Melee (1.0 units, cleave) - Circle shape around player
+    float rangePixels = getAttackRange() * 60.0f; // 1.0 * 60 = 60
+    
+    CircleHitbox circle;
+    circle.center = player.getPosition();
+    circle.radius = rangePixels;
+
+    chamber.processPlayerAttack(circle);
 }
 
 std::unique_ptr<SpecialAbilityState> IronshellForm::createSpecialState(int abilityIndex) {

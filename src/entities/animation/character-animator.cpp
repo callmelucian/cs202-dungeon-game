@@ -46,8 +46,13 @@ void CharacterAnimator::onDefeated(const Character& character) {
     onStateChanged(character, "defeat");
 }
 
-void CharacterAnimator::update(float dt) {
-    currentAnimationElapsed += dt;
+void CharacterAnimator::update(float dt, float speedMultiplier) {
+    if (currentAnimationKey.find("walk") != std::string::npos || 
+        currentAnimationKey.find("run") != std::string::npos) {
+        currentAnimationElapsed += dt * speedMultiplier;
+    } else {
+        currentAnimationElapsed += dt;
+    }
     
     if (hitFlashTimer > 0.0f) {
         hitFlashTimer -= dt;
@@ -86,4 +91,26 @@ void CharacterAnimator::draw(sf::RenderWindow& window, sf::Vector2f position, sf
         }
         window.draw(*sprite);
     }
+}
+
+void CharacterAnimator::setCharacterKey(const std::string& newKey) {
+    characterKey = newKey;
+    const AnimationSet& animSet = AnimationManager::getInstance().getAnimationSet(characterKey);
+    if (!animSet.textureKey.empty()) {
+        const sf::Texture& texture = AssetManager::getInstance().getTexture(animSet.textureKey);
+        if (sprite) {
+            sprite->setTexture(texture, true);
+        } else {
+            sprite = std::make_unique<sf::Sprite>(texture);
+        }
+    }
+}
+
+bool CharacterAnimator::isCurrentAnimationFinished() const {
+    const AnimationSet& animSet = AnimationManager::getInstance().getAnimationSet(characterKey);
+    if (!animSet.textureKey.empty()) {
+        const Animation& anim = animSet.getAnimation(currentAnimationKey);
+        return anim.isFinished(currentAnimationElapsed);
+    }
+    return true;
 }

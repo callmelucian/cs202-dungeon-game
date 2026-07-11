@@ -13,7 +13,7 @@ public:
     AnimationManager& operator=(AnimationManager&&) = delete;
 
     // a json file path that describes the animation set
-    bool loadAnimationSet (const std::string &character, const std::string &filePath);
+    bool loadAnimationSet (const std::string &character, const std::string &filePath, const std::string& textureKeyOverride = "");
     const AnimationSet& getAnimationSet (const std::string &character) const;
 
 private:

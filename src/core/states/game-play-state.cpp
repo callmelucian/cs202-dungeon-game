@@ -1,6 +1,7 @@
 #include "game-play-state.hpp"
 #include "pause-state.hpp"
 #include "game-over-state.hpp"
+#include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
@@ -63,6 +64,8 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     player = std::make_unique<Player>(*playableChar);
     player->setPosition({300.f, 300.f}); // Spawn at coordinate (300, 300)
 
+    activeChamber = std::make_unique<BaseChamber>(*player);
+
     setupTestRoom();
 }
 
@@ -75,6 +78,10 @@ void GameplayState::update(float deltaTime) {
     // Do NOT manually integrate position (pos += vel * dt) in Character::update() 
     // or Player::update() to prevent double-movement bugs!
     CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
+
+    if (activeChamber) {
+        activeChamber->update(deltaTime);
+    }
 
     // 3. Update HUD text
     FormType currentForm = player->getActiveFormType();
@@ -116,6 +123,8 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     // Draw player
     if (player) player->draw(window);
     
+    if (activeChamber) activeChamber->draw(window);
+    
     GameState::draw(window);
 }
 
@@ -136,6 +145,24 @@ void GameplayState::setupTestRoom() {
 void GameplayState::handleEvents(sf::Event& event) {
     // 1. Let the player handle its own single-press inputs
     player->handleInput(event);
+
+    SettingManager& settings = SettingManager::getInstance();
+
+    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+        if (keyEvent->scancode == settings.getKeyBinding("Attack")) {
+            if (activeChamber && player) {
+                // Determine attack direction based on facing
+                sf::Vector2f dir = player->getVelocity();
+                if (dir.x == 0 && dir.y == 0) {
+                    dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
+                } else {
+                    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+                    dir /= len;
+                }
+                player->attack(dir, *activeChamber);
+            }
+        }
+    }
 
     // 2. Pass down to UI components
     GameState::handleEvents(event);

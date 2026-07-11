@@ -9,6 +9,7 @@
 #include "../../entities/player.hpp"
 #include "../../entities/playable-character.hpp"
 #include "../../utils/collision-solver.hpp"
+#include "../../chambers/chamber.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -42,6 +43,7 @@ private:
 
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
+    std::unique_ptr<Chamber> activeChamber;
     std::vector<sf::FloatRect> obstacles;
 
     void setupTestRoom();

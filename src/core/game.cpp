@@ -32,8 +32,10 @@ Game::Game() : running(false) {
     assets.loadFont("italic", resolvePath("assets/typeface/GoogleSansCode-Italic.ttf"));
     assets.loadFont("bold", resolvePath("assets/typeface/GoogleSansCode-Bold.ttf"));
     assets.loadFont("bold-italic", resolvePath("assets/typeface/GoogleSansCode-BoldItalic.ttf"));
-    assets.loadTexture("character-sprite-sheet", resolvePath("assets/textures/character-sprite-sheet.png"));
-    assets.loadTexture("serin-final", resolvePath("assets/textures/serin-final.png"));
+    // assets.loadTexture("character-sprite-sheet", resolvePath("assets/textures/character-sprite-sheet.png"));
+    assets.loadTexture("wraithblade-final", resolvePath("assets/textures/wraithblade-final.png"));
+    assets.loadTexture("voidcaster-final", resolvePath("assets/textures/voidcaster-final.png"));
+    assets.loadTexture("iron-shell", resolvePath("assets/textures/iron-shell.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();
@@ -43,7 +45,9 @@ Game::Game() : running(false) {
 
     // load animations
     AnimationManager &animations = AnimationManager::getInstance();
-    animations.loadAnimationSet("Serin", resolvePath("assets/animations/serin.json"));
+    animations.loadAnimationSet("Serin_Wraithblade", resolvePath("assets/animations/serin.json"), "wraithblade-final");
+    animations.loadAnimationSet("Serin_Voidcaster", resolvePath("assets/animations/serin.json"), "voidcaster-final");
+    animations.loadAnimationSet("Serin_Ironshell", resolvePath("assets/animations/serin.json"), "iron-shell");
 
     // setup render window
     renderWindow.create(

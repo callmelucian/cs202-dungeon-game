@@ -26,7 +26,7 @@ Character::~Character() = default;
 
 void Character::update(float deltaTime) {
     if (animator) {
-        animator->update(deltaTime);
+        animator->update(deltaTime, getSpeed() / 5.0f);
     }
 
     // Process pending status effects to avoid iterator invalidation

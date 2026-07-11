@@ -7,10 +7,34 @@
  */
 
 #include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <vector>
 
 class Character;
+
+#include <variant>
+
+// Hitbox definitions
+struct CircleHitbox {
+    sf::Vector2f center;
+    float radius;
+};
+
+struct ConeHitbox {
+    sf::Vector2f origin;
+    sf::Vector2f direction; // Normalized direction vector
+    float length;
+    float angleDegrees;     // Total arc angle in degrees
+};
+
+struct LineHitbox {
+    sf::Vector2f start;
+    sf::Vector2f end;
+};
+
+using Hitbox = std::variant<CircleHitbox, ConeHitbox, LineHitbox>;
 
 class CollisionSolver {
 public:
@@ -29,6 +53,15 @@ public:
 
     // Checks if a line segment intersects a circle and returns the closest intersection point
     static bool lineIntersectsCircle(const sf::Vector2f& p1, const sf::Vector2f& p2, const sf::Vector2f& center, float radius, sf::Vector2f& intersectionPoint);
+
+    // Hitbox collisions
+    static bool checkCollision(const CircleHitbox& circle, const sf::FloatRect& rect);
+    static bool checkCollision(const ConeHitbox& cone, const sf::FloatRect& rect);
+    static bool checkCollision(const LineHitbox& line, const sf::FloatRect& rect);
+    static bool checkCollision(const Hitbox& hitbox, const sf::FloatRect& rect);
+
+    // Helpers for debug rendering
+    static void drawDebug(sf::RenderTarget& target, const Hitbox& hitbox, sf::Color color = sf::Color(255, 0, 0, 100));
 };
 
 #endif // COLLISION_SOLVER_HPP

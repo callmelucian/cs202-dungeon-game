@@ -7,6 +7,7 @@
         "difficulty": "Normal"
     },
     "keyBindings": {
+        "Attack": 9,
         "MoveDown": 18,
         "MoveLeft": 0,
         "MoveRight": 3,

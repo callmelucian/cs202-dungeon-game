@@ -20,8 +20,10 @@ public:
     void onDamaged(const Character& character, float amount) override;
     void onDefeated(const Character& character) override;
     
-    void update(float dt);
+    void update(float dt, float speedMultiplier = 1.0f);
     void draw(sf::RenderWindow& window, sf::Vector2f position, sf::Vector2f size = sf::Vector2f(0.f, 0.f)) const;
+    void setCharacterKey(const std::string& newKey);
+    bool isCurrentAnimationFinished() const;
 
 private:
     std::unique_ptr<sf::Sprite> sprite;
