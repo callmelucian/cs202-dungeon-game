@@ -30,6 +30,8 @@ public:
     EnemySteeringStrategy* getSteeringStrategy const;
     
     virtual void onDeath() = 0;
+
+    Player& getPlayer() const;
 }
 
 #endif // ENEMY_HPP
