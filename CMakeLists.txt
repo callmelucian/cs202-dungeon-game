@@ -70,9 +70,11 @@ add_executable(game
     src/entities/forms/wraithblade-form.cpp
     src/entities/forms/voidcaster-form.cpp
     src/entities/forms/ironshell-form.cpp
+
     src/entities/enemy/enemy.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
     src/entities/enemy/enemy-state.cpp
+    rc/entities/enemy/bone-sprinter.cp
 
     # utils
     src/utils/math-utility.cpp
