@@ -44,3 +44,11 @@ void ShardSoldier::applySelfHeal(float dt) {
         }
     }
 }
+
+void ShardSoldier::setSelfHealActive(bool active) {
+    selfHealActive = active;
+}
+
+bool ShardSoldier::isSelfHealActive() const {
+    return selfHealActive;
+}
