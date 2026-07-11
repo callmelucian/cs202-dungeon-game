@@ -89,10 +89,10 @@
   - [ ] Integrate enemy sprites from Dev A's sprite assets.
 
 * **AI Agent Tasks**
-  - [ ] Timer-based status effect tick boilerplate.
-  - [ ] Standard steering behavior algorithms (Seek, Flee, Obstacle Avoidance).
-  - [ ] Class constructors for basic enemies via the factory.
-  - [ ] SpriteSheet frame-rect calculation utilities.
+  - [x] Timer-based status effect tick boilerplate.
+  - [x] Standard steering behavior algorithms (Seek, Flee, Obstacle Avoidance).
+  - [x] Class constructors for basic enemies via the factory.
+  - [x] SpriteSheet frame-rect calculation utilities.
   - **Prompt (Dev A provides):** *"Generate the SpriteSheet and Animation classes for SFML. SpriteSheet loads a texture atlas and stores frame rects. Animation sequences frames with configurable frameDuration and looping. Integrate with our existing Character::draw() using CharacterAnimator and CharacterObserver. Also generate StatusEffect base class and StatModifier matching architecture.puml's signature."*
 
 * **Deliverable**: A playable scene containing animated player and basic spawned enemies (WaterloggedScribe, ShardSoldier) that chase the player. The player can attack, deal damage, and apply status effects. Verify `SlowedEffect` permanent flag works correctly. BoneSprinter basic movement is testable. Attack them to verify hitboxes register, damage is subtracted, and status icons display correctly above target. Verify that damage is correctly mitigated by target defense (Wraithblade 15, Voidcaster 5, Ironshell 35).
