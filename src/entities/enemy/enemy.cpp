@@ -30,7 +30,7 @@ void Enemy::setSteeringStrategy(std::unique_ptr<EnemySteeringStrategy> strategy)
     steeringStrategy = std::move(strategy);
 }
 
-Player& getPlayer() {
+Player& Enemy::getPlayer() const {
     return playerRef;
 }
 
