@@ -74,7 +74,9 @@ add_executable(game
     src/entities/enemy/enemy.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
     src/entities/enemy/enemy-state.cpp
-    rc/entities/enemy/bone-sprinter.cp
+    src/entities/enemy/waterlogged-scribe.cpp
+    src/entities/enemy/shard-soldier.cpp
+    rc/entities/enemy/bone-sprinter.cpp
 
     # utils
     src/utils/math-utility.cpp
