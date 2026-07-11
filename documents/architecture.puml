@@ -526,31 +526,41 @@ package "Entities" {
     PlayableCharacter ..> PlayerForm : creates
 
     ' ---- Enemy AI & Behaviors ----
-    abstract class EnemyAIState << State >> {
+    abstract class EnemyState << State >> {
         + {abstract} onEnter(enemy : Enemy&) : void
         + {abstract} onExit(enemy : Enemy&) : void
         + {abstract} update(enemy : Enemy&, dt : float, chamber : Chamber&) : void
     }
 
-    class IdleAIState extends EnemyAIState
-    class ChasingAIState extends EnemyAIState
-    class AttackingAIState extends EnemyAIState
-    class StaggeredAIState extends EnemyAIState
-    note right of StaggeredAIState
+    class IdleState extends EnemyState
+    class ChasingState extends EnemyState
+    class AttackingState extends EnemyState
+    class StaggeredState extends EnemyState
+    note right of StaggeredState
         Timed state, same revert
         mechanism as SpecialAbilityState:
         auto-returns to previous
         state when its timer elapses
     end note
 
+    abstract class EnemySteeringStrategy << Strategy >> {
+        + {abstract} calculateSteering(enemy : Enemy&, player : const Player&, chamber : const Chamber&) : sf::Vector2f
+    }
+    class SeekStrategy extends EnemySteeringStrategy
+    class EvadeStrategy extends EnemySteeringStrategy
+
     abstract class Enemy extends Character {
         # playerRef : Player&
-        # aiState : EnemyAIState*
+        # currentState : EnemyState*
+        # steeringStrategy : std::unique_ptr<EnemySteeringStrategy>
         # attackCooldown : float
-        + changeAIState(newState : EnemyAIState*) : void
-        + updateAI(dt : float, chamber : Chamber&) : void
+        + changeState(newState : EnemyState*) : void
+        + setSteeringStrategy(strategy : std::unique_ptr<EnemySteeringStrategy>) : void
+        + getSteeringStrategy() : EnemySteeringStrategy*
+        + updateState(dt : float, chamber : Chamber&) : void
     }
-    Enemy *-- EnemyAIState
+    Enemy *-- EnemyState
+    Enemy *-- EnemySteeringStrategy
 
     class WaterloggedScribe extends Enemy
     class BoneSprinter extends Enemy {
