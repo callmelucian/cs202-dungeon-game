@@ -15,7 +15,7 @@ ShardSoldier::ShardSoldier(Player& player)
     attackCooldown = 0.0f;
 
     setSteeringStrategy(std::make_unique<SeekStrategy>());
-    changeState(new IdleState());
+    changeState(std::make_unique<IdleState>());
 }
 
 void ShardSoldier::draw(sf::RenderWindow& window) const {

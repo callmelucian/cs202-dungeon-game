@@ -20,7 +20,7 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
 
     setSteeringStrategy(std::make_unique<SeekStrategy>());
 
-    changeState(new IdleState());
+    changeState(std::make_unique<IdleState>());
 }
 
 void BoneSprinter::draw(sf::RenderWindow& window) const {

@@ -12,7 +12,7 @@ class EnemySteeringStrategy;
 class Enemy : public Character {
 protected:
     Player& playerRef;
-    EnemyState* currentState;
+    std::unique_ptr<EnemyState> currentState;
     std::unique_ptr<EnemySteeringStrategy> steeringStrategy;
     float attackCooldown;
     int fragmentDropCount;
@@ -24,7 +24,7 @@ public:
     void update(float deltaTime) override;
 
     virtual void updateState(float dt, Chamber& chamber);
-    void changeState(EnemyState* newState);
+    void changeState(std::unique_ptr<EnemyState> newState);
 
     void setSteeringStrategy(std::unique_ptr<EnemySteeringStrategy> strategy);
     EnemySteeringStrategy* getSteeringStrategy() const;

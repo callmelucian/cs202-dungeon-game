@@ -14,7 +14,7 @@ WaterloggedScribe::WaterloggedScribe(Player& player) : Enemy("waterlogged_scribe
 
     setSteeringStrategy(std::make_unique<SeekStrategy>());
 
-    changeState(new IdleState());
+    changeState(std::make_unique<IdleState>());
 }
 
 void WaterloggedScribe::draw(sf::RenderWindow& window) const {
