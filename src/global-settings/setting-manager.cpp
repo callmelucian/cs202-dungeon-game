@@ -19,8 +19,14 @@ void SettingManager::loadDefaults() {
     sfxVolume = 50.0f;
     windowWidth = 1800;
     windowHeight = 900;
+    gridCols = 40;
+    gridRows = 40;
+    cellSize = 40.0f;
+    characterSize = cellSize;
+    gridOffsetX = (windowWidth - gridCols * cellSize) / 2.0f;
+    gridOffsetY = (windowHeight - gridRows * cellSize) / 2.0f;
     spriteSizeMultiplier = 1.2f;
-    characterSize = 80.f;
+    speedMultiplier = 1.f;
     fullscreen = false;
     difficulty = Difficulty::Normal;
 
@@ -157,12 +163,32 @@ void SettingManager::setSfxVolume(float volume) {
     sfxVolume = volume;
 }
 
+float SettingManager::getCellSize() const {
+    return cellSize;
+}
+
 float SettingManager::getSpriteMultiplier() const {
     return spriteSizeMultiplier;
 }
 
 float SettingManager::getCharacterSize() const {
     return characterSize;
+}
+
+float SettingManager::getGridOffsetX() const {
+    return gridOffsetX;
+}
+
+float SettingManager::getGridOffsetY() const {
+    return gridOffsetY;
+}
+
+unsigned int SettingManager::getGridCols() const {
+    return gridCols;
+}
+
+unsigned int SettingManager::getGridRows() const {
+    return gridRows;
 }
 
 unsigned int SettingManager::getWindowWidth() const {
@@ -204,4 +230,8 @@ sf::Keyboard::Scancode SettingManager::getKeyBinding(const std::string& action) 
 
 void SettingManager::setKeyBinding(const std::string& action, sf::Keyboard::Scancode scancode) {
     keyBindings[action] = scancode;
+}
+
+float SettingManager::getSpeedMultiplier() const {
+    return speedMultiplier;
 }

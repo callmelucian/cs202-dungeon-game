@@ -92,7 +92,8 @@ void Player::update(float deltaTime) {
         }
     }
 
-    const float SPEED_TO_PIXELS = 60.f;
+    // Scale movement based on cell size (originally 60.f for a 100.f cell size)
+    const float SPEED_TO_PIXELS = SettingManager::getInstance().getCellSize() * SettingManager::getInstance().getSpeedMultiplier();
     setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
 
     // 2. Update cooldown

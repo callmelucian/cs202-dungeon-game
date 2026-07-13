@@ -73,8 +73,8 @@
   - [x] Implement `SlowedEffect`: sets effective move speed to `base_speed × 0.70` via `StatModifier`; supports a `permanent` flag for zone-based slow that ignores the 10-second expiry rule.
   - [x] Wire `Character::applyStatusEffect(unique_ptr<StatusEffect>)` and `Character::tickStatusEffects(float dt)` into `Character::update()`.
   - [x] Implement player melee and ranged attack hitboxes that scale by active form parameters.
-  - [ ] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
-  - [ ] Weekly Report.
+  - [x] *Seminar:* Quick draft on all 3 design patterns (Decorator, Strategy, Facade).
+  - [x] Weekly Report.
 
 * **Developer B (Enemy Base, BoneSprinter & Basic AI State)**
   - [x] Implement `Enemy` abstract class inheriting from `Character`. Add `playerRef : Player&`, `currentState : EnemyState*`, `steeringStrategy : unique_ptr<EnemySteeringStrategy>`, `attackCooldown`, and `updateState(dt, Chamber&)` method.
@@ -104,8 +104,8 @@
 *Mid-term week, reduce tasks for both developers.*
 
 * **Developer A (Chamber System & Tilemap Rendering)**
-  - [ ] Implement abstract `Chamber` base class with `player : Player&`, `enemies : vector<unique_ptr<Enemy>>`, `items : vector<unique_ptr<Item>>`, `isCompleted`, `update(dt)`, `draw(window)`, `spawnEnemy()`, `checkCollisions()` (per architecture.puml).
-  - [ ] Implement `ChamberFactory::createChamber(level, chamberIndex, Player&) → unique_ptr<Chamber>` (per architecture.puml).
+  - [x] Implement abstract `Chamber` base class with `player : Player&`, `enemies : vector<unique_ptr<Enemy>>`, `items : vector<unique_ptr<Item>>`, `isCompleted`, `update(dt)`, `draw(window)`, `spawnEnemy()`, `checkCollisions()` (per architecture.puml).
+  - [x] Implement `ChamberFactory::createChamber(level, chamberIndex, Player&) → unique_ptr<Chamber>` (per architecture.puml).
   - [ ] Implement `MapLoader` static class: `loadChamber(string path) → ChamberConfig` and `loadWaves(string path) → vector<WaveConfig>`. Define `ChamberConfig` and `WaveConfig` data structs.
   - [ ] Implement basic tilemap renderer: load tile textures, render floor/wall grid from `ChamberConfig` wall rects, support water tiles for Drowned Archive.
   - [ ] Code `ProtectChamber`: collection radius 2.5 units, collection timer, `onEchoHit()` applying −8% Echo Power, `onFragmentCollected(bool midCollection)` granting +5% / +2.5% Echo Power, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.

@@ -43,6 +43,7 @@ add_executable(game
     src/global-settings/asset-manager.cpp
     src/global-settings/save-load-manager.cpp
     src/global-settings/animation-manager.cpp
+    src/global-settings/map-loader.cpp
 
     # ui
     src/ui/base/component.cpp
@@ -81,6 +82,11 @@ add_executable(game
     # utils
     src/utils/math-utility.cpp
     src/utils/collision-solver.cpp
+
+    # chambers
+    src/chambers/chamber.cpp
+    src/chambers/chamber-factory.cpp
+    src/chambers/mid-chamber.cpp
 )
 
 # Link SFML and JSON libraries

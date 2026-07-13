@@ -44,9 +44,9 @@ private:
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
     std::unique_ptr<Chamber> activeChamber;
-    std::vector<sf::FloatRect> obstacles;
 
-    void setupTestRoom();
+    sf::View cameraView;
+    float currentZoom;
 };
 
 #endif // GAME_PLAY_STATE

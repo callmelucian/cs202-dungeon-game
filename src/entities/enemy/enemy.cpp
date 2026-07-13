@@ -37,3 +37,5 @@ Player& Enemy::getPlayer() const {
 EnemySteeringStrategy* Enemy::getSteeringStrategy() const {
     return steeringStrategy.get();
 }
+
+Enemy::~Enemy() = default;

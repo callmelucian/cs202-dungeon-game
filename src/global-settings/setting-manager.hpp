@@ -31,8 +31,15 @@ public:
     float getSfxVolume() const;
     void setSfxVolume(float volume);
 
+    float getCellSize() const;
     float getSpriteMultiplier() const;
     float getCharacterSize() const;
+    float getGridOffsetX() const;
+    float getGridOffsetY() const;
+    float getSpeedMultiplier() const;
+
+    unsigned int getGridCols() const;
+    unsigned int getGridRows() const;
 
     unsigned int getWindowWidth() const;
     unsigned int getWindowHeight() const;
@@ -49,8 +56,15 @@ public:
 
 private:
     float musicVolume, sfxVolume;
+    float cellSize;
     float spriteSizeMultiplier;
     float characterSize;
+    float gridOffsetX;
+    float gridOffsetY;
+    float speedMultiplier;
+
+    unsigned int gridCols;
+    unsigned int gridRows;
 
     unsigned int windowWidth;
     unsigned int windowHeight;

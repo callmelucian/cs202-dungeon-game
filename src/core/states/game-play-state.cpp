@@ -1,6 +1,7 @@
 #include "game-play-state.hpp"
 #include "pause-state.hpp"
 #include "game-over-state.hpp"
+#include "../../chambers/chamber-factory.hpp"
 #include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
@@ -62,11 +63,16 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
-    player->setPosition({300.f, 300.f}); // Spawn at coordinate (300, 300)
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+    player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
-    activeChamber = std::make_unique<BaseChamber>(*player);
+    activeChamber = ChamberFactory::createChamber(1, 1, *player);
 
-    setupTestRoom();
+    // Initialize camera View
+    currentZoom = 0.5f;
+    cameraView.setSize({static_cast<float>(settings.getWindowWidth()) * currentZoom, static_cast<float>(settings.getWindowHeight()) * currentZoom});
 }
 
 void GameplayState::update(float deltaTime) {
@@ -77,7 +83,12 @@ void GameplayState::update(float deltaTime) {
     // NOTE: CollisionSolver::resolveAABB applies velocity to position internally.
     // Do NOT manually integrate position (pos += vel * dt) in Character::update() 
     // or Player::update() to prevent double-movement bugs!
-    CollisionSolver::resolveAABB(*player, obstacles, deltaTime);
+    if (activeChamber) {
+        CollisionSolver::resolveAABB(*player, activeChamber->getObstacles(), deltaTime);
+    } else {
+        std::vector<sf::FloatRect> emptyObstacles;
+        CollisionSolver::resolveAABB(*player, emptyObstacles, deltaTime);
+    }
 
     if (activeChamber) {
         activeChamber->update(deltaTime);
@@ -104,43 +115,64 @@ void GameplayState::update(float deltaTime) {
         cooldownText->setString("Cooldown: Ready");
     }
 
-    // 4. Base class updates UI layouts
+    // 4. Update camera
+    if (player) {
+        sf::Vector2f playerPos = player->getPosition();
+        
+        SettingManager& settings = SettingManager::getInstance();
+        float viewWidth = cameraView.getSize().x;
+        float viewHeight = cameraView.getSize().y;
+        
+        // Define world boundaries based on grid
+        float gridMinX = settings.getGridOffsetX();
+        float gridMinY = settings.getGridOffsetY();
+        float gridMaxX = gridMinX + settings.getGridCols() * settings.getCellSize();
+        float gridMaxY = gridMinY + settings.getGridRows() * settings.getCellSize();
+        
+        float camX = playerPos.x;
+        float camY = playerPos.y;
+        
+        float halfW = viewWidth / 2.0f;
+        float halfH = viewHeight / 2.0f;
+        
+        // Clamp to edges
+        if (camX - halfW < gridMinX) camX = gridMinX + halfW;
+        if (camX + halfW > gridMaxX) camX = gridMaxX - halfW;
+        if (camY - halfH < gridMinY) camY = gridMinY + halfH;
+        if (camY + halfH > gridMaxY) camY = gridMaxY - halfH;
+        
+        // Center if grid is smaller than view
+        if (viewWidth > (gridMaxX - gridMinX)) camX = gridMinX + (gridMaxX - gridMinX) / 2.0f;
+        if (viewHeight > (gridMaxY - gridMinY)) camY = gridMinY + (gridMaxY - gridMinY) / 2.0f;
+        
+        cameraView.setCenter({camX, camY});
+    }
+
+    // 5. Base class updates UI layouts
     GameState::update(deltaTime);
 }
 
 void GameplayState::draw(sf::RenderWindow& window) const {
+    // Save original UI View
+    sf::View uiView = window.getDefaultView();
+
     // Draw background
     window.clear(sf::Color(20, 20, 25));
 
-    // Draw obstacles
-    for (const auto& obs : obstacles) {
-        sf::RectangleShape shape({obs.size.x, obs.size.y});
-        shape.setPosition(obs.position);
-        shape.setFillColor(sf::Color(180, 50, 50));
-        window.draw(shape);
-    }
+    // Apply Camera View for World
+    window.setView(cameraView);
 
+    if (activeChamber) activeChamber->draw(window);
+    
     // Draw player
     if (player) player->draw(window);
     
-    if (activeChamber) activeChamber->draw(window);
-    
+    // Restore UI View for HUD
+    window.setView(uiView);
     GameState::draw(window);
 }
 
-void GameplayState::setupTestRoom() {
-    // Setup test environment barriers (Blocks & 1800x900 Screen Borders)
-    obstacles = {
-        // Inner obstacles
-        sf::FloatRect({150.f, 150.f}, {100.f, 100.f}),
-        sf::FloatRect({600.f, 200.f}, {200.f, 80.f}),
-        // Room boundaries
-        sf::FloatRect({0.f, 0.f}, {1800.f, 10.f}),   // Top
-        sf::FloatRect({0.f, 890.f}, {1800.f, 10.f}), // Bottom
-        sf::FloatRect({0.f, 0.f}, {10.f, 900.f}),    // Left
-        sf::FloatRect({1790.f, 0.f}, {10.f, 900.f})  // Right
-    };
-}
+
 
 void GameplayState::handleEvents(sf::Event& event) {
     // 1. Let the player handle its own single-press inputs
@@ -161,6 +193,23 @@ void GameplayState::handleEvents(sf::Event& event) {
                 }
                 player->attack(dir, *activeChamber);
             }
+        }
+    } else if (const auto* scrollEvent = event.getIf<sf::Event::MouseWheelScrolled>()) {
+        if (scrollEvent->wheel == sf::Mouse::Wheel::Vertical) {
+            // Negative delta means scrolling down (zoom out), positive means scrolling up (zoom in)
+            // But we want smaller currentZoom = zoom in, so subtract delta
+            currentZoom -= scrollEvent->delta * 0.05f; 
+            
+            // Calculate max zoom out based on grid boundaries so it never shows out of bounds
+            float gridWidth = settings.getGridCols() * settings.getCellSize();
+            float gridHeight = settings.getGridRows() * settings.getCellSize();
+            float maxZoomOut = std::min(gridWidth / settings.getWindowWidth(), gridHeight / settings.getWindowHeight());
+            
+            // Enforce constraints (min zoom = 0.5f, max zoom = bounded by map)
+            if (currentZoom < 0.5f) currentZoom = 0.5f;
+            if (currentZoom > maxZoomOut) currentZoom = maxZoomOut;
+            
+            cameraView.setSize({settings.getWindowWidth() * currentZoom, settings.getWindowHeight() * currentZoom});
         }
     }
 

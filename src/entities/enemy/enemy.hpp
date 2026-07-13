@@ -19,7 +19,7 @@ protected:
 
 public:
     Enemy(const std::string& characterKey, Player& player);
-    virtual ~Enemy() = default;
+    virtual ~Enemy();
 
     void update(float deltaTime) override;
 
