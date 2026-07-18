@@ -1,5 +1,10 @@
 #include "map-loader.hpp"
 #include "setting-manager.hpp"
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 MapLoader& MapLoader::getInstance() {
     static MapLoader instance;
@@ -43,4 +48,46 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
     addLake(15, 25, 4, 3);
     
     return grid;
+}
+
+ChamberConfig MapLoader::loadChamberConfig(const std::string& filepath) {
+    ChamberConfig config;
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open chamber config file: " << filepath << std::endl;
+        return config;
+    }
+
+    try {
+        json j;
+        file >> j;
+
+        config.chamberType = j.value("chamberType", "MidChamber");
+        config.width = j.value("width", 20);
+        config.height = j.value("height", 20);
+
+        if (j.contains("grid") && j["grid"].is_array()) {
+            for (const auto& row : j["grid"]) {
+                std::vector<int> rowVec;
+                for (const auto& cell : row) {
+                    rowVec.push_back(cell.get<int>());
+                }
+                config.grid.push_back(rowVec);
+            }
+        }
+
+        if (j.contains("waves") && j["waves"].is_array()) {
+            for (const auto& waveObj : j["waves"]) {
+                WaveConfig wave;
+                wave.enemyType = waveObj.value("enemyType", "unknown");
+                wave.count = waveObj.value("count", 1);
+                wave.spawnDelay = waveObj.value("spawnDelay", 0.0f);
+                config.waves.push_back(wave);
+            }
+        }
+    } catch (const json::exception& e) {
+        std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
+    }
+
+    return config;
 }

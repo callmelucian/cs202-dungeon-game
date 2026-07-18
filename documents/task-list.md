@@ -132,10 +132,10 @@
   - [ ] *Seminar:* Detailed content for `Facade` pattern (11 items) + LaTeX report.
 
 * **AI Agent Tasks**
-  - [ ] JSON/CSV map reading parser functions for `MapLoader`.
-  - [ ] Standard Observer pattern boilerplate for `Echo` → `EchoObserver`.
-  - [ ] Basic fragment spawning physics (velocity scatter, gravity, collection magnet).
-  - [ ] Tilemap rendering grid loop boilerplate.
+  - [x] JSON/CSV map reading parser functions for `MapLoader`.
+  - [x] Standard Observer pattern boilerplate for `Echo` → `EchoObserver`.
+  - [x] Basic fragment spawning physics (velocity scatter, gravity, collection magnet).
+  - [x] Tilemap rendering grid loop boilerplate.
   - **Prompt (Dev B provides):** *"Generate the Echo Observer pattern: abstract Echo class as Subject. Generate EchoObserver interface. Also generate the SpecialAbilityState decorator base class and concrete special decorators (WraithbladeRiftcrushState, etc.) conforming to PlayerCombatState. Generate JSON parser for MapLoader to read ChamberConfig and WaveConfig structs."*
 
 * **Deliverable**: A fully playable Level 1 Chamber 1 (Protect) and Chamber 2 (Prevent) with tilemap rendering. Players can collect fragments, defend the Echo, trigger form-specific fragment bonuses and special abilities (Riftcrush, Cinderveil, Lance, Detonation Field, Aegis Pulse, Veil of Thorns) that wrap combat states via Decorators. Echo Observer pattern keeps GameplayState in sync. Verify that mid-collection fragments grant only +2.5% Echo Power and that Ironshell's Damage Redirect correctly subtracts from Serin's HP (run through Defense mitigation). Confirm hitting real carrier triggers the stagger animation. Save and reload; verify `RunState` is restored identically.
@@ -152,6 +152,7 @@
   - [ ] Implement level progression flow in `GameplayState: Level 1 -> Level 2 -> Level 3 -> Boss`. Wire chamber completion → next chamber transition with Mid-Chambers in between.
   - [ ] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
   - [ ] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
+  - [ ] Reimplement logic camera view.
   - [ ] Weekly Report.
 
 * **Developer B (Advanced Enemies — Level 2 & 3)**

@@ -75,14 +75,16 @@ add_executable(game
 
     ## enemies
     src/entities/enemy/enemy.cpp
+    src/entities/enemy/enemy-factory.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
     src/entities/enemy/enemy-state.cpp
     src/entities/enemy/waterlogged-scribe.cpp
     src/entities/enemy/shard-soldier.cpp
     src/entities/enemy/bone-sprinter.cpp
 
-    ## items
-    src/entities/items/item.cpp
+    ## items & economy
+    src/economy/item.cpp
+    src/economy/echo.cpp
 
     # utils
     src/utils/math-utility.cpp

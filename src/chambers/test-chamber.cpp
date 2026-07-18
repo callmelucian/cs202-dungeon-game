@@ -2,8 +2,10 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../entities/enemy/waterlogged-scribe.hpp"
 #include "../entities/enemy/shard-soldier.hpp"
+#include "../entities/enemy/enemy-factory.hpp"
 #include "../entities/enemy/bone-sprinter.hpp"
 #include "../entities/effects/slowed-effect.hpp"
+#include "../economy/item.hpp"
 #include "../entities/player.hpp"
 
 TestChamber::TestChamber(Player& player) : Chamber(player) {
@@ -22,12 +24,30 @@ TestChamber::TestChamber(Player& player) : Chamber(player) {
     auto sprinter = std::make_unique<BoneSprinter>(player, true);
     sprinter->setPosition({ox + 5.5f * cell, oy + 7.5f * cell});
     spawnEnemy(std::move(sprinter));
+
+    auto shardSoldier = EnemyFactory::createEnemy(EnemyType::SHARD_SOLDIER, player);
+    shardSoldier->setPosition({300.f, 400.f});
+    spawnEnemy(std::move(shardSoldier));
+    
+    // Spawn a dummy EchoFragment for testing physics and magnet
+    items.push_back(std::make_unique<EchoFragment>(sf::Vector2f(200.f, 200.f), 10.0f));
 }
 
 void TestChamber::update(float dt) {
     for (auto& enemy : enemies) {
         enemy->update(dt);
         enemy->updateState(dt, *this);
+    }
+    
+    // Update items and check collection
+    for (auto it = items.begin(); it != items.end(); ) {
+        (*it)->update(dt, player.getPosition());
+        if ((*it)->isCollected()) {
+            (*it)->onCollect(player, *this);
+            it = items.erase(it);
+        } else {
+            ++it;
+        }
     }
     
     checkCollisions(dt);
@@ -48,6 +68,11 @@ void TestChamber::draw(sf::RenderWindow& window) {
     for (const auto& enemy : enemies) {
         enemy->draw(window);
     }
+    
+    for (const auto& item : items) {
+        window.draw(*item);
+    }
+
     for (const auto& hb : debugHitboxes) {
         CollisionSolver::drawDebug(window, hb.shape);
     }
