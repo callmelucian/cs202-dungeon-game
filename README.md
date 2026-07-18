@@ -155,7 +155,7 @@ cs202-dungeon-game/
     │   │   ├── paralyzed-effect.hpp / paralyzed-effect.cpp
     │   │   └── slowed-effect.hpp / slowed-effect.cpp
     │   │
-    │   └── enemies/               # Enemies & AI (Factory Pattern)
+    │   └── enemy/               # Enemies & AI (Factory Pattern)
     │       ├── enemy.hpp / enemy.cpp               # Abstract enemy base
     │       ├── enemy-factory.hpp / enemy-factory.cpp # Instantiates enemies from enums
     │       ├── waterlogged-scribe.hpp / waterlogged-scribe.cpp
