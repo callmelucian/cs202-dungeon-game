@@ -59,9 +59,9 @@ float WraithbladeRiftcrushState::modifyOutgoingDamage(float baseAmount) {
 
 void WraithbladeRiftcrushState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     // TODO (Future): Change this to trigger the explosion from the ENEMY'S location instead of the Player
-    CircularHitbox bigBlast;
-    bigBlast.origin = player.getPosition();
-    bigBlast.radius = 180.0f; // 3 units * 60 pixels = 180
+    CircleHitbox bigBlast;
+    bigBlast.center = player.getPosition();
+    bigBlast.radius = 120.0f; // 3 units * 60 pixels = 180
     
     chamber.processPlayerAttack(bigBlast);
 
@@ -80,7 +80,7 @@ StatModifier WraithbladeCinderveilState::getStatModifier() const {
     // update this state so that attacks apply the "Burned" status to enemies!
     
     // Placeholder buff: Attack 50% faster while Cinderveil is active
-    modifier.attackRateMultiplier = 1.5f; 
+    modifier.speedMultiplier = 1.5f;  
     
     return modifier;
 }

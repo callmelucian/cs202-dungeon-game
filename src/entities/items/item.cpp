@@ -8,8 +8,8 @@ sf::Vector2f Item::getPosition() const {
 
 void Item::setPosition(sf::Vector2f pos) {
     position = pos;
-    bounds.left = position.x - bounds.width / 2.0f;
-    bounds.top = position.y - bounds.height / 2.0f;
+    bounds.position.x = position.x - bounds.size.x / 2.0f;
+    bounds.position.y = position.y - bounds.size.y / 2.0f;
 }
 
 sf::FloatRect Item::getBounds() const {

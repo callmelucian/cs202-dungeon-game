@@ -64,7 +64,7 @@ StatModifier IronshellVeilOfThornsState::getStatModifier() const {
     // TODO (Future): Make the Ironshell Aura apply "Paralyzed" and knock out Echo Fragments!
     
     // Placeholder buff: Gain +50 extra defense while active
-    modifier.defenseFlat = 50.0f; 
+    modifier.hpMultiplier = 1.5f;  
     
     return modifier;
 }
