@@ -139,6 +139,19 @@ package "Global Settings" {
 
     ColorPaletteManager o-- ColorPaletteObserver
     ColorPaletteManager *-- ColorPalette
+
+    class TileManager << (S,#FF7F24) Singleton >> {
+        - tilesById : std::unordered_map<int, TileData>
+        - nameToId : std::unordered_map<std::string, int>
+        - tileSize : sf::Vector2i
+        - TileManager()
+        + {static} getInstance() : TileManager&
+        + loadTileMap(filepath : std::string) : bool
+        + getTileRect(id : int) : sf::IntRect
+        + getTileRect(name : std::string) : sf::IntRect
+        + getTileId(name : std::string) : int
+        + getTileSize() : sf::Vector2i
+    }
 }
 
 ' ============================================================
@@ -150,14 +163,6 @@ package "UI Framework" {
         # parent : Component*
         # position : sf::Vector2f
         # size : sf::Vector2f
-        # modeX : SizeMode
-        # modeY : SizeMode
-        # fixedWidth : float
-        # fixedHeight : float
-        # marginTop : float
-        # marginBottom : float
-        # marginLeft : float
-        # marginRight : float
         + {abstract} draw(target : sf::RenderTarget&) : void
         + {abstract} handleEvent(event : const sf::Event&) : void
         + {abstract} update(dt : float) : void
@@ -178,12 +183,6 @@ package "UI Framework" {
 
     class Container {
         # children : std::vector<std::unique_ptr<Component>>
-        # paddingTop : float
-        # paddingBottom : float
-        # paddingLeft : float
-        # paddingRight : float
-        # alignmentX : AlignmentX
-        # alignmentY : AlignmentY
         # isRootNode : bool
         + addChild(child : std::unique_ptr<Component>) : Component*
         + createChild<T>(args...) : T*
@@ -264,14 +263,6 @@ package "Entities" {
         + speed : float
         + defense : float
     }
-    note right of Stats
-        defense is a flat per-form stat
-        (Wraithblade 15 / Voidcaster 5 /
-        Ironshell 35). Both hp and defense
-        require no conversion on form switch
-        as all forms now share the exact same HP pool.
-        See Game Description §2.1/§2.5.
-    end note
 
     class StatModifier <<struct>> {
         + hpMultiplier : float
@@ -346,23 +337,6 @@ package "Entities" {
         + getPosition() : sf::Vector2f
         + getHp() : float
     }
-    note right of Character
-        takeDamage(rawAmount) is the single
-        entry point for all incoming hits
-        (enemy attacks, boss abilities, Burned
-        ticks, Ironshell's redirected Echo
-        damage). It internally calls
-        calculateMitigatedDamage(rawAmount),
-        which implements:
-          mitigated = rawAmount * 100.0f /
-                      (100.0f + getEffectiveStats().defense);
-          return max(1.0f, round(mitigated));
-        before subtracting from hp. Defense is
-        read live from getEffectiveStats() at
-        the moment of impact, so a mid-telegraph
-        form switch uses the new form's defense.
-        See Game Description §2.5/§6.3.
-    end note
 
     Character *-- Stats
     Character o-- CharacterObserver
@@ -401,19 +375,6 @@ package "Entities" {
         + {abstract} getVisualKey() : const std::string&
         + {abstract} getRemainingDuration() : float
     }
-    note right of PlayerCombatState
-        Order for a hit against Serin:
-        1. activeState->modifyIncomingDamage()
-           (state/special-specific pre-adjustment,
-           none currently defined, but the hook
-           exists for future specials)
-        2. Player::takeDamage(result of step 1)
-           calls Character::calculateMitigatedDamage(),
-           which applies the Defense formula using
-           getStats().defense from the active form
-        Defense mitigation always runs; it is not
-        something a special can bypass.
-    end note
 
     class PlayerCombatStateMachine {
         - baseState : PlayerForm*
@@ -514,11 +475,6 @@ package "Entities" {
         + createForm2() : std::unique_ptr<PlayerForm>
         + createForm3() : std::unique_ptr<PlayerForm>
     }
-    note right of Serin
-        Form1 = WraithbladeForm
-        Form2 = VoidcasterForm
-        Form3 = IronshellForm
-    end note
 
     Player *-- PlayerCombatStateMachine
     Player o-- PlayerForm
@@ -536,12 +492,6 @@ package "Entities" {
     class ChasingState extends EnemyState
     class AttackingState extends EnemyState
     class StaggeredState extends EnemyState
-    note right of StaggeredState
-        Timed state, same revert
-        mechanism as SpecialAbilityState:
-        auto-returns to previous
-        state when its timer elapses
-    end note
 
     abstract class EnemySteeringStrategy << Strategy >> {
         + {abstract} calculateSteering(enemy : Enemy&, player : const Player&, chamber : const Chamber&) : sf::Vector2f
@@ -632,10 +582,23 @@ package "Chambers" {
         + {static} createChamber(level : int, chamberIndex : int, player : Player&) : std::unique_ptr<Chamber>
     }
 
+    class RenderableTileMap << Drawable >> {
+        - vertices : sf::VertexArray
+        - texture : const sf::Texture*
+        + load(texture : const sf::Texture*, tileIds : const std::vector<std::vector<int> >&, cellSize : float) : void
+        - draw(target : sf::RenderTarget&, states : sf::RenderStates) : void
+    }
+
+    class TileMapGenerator {
+        + {static} generate(semanticGrid : const std::vector<std::vector<int> >&, cellSize : float, offsetX : float, offsetY : float) : RenderableTileMap
+    }
+
     ChamberFactory ..> Chamber
     Chamber *-- Player
     Chamber *-- Enemy
     Chamber *-- Item
+    Chamber *-- RenderableTileMap
+    TileMapGenerator ..> RenderableTileMap : creates
 }
 
 ' ============================================================

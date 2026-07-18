@@ -6,6 +6,7 @@
 #include <memory>
 #include "../entities/character.hpp"
 #include "../utils/collision-solver.hpp"
+#include "tile-map-generator.hpp"
 
 #include "../entities/enemy/enemy.hpp"
 #include "../economy/item.hpp"
@@ -24,7 +25,11 @@ public:
     void setGrid(const std::vector<std::vector<int>>& newGrid);
     
     void spawnEnemy(std::unique_ptr<Enemy> enemy);
-    void checkCollisions();
+    void checkCollisions(float dt);
+    
+    // Pathfinding & collision
+    bool isWalkable(sf::Vector2f position) const;
+    std::vector<sf::Vector2f> findPath(sf::Vector2f start, sf::Vector2f target) const;
 
     virtual void processPlayerAttack(const Hitbox& hitbox) = 0;
 
@@ -46,6 +51,8 @@ protected:
     std::vector<sf::FloatRect> obstacles;
     
     bool isCompleted;
+    
+    RenderableTileMap tileMap;
     
     void buildObstaclesFromGrid();
 };

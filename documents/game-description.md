@@ -461,7 +461,7 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 #### 11.1.1 Chamber 1 — The Drowned Archive (Protect)
 
-- **Enemies:** 6× Waterlogged Scribe — HP 18 each, Damage 5/hit, Speed 1.5
+- **Enemies:** 6× Waterlogged Scribe — HP 18 each, Damage 5/hit, Speed 1.0
   units/s (already reduced by the chamber's water; this is their effective
   speed, not a base value further multiplied by Slowed unless additionally
   afflicted).
@@ -476,13 +476,13 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 #### 11.1.2 Chamber 2 — The Bone Corridor (Prevent)
 
-- **Enemies:** 4× Bone Sprinter (carriers) — HP 14 each, Speed 9.0 units/s
+- **Enemies:** 4× Bone Sprinter (carriers) — HP 14 each, Speed 6.0 units/s
   (this is the "Bone Sprinter base speed" referenced in §7.2's 1.4× carrier
   multiplier note — carriers in this chamber already *are* Bone Sprinters, so
   no additional multiplier applies here; the 1.4× rule in §7.2 is the general
   rule for chambers where carriers are a different enemy type than their base
   movement archetype).
-- **Blockers:** 3× Bone Sprinter (blocker variant) — HP 20 each, Speed 6.0
+- **Blockers:** 3× Bone Sprinter (blocker variant) — HP 20 each, Speed 4.0
   units/s, do not carry, position between Serin and carriers.
 - **Corridor length:** 30 units; carriers reach the exit gate in ~3.3s of
   unobstructed movement, so engagement must be immediate.
@@ -513,7 +513,7 @@ abandoned outer wards and the fully-awake inner sanctum.
 
 #### 11.2.1 Chamber 1 — The Drowned Choir (Protect)
 
-- **Enemies:** 7× Choir Husk — HP 20 each, Damage 7/hit, Speed 4.0 units/s,
+- **Enemies:** 7× Choir Husk — HP 20 each, Damage 7/hit, Speed 2.5 units/s,
   attack in a call-and-response pattern (one Husk "calls," triggering a 0.6s
   windup on up to 2 nearby Husks before they all strike together).
 - **Collection time:** **10 seconds** base (subject to the standing Clarity
@@ -529,7 +529,7 @@ abandoned outer wards and the fully-awake inner sanctum.
 
 #### 11.2.2 Chamber 2 — The Choir Loft (Prevent)
 
-- **Carriers:** 5× Choir Husk (carrier variant) — HP 16 each, Speed 7.5
+- **Carriers:** 5× Choir Husk (carrier variant) — HP 16 each, Speed 5.0
   units/s, **no decoys in this chamber** (all 5 carriers are real — the
   challenge is volume and speed, not deception, a deliberate contrast with
   Level 3's Mirror Vault).
@@ -579,7 +579,7 @@ abandoned outer wards and the fully-awake inner sanctum.
 
 #### 11.3.2 Chamber 2 — The Mirror Vault (Prevent)
 
-- **Carriers:** 3× Mirror Bearer — HP 18 each, Speed 6.5 units/s. **1 real, 2
+- **Carriers:** 3× Mirror Bearer — HP 18 each, Speed 4.5 units/s. **1 real, 2
   decoys** (randomized which slot is real each playthrough/attempt).
 - **Guards:** 2× Mirror Bearer (guard variant, non-carrying) — HP 24 each.
 - **Decoy death:** shatters into smoke, deals no AOE, drops 0 fragments (decoys
@@ -593,7 +593,7 @@ abandoned outer wards and the fully-awake inner sanctum.
 #### 11.3.3 Chamber 3 — The Hunger Pit (Gauntlet)
 
 - **5 waves, 4× Void Shunter each = 20 total** — HP 25 each, Damage 11/hit
-  (charge attack only; Void Shunters have no ranged attack), Speed 6.0 units/s
+  (charge attack only; Void Shunters have no ranged attack), Speed 4.0 units/s
   when charging.
 - **Spawn pattern:** each wave spawns progressively closer to Serin's starting
   position — Wave 1 spawns at the arena edge (10 units out), Wave 5 spawns at
@@ -621,7 +621,7 @@ mechanically (Echo Power can still be raised on already-collected Echoes is
 one-time **+20% Max HP** buff for the Final Chamber only, on top of carried-
 over HP per §6.1).
 
-- **Enemies:** 6× Sarcophagus Warden — HP 28 each, Damage 10/hit, Speed 4.5
+- **Enemies:** 6× Sarcophagus Warden — HP 28 each, Damage 10/hit, Speed 3.0
   units/s, periodically (every 6s) one Warden enters a brief **Guard Stance**
   (immune to knockback, +50% damage resistance for 2s) — Voidcaster pierce
   shots ignore Guard Stance's damage resistance, rewarding ranged play in this

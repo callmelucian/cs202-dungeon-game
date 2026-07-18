@@ -28,19 +28,19 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
         grid[y][cols - 1] = 1;
     }
     
-    // Some inner obstacles
-    std::vector<std::pair<int,int>> obstacles = {
-        {10, 10},
-        {10, 11},
-        {11, 10},
-        {28, 15},
-        {28, 16},
-        {28, 17},
-        {29, 16},
-        {30, 16}
+    // Some inner obstacles (lakes must be at least 2x2 for proper rendering)
+    auto addLake = [&](int startX, int startY, int w, int h) {
+        for (int y = startY; y < startY + h; ++y) {
+            for (int x = startX; x < startX + w; ++x) {
+                if (y >= 0 && y < rows && x >= 0 && x < cols) {
+                    grid[y][x] = 2; // Lake
+                }
+            }
+        }
     };
-    for (auto [x, y] : obstacles)
-        if (0 <= x && x < rows && 0 <= y && y < cols) grid[x][y] = 2;
+    
+    addLake(10, 10, 2, 2);
+    addLake(15, 25, 4, 3);
     
     return grid;
 }

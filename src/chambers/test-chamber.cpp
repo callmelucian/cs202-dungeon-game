@@ -30,6 +30,8 @@ void TestChamber::update(float dt) {
         enemy->updateState(dt, *this);
     }
     
+    checkCollisions(dt);
+    
     for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
         it->timer -= dt;
         if (it->timer <= 0) {
@@ -41,25 +43,7 @@ void TestChamber::update(float dt) {
 }
 
 void TestChamber::draw(sf::RenderWindow& window) {
-    float size = SettingManager::getInstance().getCellSize();
-    float ox = SettingManager::getInstance().getGridOffsetX();
-    float oy = SettingManager::getInstance().getGridOffsetY();
-    for (size_t y = 0; y < grid.size(); ++y) {
-        for (size_t x = 0; x < grid[y].size(); ++x) {
-            sf::RectangleShape cell({size, size});
-            cell.setPosition({ox + static_cast<float>(x) * size, oy + static_cast<float>(y) * size});
-            
-            int tileType = grid[y][x];
-            if (tileType == 1) {
-                cell.setFillColor(sf::Color(47, 79, 79)); // Dark Slate Gray (Outer Wall)
-            } else if (tileType == 2) {
-                cell.setFillColor(sf::Color(180, 50, 50)); // Red (Inner Obstacle)
-            } else if (tileType == 0) {
-                cell.setFillColor(sf::Color(30, 30, 30)); // Dark Gray (Floor)
-            }
-            window.draw(cell);
-        }
-    }
+    window.draw(tileMap);
 
     for (const auto& enemy : enemies) {
         enemy->draw(window);

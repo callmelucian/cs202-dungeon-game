@@ -2,6 +2,7 @@
 #include "pause-state.hpp"
 #include "game-over-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
+#include "../game.hpp"
 #include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
@@ -180,17 +181,27 @@ void GameplayState::handleEvents(sf::Event& event) {
 
     SettingManager& settings = SettingManager::getInstance();
 
-    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
-        if (keyEvent->scancode == settings.getKeyBinding("Attack")) {
+    if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>()) {
+        if (mouseEvent->button == sf::Mouse::Button::Left) {
             if (activeChamber && player) {
-                // Determine attack direction based on facing
-                sf::Vector2f dir = player->getVelocity();
-                if (dir.x == 0 && dir.y == 0) {
-                    dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
-                } else {
+                sf::Vector2f dir;
+                if (player->getActiveFormType() == FormType::VOIDCASTER) {
+                    sf::RenderWindow& window = Game::getInstance().getWindow();
+                    sf::Vector2f mouseWorldPos = window.mapPixelToCoords({mouseEvent->position.x, mouseEvent->position.y}, cameraView);
+                    dir = mouseWorldPos - player->getPosition();
                     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-                    dir /= len;
+                    if (len != 0.0f) dir /= len;
+                    else dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
+                } else {
+                    dir = player->getVelocity();
+                    if (dir.x == 0 && dir.y == 0) {
+                        dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
+                    } else {
+                        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+                        dir /= len;
+                    }
                 }
+                
                 player->attack(dir, *activeChamber);
             }
         }

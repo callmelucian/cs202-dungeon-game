@@ -3,6 +3,7 @@
 #include "../global-settings/asset-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "../global-settings/animation-manager.hpp"
+#include "../global-settings/tile-manager.hpp"
 #include <filesystem>
 
 #include "states/main-menu-state.hpp"
@@ -48,9 +49,12 @@ Game::Game() : running(false) {
     sounds.loadSound("menu-select", resolvePath("assets/sounds/menu-select.wav"));
     sounds.playMusic(resolvePath("assets/music/fallen-down-reprise.ogg"), true);
 
-    // load animations
+    // load animations and tiles
     AnimationManager &animations = AnimationManager::getInstance();
     animations.loadAllAnimations(resolvePath("assets/animations/characters.json"));
+    
+    assets.loadTexture("dungeon-tiles", resolvePath("assets/textures/dungeon-tiles.png"));
+    TileManager::getInstance().loadTileMap(resolvePath("assets/animations/tile-map.json"));
 
     // setup render window
     renderWindow.create(

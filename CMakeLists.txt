@@ -43,6 +43,7 @@ add_executable(game
     src/global-settings/asset-manager.cpp
     src/global-settings/save-load-manager.cpp
     src/global-settings/animation-manager.cpp
+    src/global-settings/tile-manager.cpp
     src/global-settings/map-loader.cpp
 
     # ui
@@ -92,6 +93,7 @@ add_executable(game
     src/chambers/chamber-factory.cpp
     src/chambers/mid-chamber.cpp
     src/chambers/test-chamber.cpp
+    src/chambers/tile-map-generator.cpp
 )
 
 # Link SFML and JSON libraries

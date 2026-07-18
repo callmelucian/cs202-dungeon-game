@@ -9,7 +9,7 @@ ShardSoldier::ShardSoldier(Player& player)
     baseStats.hp = 16.0f;
     baseStats.maxHp = 16.0f;
     baseStats.damage = 6.0f;
-    baseStats.speed = 5.0f; 
+    baseStats.speed = 3.5f; 
     fragmentDropCount = 1;
     
     attackCooldown = 0.0f;

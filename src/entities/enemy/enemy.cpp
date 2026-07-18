@@ -14,7 +14,7 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
 
 void Enemy::update(float deltaTime) {
     sf::Vector2f vel = getVelocity();
-    setPosition(getPosition() + vel * deltaTime);
+    // Position integration is handled by CollisionSolver in Chamber::checkCollisions()
     
     if (vel.x < 0) isFacingRight = false;
     else if (vel.x > 0) isFacingRight = true;

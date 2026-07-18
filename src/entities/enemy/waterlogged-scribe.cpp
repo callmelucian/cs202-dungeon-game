@@ -7,7 +7,7 @@ WaterloggedScribe::WaterloggedScribe(Player& player) : Enemy("waterlogged_scribe
     baseStats.hp = 18.0f;
     baseStats.maxHp = 18.0f;
     baseStats.damage = 5.0f;
-    baseStats.speed = 1.5f;
+    baseStats.speed = 1.0f;
     fragmentDropCount = 1;
     
     attackCooldown = 0.0f;

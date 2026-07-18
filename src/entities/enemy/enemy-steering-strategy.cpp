@@ -1,6 +1,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "enemy.hpp"
 #include "../player.hpp"
+#include "../../chambers/chamber.hpp"
 #include <cmath>
 
 static sf::Vector2f normalize(const sf::Vector2f& source) {
@@ -12,7 +13,15 @@ static sf::Vector2f normalize(const sf::Vector2f& source) {
 }
 
 sf::Vector2f SeekStrategy::calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) {
-    // Seek: Desired direction is from Enemy towards the Player
+    // Seek: Use BFS pathfinding to find the next waypoint
+    std::vector<sf::Vector2f> path = chamber.findPath(enemy.getPosition(), player.getPosition());
+    if (!path.empty()) {
+        sf::Vector2f targetWaypoint = path.front();
+        sf::Vector2f direction = targetWaypoint - enemy.getPosition();
+        return normalize(direction);
+    }
+    
+    // Fallback if no path is found
     sf::Vector2f direction = player.getPosition() - enemy.getPosition();
     return normalize(direction);
 }
