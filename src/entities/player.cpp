@@ -184,7 +184,7 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
     FormType currentForm = activeForm->getFormType();
     float& momentum = formMomentum[currentForm];
 
-    if (abilityIndex == 1 && momentum >= 50.0f) {
+    if (abilityIndex == 1 && momentum >= special1Threshold) {
         auto specialState = activeForm->createSpecialState(1);
         if (specialState) {
             stateMachine.enterTemporaryState(std::move(specialState), *this);
@@ -249,6 +249,14 @@ FormType Player::getActiveFormType() const {
 
 const PlayableCharacter& Player::getCharacter() const {
     return *character;
+}
+
+void Player::setSpecial1Threshold(float threshold) {
+    special1Threshold = threshold;
+}
+
+float Player::getSpecial1Threshold() const {
+    return special1Threshold;
 }
 
 PlayerCombatStateMachine& Player::getStateMachine() {

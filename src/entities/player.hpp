@@ -29,6 +29,9 @@ public:
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
     bool getIsFacingRight() const;
+    
+    void setSpecial1Threshold(float threshold);
+    float getSpecial1Threshold() const;
 
     FormType getActiveFormType() const;
     const PlayableCharacter& getCharacter() const;
@@ -47,6 +50,7 @@ private:
     bool isSwitchCooldownEnabled;
     bool isFacingRight;
     bool isAttacking;
+    float special1Threshold = 50.0f;
 };
 
 #endif // PLAYER_HPP
