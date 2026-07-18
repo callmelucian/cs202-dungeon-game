@@ -72,12 +72,16 @@ add_executable(game
     src/entities/forms/voidcaster-form.cpp
     src/entities/forms/ironshell-form.cpp
 
+    ## enemies
     src/entities/enemy/enemy.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
     src/entities/enemy/enemy-state.cpp
     src/entities/enemy/waterlogged-scribe.cpp
     src/entities/enemy/shard-soldier.cpp
     src/entities/enemy/bone-sprinter.cpp
+
+    ## items
+    src/entities/items/item.cpp
 
     # utils
     src/utils/math-utility.cpp

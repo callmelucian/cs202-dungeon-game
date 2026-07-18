@@ -121,7 +121,7 @@
     - [x] Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
     - [x] Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
   - [x] Wire these states into `Player::triggerSpecial()`, which instantiates the decorator state and enters it in `PlayerCombatStateMachine`.
-  - [ ] Implement `Item` abstract base class with `position`, `bounds`, `onCollect(Player&, Chamber&)` (per architecture.puml Economy package).
+  - [x] Implement `Item` abstract base class with `position`, `bounds`, `onCollect(Player&, Chamber&)` (per architecture.puml Economy package).
   - [ ] Implement `EchoFragment` inheriting from `Item`: physics position/velocity, `value`, `update()`, `draw()`, `onCollect()`.
   - [ ] Implement `Echo` abstract Subject class: `name`, `echoPower` (float, clamped 10–100), `observers : vector<EchoObserver*>`, `takeDamage(penalty)`, `addPower(amount)`, `getPower()`, `attach(observer)`, `notify()` (per architecture.puml).
   - [ ] Implement concrete Echo subclasses: `ClarityShard`, `MarrowEcho`, `HollowBell`, `ResonanceCore`, `ObsidianKey` (per architecture.puml — each stores its specific collected/stolen effects).
