@@ -5,7 +5,7 @@
 #include "../game.hpp"
 #include <cmath>
 
-GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
+GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
     root->setAlignmentY(UI::AlignmentY::Middle);
 
@@ -69,7 +69,7 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager) {
     float oy = SettingManager::getInstance().getGridOffsetY();
     player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
-    activeChamber = ChamberFactory::createChamber(1, 1, *player);
+    activeChamber = ChamberFactory::createChamber(type, 1, 1, *player);
 
     // Initialize camera View
     currentZoom = 0.5f;

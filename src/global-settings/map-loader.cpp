@@ -6,10 +6,6 @@
 
 using json = nlohmann::json;
 
-MapLoader& MapLoader::getInstance() {
-    static MapLoader instance;
-    return instance;
-}
 
 std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberIndex) {
     // 0 = Floor
@@ -50,7 +46,7 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
     return grid;
 }
 
-ChamberConfig MapLoader::loadChamberConfig(const std::string& filepath) {
+ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
     ChamberConfig config;
     std::ifstream file(filepath);
     if (!file.is_open()) {
@@ -75,6 +71,24 @@ ChamberConfig MapLoader::loadChamberConfig(const std::string& filepath) {
                 config.grid.push_back(rowVec);
             }
         }
+    } catch (const json::exception& e) {
+        std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
+    }
+
+    return config;
+}
+
+std::vector<WaveConfig> MapLoader::loadWaves(const std::string& filepath) {
+    std::vector<WaveConfig> waves;
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open wave config file: " << filepath << std::endl;
+        return waves;
+    }
+
+    try {
+        json j;
+        file >> j;
 
         if (j.contains("waves") && j["waves"].is_array()) {
             for (const auto& waveObj : j["waves"]) {
@@ -82,12 +96,12 @@ ChamberConfig MapLoader::loadChamberConfig(const std::string& filepath) {
                 wave.enemyType = waveObj.value("enemyType", "unknown");
                 wave.count = waveObj.value("count", 1);
                 wave.spawnDelay = waveObj.value("spawnDelay", 0.0f);
-                config.waves.push_back(wave);
+                waves.push_back(wave);
             }
         }
     } catch (const json::exception& e) {
         std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
     }
 
-    return config;
+    return waves;
 }

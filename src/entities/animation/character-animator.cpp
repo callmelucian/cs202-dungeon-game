@@ -31,7 +31,6 @@ CharacterAnimator::CharacterAnimator(const std::string& characterKey)
 
 void CharacterAnimator::onStateChanged(const Character& character, std::string animationKey) {
     if (currentAnimationKey != animationKey) {
-        std::cerr << "STATE CHANGED " << animationKey << std::endl;
         currentAnimationKey = animationKey;
         currentAnimationElapsed = 0.0f;
     }

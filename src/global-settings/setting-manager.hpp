@@ -37,6 +37,7 @@ public:
     float getGridOffsetX() const;
     float getGridOffsetY() const;
     float getSpeedMultiplier() const;
+    float getEnemyAttackTime() const;
 
     unsigned int getGridCols() const;
     unsigned int getGridRows() const;
@@ -62,6 +63,7 @@ private:
     float gridOffsetX;
     float gridOffsetY;
     float speedMultiplier;
+    float enemyAttackTime;
 
     unsigned int gridCols;
     unsigned int gridRows;

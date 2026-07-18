@@ -17,6 +17,7 @@ protected:
     float attackCooldown;
     int fragmentDropCount;
     bool isFacingRight;
+    bool isRealCarrier;
 
 public:
     Enemy(const std::string& characterKey, Player& player);
@@ -33,6 +34,9 @@ public:
     virtual void onDeath() = 0;
 
     Player& getPlayer() const;
+    
+    void setIsRealCarrier(bool real);
+    bool getIsRealCarrier() const;
 };
 
 #endif // ENEMY_HPP

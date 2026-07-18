@@ -1,13 +1,9 @@
-#include "main-menu-state.hpp"
-#include "../../ui/base/text.hpp"
-#include "../../ui/containers/flex-box.hpp"
-
 #include "choose-chamber-state.hpp"
-#include "setting-state.hpp"
-#include "pause-state.hpp"
+#include "game-play-state.hpp"
+#include "main-menu-state.hpp"
+#include "../../chambers/chamber-factory.hpp"
 
-MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
-    SettingManager& settings = SettingManager::getInstance();
+ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manager) {
     root->setAlignmentY(UI::AlignmentY::Middle);
 
     // Create a vertical layout box that expands to the full screen
@@ -20,9 +16,9 @@ MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
 
     // Title Text (bold, size 54, auto-sized)
     titleText = layoutBox->createChild<UI::Text>("bold", 54)
-        ->setString("Echoes of the Ashen Vault");
+        ->setString("Select Chamber");
 
-    // Horizontal Box for buttons (contained to fit children)
+    // Vertical Box for buttons (contained to fit children)
     buttonBox = layoutBox->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
@@ -33,21 +29,28 @@ MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
     buttonBox->setChildDefaults({
         .modeX = UI::SizeMode::Fixed,
         .modeY = UI::SizeMode::Fixed,
-        .fixedWidth = 180.f,
+        .fixedWidth = 250.f,
         .fixedHeight = 50.f,
     });
 
     // Add buttons
-    playButton = buttonBox->createChild<UI::Button>("Play", "regular", 25)
+    testChamberBtn = buttonBox->createChild<UI::Button>("Test Chamber", "regular", 25)
         ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<ChooseChamberState>(stateManager));
+            stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::TEST));
         });
-    optionsButton = buttonBox->createChild<UI::Button>("Settings", "regular", 25)
+        
+    protectChamberBtn = buttonBox->createChild<UI::Button>("Protect Chamber", "regular", 25)
         ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<SettingState>(stateManager));
+            stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::PROTECT));
         });
-    exitButton = buttonBox->createChild<UI::Button>("Exit", "regular", 25)
+        
+    preventChamberBtn = buttonBox->createChild<UI::Button>("Prevent Chamber", "regular", 25)
         ->setOnClick([this]() {
-            Game::getInstance().getWindow().close();
+            stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::PREVENT));
+        });
+        
+    backBtn = buttonBox->createChild<UI::Button>("Back", "regular", 25)
+        ->setOnClick([this]() {
+            stateManager.popState();
         });
 }

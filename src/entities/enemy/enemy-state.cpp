@@ -34,17 +34,27 @@ void ChasingState::update(Enemy& enemy, float dt, Chamber& chamber) {
 
 void AttackingState::onEnter(Enemy& enemy) {
     enemy.setVelocity(sf::Vector2f(0.0f, 0.0f));
+    attackTimer = 0.0f; // Reset timer on contact
 }
 
 void AttackingState::onExit(Enemy& enemy) {}
 
 void AttackingState::update(Enemy& enemy, float dt, Chamber& chamber) {
-    // Deal damage and return to chasing
-    enemy.getPlayer().takeDamage(enemy.getEffectiveStats().damage);
-    // Add a simple stagger or just switch back to chasing (Enemy class will handle cooldown if we had one)
-    // For now just transition back so it doesn't spam attack every frame.
-    // Actually we should use StaggeredState to act as a cooldown.
-    enemy.changeState(std::make_unique<StaggeredState>(1.0f, std::make_unique<ChasingState>()));
+    // Check if player moved out of contact range
+    float dist = Math::distance(enemy.getPosition(), enemy.getPlayer().getPosition());
+    if (dist >= 40.0f) {
+        enemy.changeState(std::make_unique<ChasingState>());
+        return;
+    }
+    
+    attackTimer += dt;
+    if (attackTimer >= SettingManager::getInstance().getEnemyAttackTime()) {
+        enemy.getPlayer().takeDamage(enemy.getEffectiveStats().damage);
+        attackTimer = 0.0f; // Reset timer after attacking
+        
+        // Optional: add a tiny stagger to show attack animation? Let's just keep attacking every 2s
+        // enemy.changeState(std::make_unique<StaggeredState>(0.2f, std::make_unique<AttackingState>()));
+    }
 }
 
 StaggeredState::StaggeredState(float duration, std::unique_ptr<EnemyState> previous) : duration(duration), elapsedTime(0.0f), previousState(std::move(previous)) {}

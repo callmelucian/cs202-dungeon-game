@@ -77,6 +77,10 @@ bool Game::isRunning() const {
     return running && renderWindow.isOpen();
 }
 
+RunState& Game::getRunState() {
+    return runState;
+}
+
 sf::RenderWindow& Game::getWindow() const {
     return const_cast<sf::RenderWindow&>(renderWindow);
 }

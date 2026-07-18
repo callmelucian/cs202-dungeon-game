@@ -9,7 +9,8 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
       currentState(nullptr), 
       attackCooldown(0.0f),
       fragmentDropCount(1),
-      isFacingRight(true) {
+      isFacingRight(true),
+      isRealCarrier(false) {
 }
 
 void Enemy::update(float deltaTime) {
@@ -46,6 +47,14 @@ void Enemy::setSteeringStrategy(std::unique_ptr<EnemySteeringStrategy> strategy)
 
 Player& Enemy::getPlayer() const {
     return playerRef;
+}
+
+void Enemy::setIsRealCarrier(bool real) {
+    isRealCarrier = real;
+}
+
+bool Enemy::getIsRealCarrier() const {
+    return isRealCarrier;
 }
 
 EnemySteeringStrategy* Enemy::getSteeringStrategy() const {

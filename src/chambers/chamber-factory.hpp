@@ -6,9 +6,15 @@
 
 class Player;
 
+enum class ChamberSelectionType {
+    TEST,
+    PROTECT,
+    PREVENT
+};
+
 class ChamberFactory {
 public:
-    static std::unique_ptr<Chamber> createChamber(int level, int chamberIndex, Player& player);
+    static std::unique_ptr<Chamber> createChamber(ChamberSelectionType type, int level, int chamberIndex, Player& player);
 };
 
 #endif // CHAMBER_FACTORY_HPP

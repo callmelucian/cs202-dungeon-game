@@ -106,13 +106,14 @@
 * **Developer A (Chamber System & Tilemap Rendering)**
   - [x] Implement abstract `Chamber` base class with `player : Player&`, `enemies : vector<unique_ptr<Enemy>>`, `items : vector<unique_ptr<Item>>`, `isCompleted`, `update(dt)`, `draw(window)`, `spawnEnemy()`, `checkCollisions()` (per architecture.puml).
   - [x] Implement `ChamberFactory::createChamber(level, chamberIndex, Player&) → unique_ptr<Chamber>` (per architecture.puml).
-  - [ ] Implement `MapLoader` static class: `loadChamber(string path) → ChamberConfig` and `loadWaves(string path) → vector<WaveConfig>`. Define `ChamberConfig` and `WaveConfig` data structs.
-  - [ ] Implement basic tilemap renderer: load tile textures, render floor/wall grid from `ChamberConfig` wall rects, support water tiles for Drowned Archive.
-  - [ ] Code `ProtectChamber`: collection radius 2.5 units, collection timer, `onEchoHit()` applying −8% Echo Power, `onFragmentCollected(bool midCollection)` granting +5% / +2.5% Echo Power, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.
-  - [ ] Code `PreventChamber`: tracks `associatedEcho` field so it can write `RunState.echoOutcomes[associatedEcho] = STOLEN` if any real carrier reaches the exit. `onCarrierHit(Enemy*, bool lethal)` triggers the 0.5s stagger animation on real carriers (non-lethal hit only); decoys show no reaction.
-  - [ ] *Task from week 2:* Include `applySlowAura(vector<Enemy*>&)` as a per-tick method that applies/refreshes `SlowedEffect` on every enemy within 4.0 units — this is called by `Player::update()` whenever Ironshell is active.
-  - [ ] *Seminar:* Detailed content for `Decorator` pattern (11 items) + `Strategy` pattern (11 items).
-  - [ ] Weekly Report.
+  - [x] Implement `MapLoader` static class: `loadChamber(string path) → ChamberConfig` and `loadWaves(string path) → vector<WaveConfig>`. Define `ChamberConfig` and `WaveConfig` data structs.
+  - [x] Implement basic tilemap renderer: load tile textures, render floor/wall grid from `ChamberConfig` wall rects, support water tiles for Drowned Archive (implemented as `TileMapGenerator`).
+  - [x] Code `ProtectChamber`: collection radius 2.5 units, collection timer, `onEchoHit()` applying −8% Echo Power, `onFragmentCollected(bool midCollection)` granting +5% / +2.5% Echo Power, `checkIronshellRedirect(Player&)` redirecting 100% of incoming Echo damage to Serin when she is within 1.0 unit of the Echo, and `applyWraithbladeKnockback(Enemy*)` pushing enemies 4 units away from Echo position.
+  - [x] Code `PreventChamber`: tracks `associatedEcho` field so it can write `RunState.echoOutcomes[associatedEcho] = STOLEN` if any real carrier reaches the exit. `onCarrierHit(Enemy*, bool lethal)` triggers the 0.5s stagger animation on real carriers (non-lethal hit only); decoys show no reaction.
+  - [x] *Task from week 2:* Include `applySlowAura(vector<Enemy*>&)` as a per-tick method that applies/refreshes `SlowedEffect` on every enemy within 4.0 units — this is called by `Player::update()` whenever Ironshell is active.
+  - [x] *Seminar:* Detailed content for `Decorator` pattern (11 items) + `Strategy` pattern (11 items).
+  - [x] Weekly Report.
+  - [ ] Tweak chambers a little bit.
 
 * **Developer B (Specials Decorators, Echo Subject/Observer & Items)**
   - [x] Implement `SpecialAbilityState` abstract base class, which delegates to `innerState` and holds a `StatModifier` and duration timer.
@@ -153,6 +154,7 @@
   - [ ] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
   - [ ] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
   - [ ] Reimplement logic camera view.
+  - [ ] Reimplement chamber grid logic (support more complicated objects like stairs, etc.).
   - [ ] Weekly Report.
 
 * **Developer B (Advanced Enemies — Level 2 & 3)**

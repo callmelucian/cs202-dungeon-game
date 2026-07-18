@@ -30,6 +30,8 @@ public:
 };
 
 class AttackingState : public EnemyState {
+private:
+    float attackTimer = 0.0f;
 public:
     void onEnter(Enemy& enemy) override;
     void onExit(Enemy& enemy) override;

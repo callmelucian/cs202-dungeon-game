@@ -34,9 +34,15 @@ TestChamber::TestChamber(Player& player) : Chamber(player) {
 }
 
 void TestChamber::update(float dt) {
-    for (auto& enemy : enemies) {
-        enemy->update(dt);
-        enemy->updateState(dt, *this);
+    for (auto it = enemies.begin(); it != enemies.end(); ) {
+        if (!(*it)->isAlive()) {
+            (*it)->onDeath();
+            it = enemies.erase(it);
+        } else {
+            (*it)->update(dt);
+            (*it)->updateState(dt, *this);
+            ++it;
+        }
     }
     
     // Update items and check collection
@@ -84,7 +90,6 @@ void TestChamber::processPlayerAttack(const Hitbox& hitbox) {
         if (enemy->isAlive()) {
             if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
                 enemy->takeDamage(player.getEffectiveStats().damage);
-                enemy->applyStatusEffect(std::make_unique<SlowedEffect>(-1.0f));
             }
         }
     }

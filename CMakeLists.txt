@@ -31,6 +31,7 @@ add_executable(game
     src/core/state-manager.cpp
     src/core/game-state.cpp
     src/core/states/main-menu-state.cpp
+    src/core/states/choose-chamber-state.cpp
     src/core/states/game-play-state.cpp
     src/core/states/pause-state.cpp
     src/core/states/game-over-state.cpp
@@ -93,8 +94,10 @@ add_executable(game
     # chambers
     src/chambers/chamber.cpp
     src/chambers/chamber-factory.cpp
-    src/chambers/mid-chamber.cpp
     src/chambers/test-chamber.cpp
+    src/chambers/mid-chamber.cpp
+    src/chambers/protect-chamber.cpp
+    src/chambers/prevent-chamber.cpp
     src/chambers/tile-map-generator.cpp
 )
 

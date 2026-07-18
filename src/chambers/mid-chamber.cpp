@@ -7,9 +7,15 @@ MidChamber::MidChamber(Player& player) : Chamber(player) {
 }
 
 void MidChamber::update(float dt) {
-    for (auto& enemy : enemies) {
-        enemy->update(dt);
-        enemy->updateState(dt, *this);
+    for (auto it = enemies.begin(); it != enemies.end(); ) {
+        if (!(*it)->isAlive()) {
+            (*it)->onDeath();
+            it = enemies.erase(it);
+        } else {
+            (*it)->update(dt);
+            (*it)->updateState(dt, *this);
+            ++it;
+        }
     }
     
     checkCollisions(dt);

@@ -27,6 +27,8 @@ void SettingManager::loadDefaults() {
     gridOffsetY = (windowHeight - gridRows * cellSize) / 2.0f;
     spriteSizeMultiplier = 1.2f;
     speedMultiplier = 1.f;
+    enemyAttackTime = 1.5f;
+
     fullscreen = false;
     difficulty = Difficulty::Normal;
 
@@ -173,6 +175,10 @@ float SettingManager::getSpriteMultiplier() const {
 
 float SettingManager::getCharacterSize() const {
     return characterSize;
+}
+
+float SettingManager::getEnemyAttackTime() const {
+    return enemyAttackTime;
 }
 
 float SettingManager::getGridOffsetX() const {

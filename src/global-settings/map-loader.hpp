@@ -22,19 +22,12 @@ struct ChamberConfig {
 
 class MapLoader {
 public:
-    static MapLoader& getInstance();
-
-    // Prevent copy/move
-    MapLoader(const MapLoader&) = delete;
-    MapLoader& operator=(const MapLoader&) = delete;
-
-    std::vector<std::vector<int>> loadChamberGrid(int level, int chamberIndex);
-    
-    ChamberConfig loadChamberConfig(const std::string& filepath);
+    static std::vector<std::vector<int>> loadChamberGrid(int level, int chamberIndex);
+    static ChamberConfig loadChamber(const std::string& filepath);
+    static std::vector<WaveConfig> loadWaves(const std::string& filepath);
 
 private:
-    MapLoader() = default;
-    ~MapLoader() = default;
+    MapLoader() = delete; // Static class
 };
 
 #endif // MAP_LOADER_HPP

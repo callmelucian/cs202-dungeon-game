@@ -40,6 +40,7 @@ public:
     
     bool getIsCompleted() const { return isCompleted; }
     const std::vector<sf::FloatRect>& getObstacles() const { return obstacles; }
+    std::vector<Enemy*> getEnemiesRaw() const;
 
 protected:
     Player& player;

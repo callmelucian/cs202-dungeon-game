@@ -257,11 +257,12 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
 
 Every source of incoming damage to Serin — regular enemy hits, boss attacks and
 telegraphed abilities, Burned ticks, and Ironshell's redirected Echo damage — is
-applied to the shared HP pool **only after** being run through the Defense
-mitigation formula in §2.5, using whichever form is active the instant the hit
+calculated exactly the same way. It is evaluated via the formula when the hit
 lands. There is no separate "raw damage" bookkeeping anywhere else in the system;
 every enemy stat block's `Damage` value in §10–§13 is always the *pre-mitigation*
-number.
+value.
+
+**Melee Contact Damage:** Regular enemies deal melee damage every 2.0s while in continuous contact with Serin. The first attack occurs exactly 2.0s after contact is initiated. This prevents instant chip-damage just by brushing past a slower enemy.
 
 ### 6.4 Mid-Chamber Bonus Momentum
 

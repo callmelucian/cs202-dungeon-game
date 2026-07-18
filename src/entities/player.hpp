@@ -25,6 +25,9 @@ public:
     void triggerSpecial(int abilityIndex, class Chamber& chamber);
     void attack(sf::Vector2f targetDir, class Chamber& chamber);
 
+    void setChamber(class Chamber* chamber);
+    void applySlowAura(std::vector<class Enemy*>& enemies);
+
     float getMomentum(FormType form) const;
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
@@ -41,6 +44,7 @@ public:
 
 private:
     PlayableCharacter* character;
+    class Chamber* currentChamber = nullptr;
     std::map<FormType, std::unique_ptr<PlayerForm>> forms;
     PlayerForm* activeForm;
     std::map<FormType, float> formMomentum;

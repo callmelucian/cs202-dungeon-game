@@ -6,6 +6,8 @@
 #include <map>
 #include <iostream>
 #include <string>
+#include "../chambers/chamber.hpp"
+#include "effects/slowed-effect.hpp"
 
 Player::Player(PlayableCharacter& character)
     : Character(character.getName()),
@@ -109,6 +111,30 @@ void Player::update(float deltaTime) {
 
     // 4. Character base update (updates status effects)
     Character::update(deltaTime);
+
+    // 5. Apply SlowAura if Ironshell
+    if (getActiveFormType() == FormType::IRONSHELL && currentChamber) {
+        auto enemies = currentChamber->getEnemiesRaw();
+        applySlowAura(enemies);
+    }
+}
+
+void Player::setChamber(Chamber* chamber) {
+    this->currentChamber = chamber;
+}
+
+void Player::applySlowAura(std::vector<Enemy*>& enemies) {
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float auraRadius = 4.0f * cellSize;
+    
+    for (auto* enemy : enemies) {
+        if (!enemy || !enemy->isAlive()) continue;
+        
+        float dist = Math::distance(getPosition(), enemy->getPosition());
+        if (dist <= auraRadius) {
+            enemy->applyStatusEffect(std::make_unique<SlowedEffect>(0.5f));
+        }
+    }
 }
 
 void Player::draw(sf::RenderWindow &window) const {

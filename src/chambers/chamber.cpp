@@ -10,7 +10,17 @@
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
 
-Chamber::Chamber(Player& player) : player(player), isCompleted(false) {}
+Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
+    player.setChamber(this);
+}
+
+std::vector<Enemy*> Chamber::getEnemiesRaw() const {
+    std::vector<Enemy*> raw;
+    for (const auto& e : enemies) {
+        raw.push_back(e.get());
+    }
+    return raw;
+}
 
 void Chamber::setGrid(const std::vector<std::vector<int>>& newGrid) {
     grid = newGrid;
@@ -51,12 +61,14 @@ void Chamber::checkCollisions(float dt) {
 }
 
 bool Chamber::isWalkable(sf::Vector2f position) const {
+    if (grid.empty() || grid[0].empty()) return false;
+    
     float size = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
     
-    int x = static_cast<int>((position.x - ox) / size);
-    int y = static_cast<int>((position.y - oy) / size);
+    int x = static_cast<int>(std::floor((position.x - ox) / size));
+    int y = static_cast<int>(std::floor((position.y - oy) / size));
     
     if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
         return grid[y][x] == 0; // 0 is floor
@@ -65,14 +77,16 @@ bool Chamber::isWalkable(sf::Vector2f position) const {
 }
 
 std::vector<sf::Vector2f> Chamber::findPath(sf::Vector2f start, sf::Vector2f target) const {
+    if (grid.empty() || grid[0].empty()) return {};
+
     float size = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
     
-    int startX = static_cast<int>((start.x - ox) / size);
-    int startY = static_cast<int>((start.y - oy) / size);
-    int targetX = static_cast<int>((target.x - ox) / size);
-    int targetY = static_cast<int>((target.y - oy) / size);
+    int startX = static_cast<int>(std::floor((start.x - ox) / size));
+    int startY = static_cast<int>(std::floor((start.y - oy) / size));
+    int targetX = static_cast<int>(std::floor((target.x - ox) / size));
+    int targetY = static_cast<int>(std::floor((target.y - oy) / size));
     
     if (startY < 0 || startY >= grid.size() || startX < 0 || startX >= grid[0].size()) return {};
     if (targetY < 0 || targetY >= grid.size() || targetX < 0 || targetX >= grid[0].size()) return {};
@@ -129,5 +143,10 @@ std::vector<sf::Vector2f> Chamber::findPath(sf::Vector2f start, sf::Vector2f tar
     
     std::reverse(path.begin(), path.end());
     if (!path.empty()) path.erase(path.begin());
+    
+    if (!path.empty()) {
+        path.back() = target;
+    }
+    
     return path;
 }

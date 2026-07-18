@@ -10,6 +10,7 @@
 #include "../../entities/playable-character.hpp"
 #include "../../utils/collision-solver.hpp"
 #include "../../chambers/chamber.hpp"
+#include "../../chambers/chamber-factory.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -24,7 +25,7 @@
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
 class GameplayState : public GameState {
 public:
-    GameplayState(StateManager& manager);
+    GameplayState(StateManager& manager, ChamberSelectionType type);
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;

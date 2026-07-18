@@ -5,7 +5,7 @@
 #include <iostream>
 
 Item::Item(sf::Vector2f startPos)
-    : drag(2.0f), magnetRadius(150.0f), collectionRadius(20.0f), lifetime(0.0f), collected(false) {
+    : drag(2.0f), magnetRadius(250.0f), collectionRadius(20.0f), lifetime(0.0f), collected(false) {
     
     setPosition(startPos);
     
@@ -37,7 +37,7 @@ void Item::update(float dt, const sf::Vector2f& playerPos) {
         collected = true;
     } else if (dist < magnetRadius) {
         // Accelerate towards player
-        float magnetStrength = 800.0f;
+        float magnetStrength = 2500.0f;
         sf::Vector2f dir = diff / dist;
         velocity += dir * magnetStrength * dt;
     }

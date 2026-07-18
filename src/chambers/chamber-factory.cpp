@@ -3,15 +3,28 @@
 #include "../global-settings/map-loader.hpp"
 #include <iostream>
 
-std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberIndex, Player& player) {
+#include "prevent-chamber.hpp"
+#include "protect-chamber.hpp"
+
+std::unique_ptr<Chamber> ChamberFactory::createChamber(ChamberSelectionType type, int level, int chamberIndex, Player& player) {
     std::cout << "Creating Chamber - Level: " << level << ", Index: " << chamberIndex << "\n";
-    // For testing, return a TestChamber instead
-    std::unique_ptr<Chamber> chamber = std::make_unique<TestChamber>(player);
-    std::cerr << "Got here 1" << std::endl;
-    std::vector<std::vector<int>> grid = MapLoader::getInstance().loadChamberGrid(level, chamberIndex);
-    std::cerr << "Got here 2" << std::endl;
+    
+    std::unique_ptr<Chamber> chamber;
+    
+    if (type == ChamberSelectionType::PREVENT) {
+        auto preventChamber = std::make_unique<PreventChamber>(player, EchoType::CLARITY_SHARD);
+        preventChamber->setExitPosition({500.f, 500.f}); // Arbitrary test coordinates
+        chamber = std::move(preventChamber);
+    } else if (type == ChamberSelectionType::PROTECT) {
+        auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", 10.0f);
+        protectChamber->setEchoPosition({300.f, 300.f}); // Arbitrary test coordinates
+        chamber = std::move(protectChamber);
+    } else {
+        chamber = std::make_unique<TestChamber>(player);
+    }
+    
+    std::vector<std::vector<int>> grid = MapLoader::loadChamberGrid(level, chamberIndex);
     chamber->setGrid(grid);
 
-    std::cerr << "Chamber created" << std::endl;
     return chamber;
 }
