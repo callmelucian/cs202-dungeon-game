@@ -6,6 +6,8 @@
 #include "../utils/math-utility.hpp"
 #include "animation/character-animator.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "../global-settings/asset-manager.hpp"
+#include "effects/slowed-effect.hpp"
 
 // ---- Character implementation ----
 Character::Character(const std::string& characterKey)
@@ -62,8 +64,39 @@ void Character::tickStatusEffects(float dt) {
 }
 
 void Character::draw(sf::RenderWindow &window) const {
-    if (animator) {
+    if (animator && animator->hasSprite()) {
         animator->draw(window, getPosition(), getBounds().size);
+    } else {
+        // Fallback shape
+        sf::RectangleShape rect(getBounds().size);
+        rect.setPosition(getBounds().position);
+        rect.setFillColor(sf::Color(200, 50, 50, 150));
+        window.draw(rect);
+    }
+
+    // Draw Status and HP above character
+    try {
+        const sf::Font& font = AssetManager::getInstance().getFont("regular");
+        
+        std::string infoStr = "HP: " + std::to_string(static_cast<int>(getHp()));
+        for (const auto& effect : statusEffects) {
+            // Check type for SlowedEffect
+            if (dynamic_cast<SlowedEffect*>(effect.get())) {
+                infoStr += " [Slowed]";
+            }
+        }
+        
+        sf::Text text(font, infoStr, 10);
+        text.setFillColor(sf::Color::White);
+        // text.setOutlineColor(sf::Color::Black);
+        // text.setOutlineThickness(1.0f);
+        
+        sf::FloatRect bounds = text.getLocalBounds();
+        text.setPosition({getPosition().x - bounds.size.x / 2.0f, getPosition().y - getBounds().size.y / 2.0f - 10.0f});
+        
+        window.draw(text);
+    } catch (...) {
+        // Font not loaded, skip drawing text
     }
 }
 

@@ -24,6 +24,7 @@ public:
     void draw(sf::RenderWindow& window, sf::Vector2f position, sf::Vector2f size = sf::Vector2f(0.f, 0.f)) const;
     void setCharacterKey(const std::string& newKey);
     bool isCurrentAnimationFinished() const;
+    bool hasSprite() const { return sprite != nullptr; }
 
 private:
     std::unique_ptr<sf::Sprite> sprite;

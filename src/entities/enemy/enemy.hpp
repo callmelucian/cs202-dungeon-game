@@ -16,6 +16,7 @@ protected:
     std::unique_ptr<EnemySteeringStrategy> steeringStrategy;
     float attackCooldown;
     int fragmentDropCount;
+    bool isFacingRight;
 
 public:
     Enemy(const std::string& characterKey, Player& player);

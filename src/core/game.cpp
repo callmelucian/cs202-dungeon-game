@@ -36,6 +36,11 @@ Game::Game() : running(false) {
     assets.loadTexture("wraithblade-final", resolvePath("assets/textures/wraithblade-final.png"));
     assets.loadTexture("voidcaster-final", resolvePath("assets/textures/voidcaster-final.png"));
     assets.loadTexture("iron-shell", resolvePath("assets/textures/iron-shell.png"));
+    
+    // Load enemy textures
+    assets.loadTexture("waterlogged-scribe", resolvePath("assets/textures/waterlogged-scribe.png"));
+    assets.loadTexture("shard-soldier", resolvePath("assets/textures/shard-soldier.png"));
+    assets.loadTexture("bone-sprinter", resolvePath("assets/textures/bone-sprinter.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();
@@ -45,9 +50,7 @@ Game::Game() : running(false) {
 
     // load animations
     AnimationManager &animations = AnimationManager::getInstance();
-    animations.loadAnimationSet("Serin_Wraithblade", resolvePath("assets/animations/serin.json"), "wraithblade-final");
-    animations.loadAnimationSet("Serin_Voidcaster", resolvePath("assets/animations/serin.json"), "voidcaster-final");
-    animations.loadAnimationSet("Serin_Ironshell", resolvePath("assets/animations/serin.json"), "iron-shell");
+    animations.loadAllAnimations(resolvePath("assets/animations/characters.json"));
 
     // setup render window
     renderWindow.create(

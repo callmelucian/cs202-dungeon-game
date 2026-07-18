@@ -18,9 +18,6 @@ ShardSoldier::ShardSoldier(Player& player)
     changeState(std::make_unique<IdleState>());
 }
 
-void ShardSoldier::draw(sf::RenderWindow& window) const {
-    // Wait for animation to be built
-}
 
 // Placeholder, will update later
 void ShardSoldier::onDeath() {

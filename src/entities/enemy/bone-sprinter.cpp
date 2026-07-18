@@ -23,9 +23,7 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
     changeState(std::make_unique<IdleState>());
 }
 
-void BoneSprinter::draw(sf::RenderWindow& window) const {
-    // Wait for animation to be built
-}
+
 
 // Placeholder, will update later
 void BoneSprinter::onDeath() {

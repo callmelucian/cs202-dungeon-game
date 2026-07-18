@@ -17,9 +17,7 @@ WaterloggedScribe::WaterloggedScribe(Player& player) : Enemy("waterlogged_scribe
     changeState(std::make_unique<IdleState>());
 }
 
-void WaterloggedScribe::draw(sf::RenderWindow& window) const {
-    // Wait for animation to be built
-}
+
 
 // PLaceholder, will update later
 void WaterloggedScribe::onDeath() {

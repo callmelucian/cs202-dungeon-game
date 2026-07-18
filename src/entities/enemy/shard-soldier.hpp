@@ -10,7 +10,6 @@ private:
 public:
     ShardSoldier(Player& player);
     
-    void draw(sf::RenderWindow& window) const override;
     void onDeath() override;
     void update(float deltaTime) override; 
     
