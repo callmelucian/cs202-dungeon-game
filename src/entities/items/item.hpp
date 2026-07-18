@@ -21,9 +21,13 @@ public:
 
     sf::FloatRect getBounds() const;
 
+    bool getIsCollected() const;
+    void markCollected();
+
 protected:
     sf::Vector2f position;
     sf::FloatRect bounds;
+    bool isCollected = false;
 };
 
 #endif // ITEM_HPP

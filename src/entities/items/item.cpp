@@ -15,3 +15,11 @@ void Item::setPosition(sf::Vector2f pos) {
 sf::FloatRect Item::getBounds() const {
     return bounds;
 }
+
+bool Item::getIsCollected() const {
+    return isCollected;
+}
+
+void Item::markCollected() {
+    isCollected = true;
+}
