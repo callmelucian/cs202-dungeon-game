@@ -86,7 +86,7 @@
   - [x] Implement `ShardSoldier` (HP 16, Dmg 6). Include a `selfHealActive` flag and `applySelfHeal(float dt)` method.
   - [x] Implement `BoneSprinter` (HP 14 carrier / HP 20 blocker, Speed 9.0 / 6.0). Include `isCarrier` flag for carrier/blocker variants.
   - [x] Add `BONE_SPRINTER` and `SHARD_WRAITH` to `EnemyType` enum in `enums.hpp`.
-  - [ ] Integrate enemy sprites from Dev A's sprite assets.
+  - [x] Integrate enemy sprites from Dev A's sprite assets.
 
 * **AI Agent Tasks**
   - [x] Timer-based status effect tick boilerplate.
@@ -115,11 +115,11 @@
   - [ ] Weekly Report.
 
 * **Developer B (Specials Decorators, Echo Subject/Observer & Items)**
-  - [ ] Implement `SpecialAbilityState` abstract base class (Decorator / State pattern) which delegates to `innerState` and holds a `StatModifier` and duration timer.
+  - [x] Implement `SpecialAbilityState` abstract base class, which delegates to `innerState` and holds a `StatModifier` and duration timer.
   - [ ] Implement the 6 concrete Special Ability Decorator states:
-    - Wraithblade: `WraithbladeRiftcrushState`, `WraithbladeCinderveilState`
-    - Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
-    - Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
+    - [x] Wraithblade: `WraithbladeRiftcrushState`, `WraithbladeCinderveilState`
+    - [ ] Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
+    - [ ] Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
   - [ ] Wire these states into `Player::triggerSpecial()`, which instantiates the decorator state and enters it in `PlayerCombatStateMachine`.
   - [ ] Implement `Item` abstract base class with `position`, `bounds`, `onCollect(Player&, Chamber&)` (per architecture.puml Economy package).
   - [ ] Implement `EchoFragment` inheriting from `Item`: physics position/velocity, `value`, `update()`, `draw()`, `onCollect()`.

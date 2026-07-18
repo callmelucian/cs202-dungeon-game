@@ -17,6 +17,7 @@ public:
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
     float modifyOutgoingDamage(float baseAmount) override;
+    void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
 };
 
 class WraithbladeCinderveilState : public SpecialAbilityState {
