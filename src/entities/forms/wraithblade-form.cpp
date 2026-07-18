@@ -57,13 +57,32 @@ float WraithbladeRiftcrushState::modifyOutgoingDamage(float baseAmount) {
     return baseAmount * 3.0f;
 }
 
+void WraithbladeRiftcrushState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
+    // TODO (Future): Change this to trigger the explosion from the ENEMY'S location instead of the Player
+    CircularHitbox bigBlast;
+    bigBlast.origin = player.getPosition();
+    bigBlast.radius = 180.0f; // 3 units * 60 pixels = 180
+    
+    chamber.processPlayerAttack(bigBlast);
+
+    // Consume the ability instantly so it only works for the "Next strike"
+    elapsedTime = duration; 
+}
 
 // ---- WraithbladeCinderveilState ----
 WraithbladeCinderveilState::WraithbladeCinderveilState(PlayerCombatState* inner)
     : SpecialAbilityState(inner, 10.0f) {}
 
 StatModifier WraithbladeCinderveilState::getStatModifier() const {
-    return StatModifier{};
+    StatModifier modifier;
+    
+    // TODO (Future): When the combat engine supports status effects, 
+    // update this state so that attacks apply the "Burned" status to enemies!
+    
+    // Placeholder buff for Milestone 2: Attack 50% faster while Cinderveil is active
+    modifier.attackRateMultiplier = 1.5f; 
+    
+    return modifier;
 }
 
 const std::string& WraithbladeCinderveilState::getVisualKey() {
