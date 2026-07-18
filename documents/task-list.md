@@ -116,10 +116,10 @@
 
 * **Developer B (Specials Decorators, Echo Subject/Observer & Items)**
   - [x] Implement `SpecialAbilityState` abstract base class, which delegates to `innerState` and holds a `StatModifier` and duration timer.
-  - [ ] Implement the 6 concrete Special Ability Decorator states:
+  - [x] Implement the 6 concrete Special Ability Decorator states:
     - [x] Wraithblade: `WraithbladeRiftcrushState`, `WraithbladeCinderveilState`
-    - [ ] Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
-    - [ ] Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
+    - [x] Voidcaster: `VoidcasterLanceState`, `VoidcasterDetonationFieldState`
+    - [x] Ironshell: `IronshellAegisPulseState`, `IronshellVeilOfThornsState`
   - [ ] Wire these states into `Player::triggerSpecial()`, which instantiates the decorator state and enters it in `PlayerCombatStateMachine`.
   - [ ] Implement `Item` abstract base class with `position`, `bounds`, `onCollect(Player&, Chamber&)` (per architecture.puml Economy package).
   - [ ] Implement `EchoFragment` inheriting from `Item`: physics position/velocity, `value`, `update()`, `draw()`, `onCollect()`.

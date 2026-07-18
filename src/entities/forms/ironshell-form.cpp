@@ -44,13 +44,29 @@ const std::string& IronshellAegisPulseState::getVisualKey() {
     return key;
 }
 
+void IronshellAegisPulseState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
+    CircleHitbox shockwave;
+    shockwave.center = player.getPosition();
+    shockwave.radius = 300.0f;
+    
+    // TODO (Future): Update this attack to apply "Paralyzed" and knock out 1 Echo Fragment from enemies!
+    chamber.processPlayerAttack(shockwave);
+
+    elapsedTime = duration;
+}
 
 // ---- IronshellVeilOfThornsState ----
-IronshellVeilOfThornsState::IronshellVeilOfThornsState(PlayerCombatState* inner)
-    : SpecialAbilityState(inner, 10.0f) {}
+IronshellVeilOfThornsState::IronshellVeilOfThornsState(PlayerCombatState* inner) : SpecialAbilityState(inner, 10.0f) {}
 
 StatModifier IronshellVeilOfThornsState::getStatModifier() const {
-    return StatModifier{};
+    StatModifier modifier;
+    
+    // TODO (Future): Make the Ironshell Aura apply "Paralyzed" and knock out Echo Fragments!
+    
+    // Placeholder buff: Gain +50 extra defense while active
+    modifier.defenseFlat = 50.0f; 
+    
+    return modifier;
 }
 
 const std::string& IronshellVeilOfThornsState::getVisualKey() {

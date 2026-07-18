@@ -16,6 +16,7 @@ public:
     IronshellAegisPulseState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
+    void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
 };
 
 class IronshellVeilOfThornsState : public SpecialAbilityState {

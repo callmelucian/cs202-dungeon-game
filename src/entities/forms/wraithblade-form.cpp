@@ -79,7 +79,7 @@ StatModifier WraithbladeCinderveilState::getStatModifier() const {
     // TODO (Future): When the combat engine supports status effects, 
     // update this state so that attacks apply the "Burned" status to enemies!
     
-    // Placeholder buff for Milestone 2: Attack 50% faster while Cinderveil is active
+    // Placeholder buff: Attack 50% faster while Cinderveil is active
     modifier.attackRateMultiplier = 1.5f; 
     
     return modifier;
