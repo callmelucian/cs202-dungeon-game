@@ -10,7 +10,7 @@ AnimationManager& AnimationManager::getInstance() {
     return instance;
 }
 
-bool AnimationManager::loadAnimationSet(const std::string &character, const std::string &filePath, const std::string& textureKeyOverride) {
+bool AnimationManager::loadAllAnimations(const std::string &filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Failed to open animation set file: " << filePath << std::endl;
@@ -25,13 +25,7 @@ bool AnimationManager::loadAnimationSet(const std::string &character, const std:
         return false;
     }
 
-    AnimationSet set;
-    if (!textureKeyOverride.empty()) {
-        set.textureKey = textureKeyOverride;
-    } else if (j.contains("textureKey")) {
-        set.textureKey = j["textureKey"].get<std::string>();
-    }
-
+    AnimationSet baseSet;
     if (j.contains("animations")) {
         for (auto& [key, animData] : j["animations"].items()) {
             bool looping = true;
@@ -78,11 +72,18 @@ bool AnimationManager::loadAnimationSet(const std::string &character, const std:
             }
 
             Animation animation(frames, looping);
-            set.addAnimation(key, animation);
+            baseSet.addAnimation(key, animation);
         }
     }
 
-    animationSets[character] = set;
+    if (j.contains("characters")) {
+        for (auto& [alias, textureKey] : j["characters"].items()) {
+            AnimationSet characterSet = baseSet;
+            characterSet.textureKey = textureKey.get<std::string>();
+            animationSets[alias] = characterSet;
+        }
+    }
+
     return true;
 }
 

@@ -10,7 +10,6 @@ private:
 public:
     BoneSprinter(Player& player, bool isCarrier = false);
     
-    void draw(sf::RenderWindow& window) const override;
     void onDeath() override;
 };
 

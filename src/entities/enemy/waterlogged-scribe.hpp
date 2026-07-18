@@ -7,7 +7,6 @@ class WaterloggedScribe : public Enemy {
 public:
     WaterloggedScribe(Player& player);
     
-    void draw(sf::RenderWindow& window) const override;
     void onDeath() override;
 };
 

@@ -17,7 +17,7 @@ public:
     virtual ~Character();
 
     virtual void update(float deltaTime) = 0;
-    virtual void draw(sf::RenderWindow &window) const = 0;
+    virtual void draw(sf::RenderWindow &window) const;
     
     virtual void takeDamage(float rawAmount);
     void applyStatusEffect(std::unique_ptr<StatusEffect> effect);

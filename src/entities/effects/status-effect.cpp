@@ -8,6 +8,7 @@ StatusEffect::StatusEffect (float duration, const StatModifier &statModifier) :
     duration(duration), timer(0.0f), statModifier(statModifier) {}
 
 bool StatusEffect::update(float dt, Character& character) {
+    if (duration < 0.0f) return true; // Permanent effect
     timer += dt;
     return timer < duration;
 }

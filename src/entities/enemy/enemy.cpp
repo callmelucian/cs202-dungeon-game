@@ -8,11 +8,25 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
       playerRef(player), 
       currentState(nullptr), 
       attackCooldown(0.0f),
-      fragmentDropCount(1) {
+      fragmentDropCount(1),
+      isFacingRight(true) {
 }
 
 void Enemy::update(float deltaTime) {
-    setPosition(getPosition() + getVelocity() * deltaTime);
+    sf::Vector2f vel = getVelocity();
+    setPosition(getPosition() + vel * deltaTime);
+    
+    if (vel.x < 0) isFacingRight = false;
+    else if (vel.x > 0) isFacingRight = true;
+    
+    std::string direction = isFacingRight ? "right" : "left";
+    if (vel.x != 0.f || vel.y != 0.f) {
+        notifyStateChanged("walk-facing-" + direction);
+    } else {
+        notifyStateChanged("idle-facing-" + direction);
+    }
+    
+    Character::update(deltaTime);
 }
 
 void Enemy::updateState(float dt, Chamber& chamber) {

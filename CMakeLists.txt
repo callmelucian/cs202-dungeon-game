@@ -87,6 +87,7 @@ add_executable(game
     src/chambers/chamber.cpp
     src/chambers/chamber-factory.cpp
     src/chambers/mid-chamber.cpp
+    src/chambers/test-chamber.cpp
 )
 
 # Link SFML and JSON libraries

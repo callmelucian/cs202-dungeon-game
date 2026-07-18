@@ -1,5 +1,10 @@
 #include "chamber.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "../entities/enemy/waterlogged-scribe.hpp"
+#include "../entities/enemy/shard-soldier.hpp"
+#include "../entities/enemy/bone-sprinter.hpp"
+#include "../entities/effects/slowed-effect.hpp"
+#include "../entities/player.hpp"
 
 Chamber::Chamber(Player& player) : player(player), isCompleted(false) {}
 
@@ -31,27 +36,4 @@ void Chamber::spawnEnemy(std::unique_ptr<Enemy> enemy) {
 
 void Chamber::checkCollisions() {
     // Basic collision checks can be added here
-}
-
-BaseChamber::BaseChamber(Player& player) : Chamber(player) {}
-
-void BaseChamber::update(float dt) {
-    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
-        it->timer -= dt;
-        if (it->timer <= 0) {
-            it = debugHitboxes.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void BaseChamber::draw(sf::RenderWindow& window) {
-    for (const auto& hb : debugHitboxes) {
-        CollisionSolver::drawDebug(window, hb.shape);
-    }
-}
-
-void BaseChamber::processPlayerAttack(const Hitbox& hitbox) {
-    debugHitboxes.push_back({hitbox, 0.2f});
 }

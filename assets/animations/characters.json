@@ -1,5 +1,4 @@
 {
-    "textureKey": "serin-final",
     "animations": {
         "cast-facing-up": {
             "looping": false,
@@ -2735,5 +2734,13 @@
                 }
             ]
         }
+    },
+    "characters": {
+        "Serin_Wraithblade": "wraithblade-final",
+        "Serin_Voidcaster": "voidcaster-final",
+        "Serin_Ironshell": "iron-shell",
+        "waterlogged_scribe": "waterlogged-scribe",
+        "shard_soldier": "shard-soldier",
+        "bone_sprinter": "bone-sprinter"
     }
 }

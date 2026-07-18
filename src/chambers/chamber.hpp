@@ -50,14 +50,6 @@ protected:
     void buildObstaclesFromGrid();
 };
 
-// Base concrete implementation for testing
-class BaseChamber : public Chamber {
-public:
-    BaseChamber(Player& player);
-    
-    void update(float dt) override;
-    void draw(sf::RenderWindow& window) override;
-    void processPlayerAttack(const Hitbox& hitbox) override;
-};
+
 
 #endif // CHAMBER_HPP
