@@ -10,8 +10,8 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
       attackCooldown(0.0f),
       fragmentDropCount(1),
       isFacingRight(true),
-      isRealCarrier(false) {
-}
+      isRealCarrier(false),
+      hitWall(false) {}
 
 void Enemy::update(float deltaTime) {
     sf::Vector2f vel = getVelocity();
@@ -59,6 +59,22 @@ bool Enemy::getIsRealCarrier() const {
 
 EnemySteeringStrategy* Enemy::getSteeringStrategy() const {
     return steeringStrategy.get();
+}
+
+void Enemy::addBonusFragments(int count) {
+    fragmentDropCount += count;
+}
+
+int Enemy::getFragmentDropCount() const {
+    return fragmentDropCount;
+}
+
+void Enemy::setHitWall(bool hit) {
+    hitWall = hit;
+}
+
+bool Enemy::getHitWall() const {
+    return hitWall;
 }
 
 Enemy::~Enemy() = default;

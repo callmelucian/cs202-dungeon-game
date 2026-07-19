@@ -33,6 +33,10 @@ public:
 
     virtual void processPlayerAttack(const Hitbox& hitbox) = 0;
 
+    void spawnFragments(sf::Vector2f position, int count);
+    void updateItems(float dt);
+    virtual void onFragmentCollected(float value) {}
+
     struct DebugHitbox {
         Hitbox shape;
         float timer;
@@ -57,7 +61,5 @@ protected:
     
     void buildObstaclesFromGrid();
 };
-
-
 
 #endif // CHAMBER_HPP

@@ -1,5 +1,6 @@
 #include "item.hpp"
 #include "../entities/player.hpp"
+#include "../chambers/chamber.hpp"
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -70,5 +71,6 @@ EchoFragment::EchoFragment(sf::Vector2f startPos, float value)
 
 void EchoFragment::onCollect(Player& player, Chamber& chamber) {
     std::cout << "Echo fragment collected! Value: " << value << std::endl;
+    chamber.onFragmentCollected(value);
     // In a full implementation, you would update player stats, economy, or momentum here.
 }

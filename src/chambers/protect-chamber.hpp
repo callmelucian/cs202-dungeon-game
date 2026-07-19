@@ -29,7 +29,7 @@ public:
     
     // Echo mechanics
     void onEchoHit(float rawDamage);
-    void onFragmentCollected(bool midCollection);
+    void onFragmentCollected(float value) override;
     bool checkIronshellRedirect();
     void applyWraithbladeKnockback(Enemy* enemy);
 

@@ -32,15 +32,8 @@ void ProtectChamber::update(float dt) {
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             (*it)->onDeath();
-            
-            // Handle fragment collection bonus
-            // Mid-collection: collection timer > 0 and not fully collected yet
-            bool midCollection = (collectionTimer > 0.0f && !isCollected);
-            
-            // Fragment drop logic from Enemy is already handled in Enemy::onDeath() but 
-            // for Protect Chamber specific rules:
-            onFragmentCollected(midCollection);
-
+            // Spawn the physical fragments at the enemy's location
+            spawnFragments((*it)->getPosition(), (*it)->getFragmentDropCount());
             it = enemies.erase(it);
         } else {
             (*it)->update(dt);
@@ -48,6 +41,9 @@ void ProtectChamber::update(float dt) {
             ++it;
         }
     }
+
+    // Update active fragments and handle player collection physics
+    updateItems(dt);
 
     // 2. Update Echo collection
     if (!isCollected) {
@@ -119,12 +115,18 @@ void ProtectChamber::onEchoHit(float rawDamage) {
     std::cout << "Echo hit! Power reduced to " << echo->getPower() << "%\n";
 }
 
-void ProtectChamber::onFragmentCollected(bool midCollection) {
-    if (isCollected) return; // Cap reached or finished
-    if (midCollection) {
-        echo->addPower(2.5f);
-    } else {
-        echo->addPower(5.0f);
+void ProtectChamber::onFragmentCollected(float value) {
+    if (isCollected) return; // Echo is already fully stabilized
+    
+    // Mid-collection is when the capture progress has started (timer > 0)
+    bool midCollection = (collectionTimer > 0.0f);
+    
+    // Formula: +5.0% pre-collection, +2.5% mid-collection per fragment unit
+    float powerGain = midCollection ? (value * 2.5f) : (value * 5.0f);
+    
+    if (echo) {
+        echo->addPower(powerGain);
+        std::cout << "ProtectChamber: Echo Power increased by " << powerGain << "%. New Power: " << echo->getPower() << "%\n";
     }
 }
 
@@ -148,5 +150,12 @@ void ProtectChamber::applyWraithbladeKnockback(Enemy* enemy) {
     // Move enemy safely
     if (isWalkable(targetPos)) {
         enemy->setPosition(targetPos);
+    } else {
+        // Collided with wall/obstacle! Grant +1 bonus fragment if not already awarded
+        if (enemy && !enemy->getHitWall()) {
+            enemy->addBonusFragments(1);
+            enemy->setHitWall(true);
+            std::cout << "Enemy knocked into wall! +1 Bonus Fragment queued.\n";
+        }
     }
 }

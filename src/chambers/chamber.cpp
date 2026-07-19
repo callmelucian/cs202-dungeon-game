@@ -150,3 +150,21 @@ std::vector<sf::Vector2f> Chamber::findPath(sf::Vector2f start, sf::Vector2f tar
     
     return path;
 }
+
+void Chamber::spawnFragments(sf::Vector2f position, int count) {
+    for (int i = 0; i < count; ++i) {
+        items.push_back(std::make_unique<EchoFragment>(position, 1.0f));
+    }
+    std::cout << "Chamber: Spawned " << count << " EchoFragments at (" << position.x << ", " << position.y << ")\n";
+}
+
+void Chamber::updateItems(float dt) {
+    sf::Vector2f playerPos = player.getPosition();
+    for (auto it = items.begin(); it != items.end();) {
+        (*it)->update(dt, playerPos);
+        if ((*it)->isCollected()) {
+            (*it)->onCollect(player, *this);
+            it = items.erase(it);
+        } else ++it;
+    }
+}

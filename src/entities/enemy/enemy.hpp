@@ -18,6 +18,7 @@ protected:
     int fragmentDropCount;
     bool isFacingRight;
     bool isRealCarrier;
+    bool hitWall;
 
 public:
     Enemy(const std::string& characterKey, Player& player);
@@ -32,6 +33,11 @@ public:
     EnemySteeringStrategy* getSteeringStrategy() const;
     
     virtual void onDeath() = 0;
+    void addBonusFragments(int count);
+    int getFragmentDropCount() const;
+
+    void setHitWall(bool hit);
+    bool getHitWall() const;
 
     Player& getPlayer() const;
     
