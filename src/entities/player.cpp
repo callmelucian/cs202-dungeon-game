@@ -56,6 +56,10 @@ void Player::handleInput(const sf::Event& event) {
             switchForm(FormType::VOIDCASTER);
         } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
             switchForm(FormType::IRONSHELL);
+        } else if (keyEvent->scancode == settings.getKeyBinding("Special1")) {
+            if (currentChamber) triggerSpecial(1, *currentChamber);
+        } else if (keyEvent->scancode == settings.getKeyBinding("Special2")) {
+            if (currentChamber) triggerSpecial(2, *currentChamber);
         }
     }
 }
