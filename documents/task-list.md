@@ -126,7 +126,7 @@
   - [x] Implement `EchoFragment` inheriting from `Item`: physics position/velocity, `value`, `update()`, `draw()`, `onCollect()`.
   - [x] Implement `Echo` abstract Subject class: `name`, `echoPower` (float, clamped 10–100), `observers : vector<EchoObserver*>`, `takeDamage(penalty)`, `addPower(amount)`, `getPower()`, `attach(observer)`, `notify()` (per architecture.puml).
   - [x] Implement concrete Echo subclasses: `ClarityShard`, `MarrowEcho`, `HollowBell`, `ResonanceCore`, `ObsidianKey` (per architecture.puml — each stores its specific collected/stolen effects).
-  - [ ] Implement `EchoObserver` interface with `onEchoPowerChanged(float power)`. Implement `GameplayState` as a concrete observer.
+  - [x] Implement `EchoObserver` interface with `onEchoPowerChanged(float power)`. Implement `GameplayState` as a concrete observer.
   - [ ] Implement fragment multiplier logic by active form: Wraithblade knockback-wall collision → +1 extra fragment; Voidcaster pierce-kill chain → +1 per additional enemy beyond the first killed in one shot; Ironshell kill while enemy is Slowed → fragment drop doubled.
   - [ ] Implement Prevent Chamber fragment bonus: carrier kill → 3 fragments instead of 1.
   - [ ] Create Level 1 chamber layout data files (JSON/CSV) for MapLoader.

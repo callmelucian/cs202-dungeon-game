@@ -2,6 +2,7 @@
 #include "pause-state.hpp"
 #include "game-over-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
+#include "../../chambers/protect-chamber.hpp"
 #include "../game.hpp"
 #include <cmath>
 
@@ -61,6 +62,7 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
     momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0")->setFixedHeight(30.f)->setMarginBottom(15.f);
     cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready")->setFixedHeight(30.f);
+    echoPowerText = hudBox->createChild<UI::Text>("regular", 24)->setString("")->setFixedHeight(30.f);
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
@@ -70,6 +72,15 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
     activeChamber = ChamberFactory::createChamber(type, 1, 1, *player);
+    // If it's a ProtectChamber, get the Echo and attach ourselves as an observer
+    if (auto* protectChamber = dynamic_cast<ProtectChamber*>(activeChamber.get())) {
+        if (auto* echo = protectChamber->getEcho()) {
+            echo->attach(this);
+            echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
+            echoPowerText->setMarginBottom(15.f); // Add spacing since it's active
+            cooldownText->setMarginBottom(15.f);  // Give cooldownText spacing too
+        }
+    }
 
     // Initialize camera View
     currentZoom = 0.5f;
@@ -226,4 +237,10 @@ void GameplayState::handleEvents(sf::Event& event) {
 
     // 2. Pass down to UI components
     GameState::handleEvents(event);
+}
+
+void GameplayState::onEchoPowerChanged(float power) {
+    if (echoPowerText) {
+        echoPowerText->setString("Echo Power: " + std::to_string((int)power) + "%");
+    }
 }

@@ -11,6 +11,7 @@
 #include "../../utils/collision-solver.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../chambers/chamber-factory.hpp"
+#include "../../economy/echo.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -22,13 +23,15 @@
 #include "../../ui/widgets/button.hpp"
 #include "../../ui/base/text.hpp"
 
+
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
-class GameplayState : public GameState {
+class GameplayState : public GameState, public EchoObserver {
 public:
     GameplayState(StateManager& manager, ChamberSelectionType type);
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;
+    void onEchoPowerChanged(float power) override;
 private:
     UI::Container* overlays;
     UI::Text* titleText;
@@ -41,6 +44,7 @@ private:
     UI::Text* hpText;
     UI::Text* momentumText;
     UI::Text* cooldownText;
+    UI::Text* echoPowerText;
 
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
