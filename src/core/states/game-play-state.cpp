@@ -72,14 +72,17 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
     activeChamber = ChamberFactory::createChamber(type, 1, 1, *player);
-    // If it's a ProtectChamber, get the Echo and attach ourselves as an observer
-    if (auto* protectChamber = dynamic_cast<ProtectChamber*>(activeChamber.get())) {
-        if (auto* echo = protectChamber->getEcho()) {
-            echo->attach(this);
-            echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
-            echoPowerText->setMarginBottom(15.f); // Add spacing since it's active
-            cooldownText->setMarginBottom(15.f);  // Give cooldownText spacing too
-        }
+    // Only Protect Chambers have a physical Echo artifact.
+    // If we are in one, safely cast the active chamber to access the Echo and register GameplayState as its observer.
+    auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
+    if (protect && protect->getEcho()) {
+        Echo* echo = protect->getEcho();
+        echo->attach(this); // Register GameplayState (this) to receive power level callbacks
+        
+        // Populate and format the HUD element for the active Echo power
+        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
+        echoPowerText->setMarginBottom(15.f);
+        cooldownText->setMarginBottom(15.f);
     }
 
     // Initialize camera View
