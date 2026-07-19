@@ -129,7 +129,7 @@
   - [x] Implement `EchoObserver` interface with `onEchoPowerChanged(float power)`. Implement `GameplayState` as a concrete observer.
   - [x] Implement fragment multiplier logic by active form: Wraithblade knockback-wall collision → +1 extra fragment; Voidcaster pierce-kill chain → +1 per additional enemy beyond the first killed in one shot; Ironshell kill while enemy is Slowed → fragment drop doubled.
   - [x] Implement Prevent Chamber fragment bonus: carrier kill → 3 fragments instead of 1.
-  - [ ] Create Level 1 chamber layout data files (JSON/CSV) for MapLoader.
+  - [x] Create Level 1 chamber layout data files (JSON/CSV) for MapLoader.
   - [ ] *Seminar:* Detailed content for `Facade` pattern (11 items) + LaTeX report.
 
 * **AI Agent Tasks**
