@@ -5,12 +5,13 @@ Echo::Echo(const std::string& name, float initialPower)
 
 void Echo::takeDamage(float penalty) {
     echoPower -= penalty;
-    if (echoPower < 0) echoPower = 0;
+    if (echoPower < 10.0f) echoPower = 10.0f;
     notify();
 }
 
 void Echo::addPower(float amount) {
     echoPower += amount;
+    if (echoPower > 100.0f) echoPower = 100.0f;
     notify();
 }
 
