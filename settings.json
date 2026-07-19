@@ -1,6 +1,6 @@
 {
     "audio": {
-        "musicVolume": 56.914894104003906,
+        "musicVolume": 0.0,
         "sfxVolume": 80.0
     },
     "gameplay": {
@@ -12,8 +12,6 @@
         "MoveLeft": 0,
         "MoveRight": 3,
         "MoveUp": 22,
-        "Special1": 16,
-        "Special2": 4,
         "SwitchForm1": 26,
         "SwitchForm2": 27,
         "SwitchForm3": 28
