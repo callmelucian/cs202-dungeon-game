@@ -37,6 +37,7 @@ void TestChamber::update(float dt) {
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             (*it)->onDeath();
+            spawnEnemyFragments((*it).get());
             it = enemies.erase(it);
         } else {
             (*it)->update(dt);
@@ -45,16 +46,7 @@ void TestChamber::update(float dt) {
         }
     }
     
-    // Update items and check collection
-    for (auto it = items.begin(); it != items.end(); ) {
-        (*it)->update(dt, player.getPosition());
-        if ((*it)->isCollected()) {
-            (*it)->onCollect(player, *this);
-            it = items.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    updateItems(dt);
     
     checkCollisions(dt);
     
@@ -86,11 +78,28 @@ void TestChamber::draw(sf::RenderWindow& window) {
 
 void TestChamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
+    int killsThisAttack = 0;
+    std::vector<Enemy*> killedEnemies;
+
     for (auto& enemy : enemies) {
         if (enemy->isAlive()) {
             if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
+                float hpBefore = enemy->getHp();
                 enemy->takeDamage(player.getEffectiveStats().damage);
+
+                if (hpBefore > 0 && enemy->getHp() <= 0) {
+                    killsThisAttack++;
+                    killedEnemies.push_back(enemy.get());
+                }
             }
+        }
+    }
+
+    // Voidcaster Multiplier: +1 fragment per additional enemy killed beyond the first in one shot
+    if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
+        for (size_t i = 1; i < killedEnemies.size(); ++i) {
+            killedEnemies[i]->addBonusFragments(1);
+            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
 }

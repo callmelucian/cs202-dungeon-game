@@ -192,3 +192,12 @@ Stats Character::getEffectiveStats() const {
 bool Character::isAlive() const {
     return baseStats.hp > 0.0f;
 }
+
+bool Character::isSlowed() const {
+    for (const auto& effect : statusEffects) {
+        if (dynamic_cast<SlowedEffect*>(effect.get())) {
+            return true;
+        }
+    }
+    return false;
+}

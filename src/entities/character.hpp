@@ -34,9 +34,9 @@ public:
     void setSpeed(float speed);
     bool canAct() const;
     virtual sf::FloatRect getBounds() const;
-
     virtual Stats getEffectiveStats() const;
     bool isAlive() const;
+    bool isSlowed() const;
 
 protected:
     void notifyStateChanged(std::string visualKey);

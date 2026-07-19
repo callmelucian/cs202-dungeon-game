@@ -168,3 +168,17 @@ void Chamber::updateItems(float dt) {
         } else ++it;
     }
 }
+
+void Chamber::spawnEnemyFragments(Enemy* enemy) {
+    if (!enemy) return;
+    
+    int count = enemy->getFragmentDropCount();
+    
+    // Ironshell Multiplier: Double drops if killed while Slowed
+    if (player.getActiveFormType() == FormType::IRONSHELL && enemy->isSlowed()) {
+        count *= 2;
+        std::cout << "Ironshell killed a Slowed enemy! Doubling fragments to: " << count << "\n";
+    }
+    
+    spawnFragments(enemy->getPosition(), count);
+}

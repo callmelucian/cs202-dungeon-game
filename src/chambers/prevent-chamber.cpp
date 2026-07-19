@@ -27,11 +27,7 @@ void PreventChamber::update(float dt) {
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             (*it)->onDeath();
-            
-            // Prevent chambers have no collection timer, full 5% per frag.
-            // (handled by standard item drop / echo power logic if we tied them together,
-            // but for prevent chamber, the echo is stolen or not. So no echo power modification here)
-
+            spawnEnemyFragments((*it).get());
             it = enemies.erase(it);
         } else {
             (*it)->update(dt);
@@ -50,6 +46,7 @@ void PreventChamber::update(float dt) {
         }
     }
 
+    updateItems(dt);
     checkCollisions(dt);
 }
 
@@ -79,16 +76,33 @@ void PreventChamber::draw(sf::RenderWindow& window) {
 
 void PreventChamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
+    int killsThisAttack = 0;
+    std::vector<Enemy*> killedEnemies;
+
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
         if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
+            float hpBefore = enemy->getHp();
             float damage = player.getEffectiveStats().damage;
-            bool lethal = (enemy->getHp() - damage) <= 0;
+            bool lethal = (hpBefore - damage) <= 0;
             
             enemy->takeDamage(damage);
             
+            if (hpBefore > 0 && enemy->getHp() <= 0) {
+                killsThisAttack++;
+                killedEnemies.push_back(enemy.get());
+            }
+            
             onCarrierHit(enemy.get(), lethal);
+        }
+    }
+
+    // Voidcaster Multiplier: +1 fragment per additional enemy killed beyond the first in one shot
+    if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
+        for (size_t i = 1; i < killedEnemies.size(); ++i) {
+            killedEnemies[i]->addBonusFragments(1);
+            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
 }

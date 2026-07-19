@@ -32,8 +32,7 @@ void ProtectChamber::update(float dt) {
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             (*it)->onDeath();
-            // Spawn the physical fragments at the enemy's location
-            spawnFragments((*it)->getPosition(), (*it)->getFragmentDropCount());
+            spawnEnemyFragments((*it).get());
             it = enemies.erase(it);
         } else {
             (*it)->update(dt);
@@ -95,16 +94,34 @@ void ProtectChamber::draw(sf::RenderWindow& window) {
 
 void ProtectChamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
+    int killsThisAttack = 0;
+    std::vector<Enemy*> killedEnemies;
+
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
         if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
-            enemy->takeDamage(player.getEffectiveStats().damage);
+            float hpBefore = enemy->getHp();
+            float damage = player.getEffectiveStats().damage;
+            enemy->takeDamage(damage);
+
+            if (hpBefore > 0 && enemy->getHp() <= 0) {
+                killsThisAttack++;
+                killedEnemies.push_back(enemy.get());
+            }
 
             // Apply Wraithblade knockback if active form is Wraithblade
             if (player.getActiveFormType() == FormType::WRAITHBLADE) {
                 applyWraithbladeKnockback(enemy.get());
             }
+        }
+    }
+
+    // Voidcaster Multiplier: +1 fragment per additional enemy killed beyond the first in one shot
+    if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
+        for (size_t i = 1; i < killedEnemies.size(); ++i) {
+            killedEnemies[i]->addBonusFragments(1);
+            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
 }

@@ -34,6 +34,7 @@ public:
     virtual void processPlayerAttack(const Hitbox& hitbox) = 0;
 
     void spawnFragments(sf::Vector2f position, int count);
+    void spawnEnemyFragments(Enemy* enemy);
     void updateItems(float dt);
     virtual void onFragmentCollected(float value) {}
 

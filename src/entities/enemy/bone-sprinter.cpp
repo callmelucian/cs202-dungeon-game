@@ -8,7 +8,8 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
         baseStats.hp = 14.0f;
         baseStats.maxHp = 14.0f;
         baseStats.speed = 6.0f;
-        fragmentDropCount = 1;
+        fragmentDropCount = 3;
+        setIsRealCarrier(true);
     } else {
         baseStats.hp = 20.0f;
         baseStats.maxHp = 20.0f;
@@ -22,8 +23,6 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
 
     changeState(std::make_unique<IdleState>());
 }
-
-
 
 // Placeholder, will update later
 void BoneSprinter::onDeath() {
