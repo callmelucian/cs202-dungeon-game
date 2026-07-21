@@ -216,6 +216,8 @@
 ## Week 7: Endings, Polish, Deliverables & QA (02.08 -> 08.08)
 
 * **Developer A (Endings, SettingState & Full Game Polish)**
+
+  - [ ] Refined enemy steering logic.
   - [ ] Implement ending checker in `GameplayState` after boss defeat: count `RunState.echoesStolen`. 0 stolen → `EndingType::ENDING_A_SHATTER`; 1–2 stolen → `EndingType::ENDING_B_RETREAT`; 3–5 stolen → `EndingType::ENDING_C_WARNING`. Push `GameOverState(ending)`.
   - [ ] Enhance `GameOverState` to display: narrative text and visual treatment for each ending (A: triumphant golden palette, B: somber blue-grey, C: dark red-black), Echo Power summary table (all 5 Echoes with final Power% and Collected/Stolen status), fade-in animation, "Return to Main Menu" button.
   - [ ] Fix `EndingType` enum duplication: remove from `game-over-state.hpp`, use only `enums.hpp` version.
