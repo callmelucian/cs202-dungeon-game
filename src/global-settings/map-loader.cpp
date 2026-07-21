@@ -17,17 +17,7 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
 
     std::vector<std::vector<int>> grid(rows, std::vector<int>(cols, 0));
     
-    // Top and Bottom walls
-    for (unsigned int x = 0; x < cols; ++x) {
-        grid[0][x] = 1;
-        grid[rows - 1][x] = 1;
-    }
-    
-    // Left and Right walls
-    for (unsigned int y = 0; y < rows; ++y) {
-        grid[y][0] = 1;
-        grid[y][cols - 1] = 1;
-    }
+    // Grid boundaries will be handled implicitly by Chamber physics.
     
     // Some inner obstacles (lakes must be at least 2x2 for proper rendering)
     auto addLake = [&](int startX, int startY, int w, int h) {
@@ -40,8 +30,29 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
         }
     };
     
-    addLake(10, 10, 2, 2);
-    addLake(15, 25, 4, 3);
+    // Add elevated block
+    auto addElevated = [&](int startX, int startY, int w, int h) {
+        int stairCenter = startX + w / 2;
+        for (int y = startY; y < startY + h; ++y) {
+            for (int x = startX; x < startX + w; ++x) {
+                if (y >= 0 && y < rows && x >= 0 && x < cols) {
+                    if (y == startY + h - 1) {
+                        // Bottom row of elevation block: 2 stair cells centered
+                        if (x == stairCenter || x == stairCenter - 1) {
+                            grid[y][x] = 5; // Stairs
+                        } else {
+                            grid[y][x] = 6; // Cliff face
+                        }
+                    } else {
+                        grid[y][x] = 4; // Elevated floor
+                    }
+                }
+            }
+        }
+    };
+    
+    addLake(2, 2, 2, 2);
+    addElevated(5, 5, 8, 5);
     
     return grid;
 }

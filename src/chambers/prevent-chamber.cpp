@@ -28,12 +28,11 @@ void PreventChamber::update(float dt) {
     for (auto& enemy : enemies) {
         // Check if carrier reached exit
         if (enemy->getIsRealCarrier()) {
-                if (Math::distance(enemy->getPosition(), exitPosition) <= 0.5f * cellSize) {
-                    std::cout << "Carrier reached the exit! Echo STOLEN.\n";
-                    Game::getInstance().getRunState().echoOutcomes[associatedEcho] = EchoOutcome::STOLEN;
-                    enemy->takeDamage(9999.0f); // Kill the carrier so it stops triggering
-                    failChamber();
-                }
+            if (Math::distance(enemy->getPosition(), exitPosition) <= 0.5f * cellSize) {
+                std::cout << "Carrier reached the exit! Echo STOLEN.\n";
+                Game::getInstance().getRunState().echoOutcomes[associatedEcho] = EchoOutcome::STOLEN;
+                enemy->takeDamage(9999.0f); // Kill the carrier so it stops triggering
+                failChamber();
             }
         }
     }
@@ -49,7 +48,7 @@ void PreventChamber::update(float dt) {
 void PreventChamber::drawBackground(sf::RenderWindow& window) {
     // Draw exit zone
     window.draw(exitShape);
-}
+    
     for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
         CollisionSolver::drawDebug(window, it->shape);
         it->timer -= 0.016f;

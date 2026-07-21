@@ -1,45 +1,36 @@
 #include "mid-chamber.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "../entities/player.hpp"
 #include <iostream>
 
 MidChamber::MidChamber(Player& player) : Chamber(player) {
-    // The grid will be loaded externally via ChamberFactory and MapLoader
+    // onEnter
+    player.setInMidChamber(true);
+}
+
+MidChamber::~MidChamber() {
+    // Failsafe in case state transitions destroy it before completeChamber finishes
+    if (player.getInMidChamber()) {
+        player.setInMidChamber(false);
+    }
+}
+
+void MidChamber::completeChamber() {
+    if (!isCompleted && !isFailed) {
+        player.setInMidChamber(false);
+        player.gainMomentum(15.0f, player.getActiveFormType());
+    }
+    Chamber::completeChamber();
 }
 
 void MidChamber::update(float dt) {
-    for (auto it = enemies.begin(); it != enemies.end(); ) {
-        if (!(*it)->isAlive()) {
-            (*it)->onDeath();
-            it = enemies.erase(it);
-        } else {
-            (*it)->update(dt);
-            (*it)->updateState(dt, *this);
-            ++it;
-        }
-    }
+    Chamber::update(dt);
     
-    checkCollisions(dt);
-    
-    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
-        it->timer -= dt;
-        if (it->timer <= 0) {
-            it = debugHitboxes.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void MidChamber::draw(sf::RenderWindow& window) {
-    // Draw grid tiles
-    window.draw(tileMap);
-
-    for (const auto& enemy : enemies) {
-        enemy->draw(window);
-    }
-
-    for (const auto& hb : debugHitboxes) {
-        CollisionSolver::drawDebug(window, hb.shape);
+    // For prototype, automatically complete if there's no custom exit logic,
+    // or we can wait for player to reach an exit point. Since there's no exit point
+    // defined, let's complete if enemies are empty (assuming a test or just instant).
+    if (enemies.empty()) {
+        completeChamber();
     }
 }
 

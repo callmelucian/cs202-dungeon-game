@@ -63,104 +63,134 @@
             "y": 96
         },
         {
-            "name": "lake-upper-left",
+            "name": "tile-upper-lower-left",
             "id": 10,
+            "x": 32,
+            "y": 128
+        },
+        {
+            "name": "tile-upper-lower-right",
+            "id": 11,
+            "x": 48,
+            "y": 128
+        },
+        {
+            "name": "tile-upper-left-right",
+            "id": 12,
+            "x": 116,
+            "y": 96
+        },
+        {
+            "name": "tile-lower-left-right",
+            "id": 13,
+            "x": 116,
+            "y": 112
+        },
+        {
+            "name": "tile-surrounded",
+            "id": 14,
+            "x": 68,
+            "y": 128
+        },
+        {
+            "name": "lake-upper-left",
+            "id": 15,
             "x": 236,
             "y": 32
         },
         {
             "name": "lake-upper",
-            "id": 11,
+            "id": 16,
             "x": 252,
             "y": 32
         },
         {
             "name": "lake-upper-right",
-            "id": 12,
+            "id": 17,
             "x": 268,
             "y": 32
         },
         {
             "name": "lake-left",
-            "id": 13,
+            "id": 18,
             "x": 236,
             "y": 48
         },
         {
             "name": "lake-center",
-            "id": 14,
+            "id": 19,
             "x": 252,
             "y": 48
         },
         {
             "name": "lake-right",
-            "id": 15,
+            "id": 20,
             "x": 268,
             "y": 48
         },
         {
             "name": "lake-lower-left",
-            "id": 16,
+            "id": 21,
             "x": 236,
             "y": 64
         },
         {
             "name": "lake-lower",
-            "id": 17,
+            "id": 22,
             "x": 252,
             "y": 64
         },
         {
             "name": "lake-lower-right",
-            "id": 18,
+            "id": 23,
             "x": 268,
             "y": 64
         },
         {
             "name": "stair",
-            "id": 19,
+            "id": 24,
             "x": 216,
             "y": 48
         },
         {
             "name": "chest",
-            "id": 20,
+            "id": 25,
             "x": 142,
             "y": 112
         },
         {
             "name": "cave-open",
-            "id": 21,
+            "id": 26,
             "x": 140,
             "y": 212
         },
         {
             "name": "cave-close",
-            "id": 22,
+            "id": 27,
             "x": 156,
             "y": 212
         },
         {
             "name": "cave-lock",
-            "id": 23,
+            "id": 28,
             "x": 172,
             "y": 212
         },
         {
             "name": "river-vertical",
-            "id": 24,
+            "id": 29,
             "x": 296,
             "y": 160
         },
         {
             "name": "waterfall-veritcal",
-            "id": 25,
+            "id": 30,
             "x": 296,
             "y": 176
         },
         {
             "name": "wall-front",
-            "id": 26,
+            "id": 31,
             "x": 88,
             "y": 208
         }

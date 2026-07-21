@@ -40,3 +40,5 @@ void TestChamber::update(float dt) {
         completeChamber();
     }
 }
+
+void TestChamber::onEnemyHit (Enemy* enemy, bool lethal) {}

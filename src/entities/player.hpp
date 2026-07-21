@@ -27,6 +27,9 @@ public:
 
     void setChamber(class Chamber* chamber);
     void applySlowAura(std::vector<class Enemy*>& enemies);
+    
+    void setInMidChamber(bool value);
+    bool getInMidChamber() const;
 
     float getMomentum(FormType form) const;
     void setSwitchCooldownEnabled(bool enabled);
@@ -54,6 +57,7 @@ private:
     bool isSwitchCooldownEnabled;
     bool isFacingRight;
     bool isAttacking;
+    bool inMidChamber = false;
     float special1Threshold = 50.0f;
 };
 

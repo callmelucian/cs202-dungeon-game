@@ -265,6 +265,15 @@ void Player::setSwitchCooldownEnabled(bool enabled) {
     isSwitchCooldownEnabled = enabled;
 }
 
+void Player::setInMidChamber(bool value) {
+    inMidChamber = value;
+    setSwitchCooldownEnabled(!value);
+}
+
+bool Player::getInMidChamber() const {
+    return inMidChamber;
+}
+
 float Player::getSwitchCooldownTimer() const {
     return switchCooldownTimer;
 }

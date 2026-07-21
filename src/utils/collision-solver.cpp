@@ -17,21 +17,21 @@ bool CollisionSolver::circleIntersect(const sf::Vector2f& center1, float radius1
     return distanceSq <= (radiusSum * radiusSum);
 }
 
-void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
+// Shared overlap lambda used by resolveX / resolveY.
+static bool checkOverlap(const sf::FloatRect& r1, const sf::FloatRect& r2) {
+    return r1.position.x < r2.position.x + r2.size.x &&
+           r1.position.x + r1.size.x > r2.position.x &&
+           r1.position.y < r2.position.y + r2.size.y &&
+           r1.position.y + r1.size.y > r2.position.y;
+}
+
+void CollisionSolver::resolveX(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
     sf::Vector2f vel = character.getVelocity();
     sf::Vector2f pos = character.getPosition();
 
-    auto checkOverlap = [](const sf::FloatRect& r1, const sf::FloatRect& r2) {
-        return r1.position.x < r2.position.x + r2.size.x &&
-               r1.position.x + r1.size.x > r2.position.x &&
-               r1.position.y < r2.position.y + r2.size.y &&
-               r1.position.y + r1.size.y > r2.position.y;
-    };
-
-    // 1. Move on X-axis and resolve
     pos.x += vel.x * deltaTime;
     character.setPosition(pos);
-    
+
     for (const auto& obs : obstacles) {
         sf::FloatRect bounds = character.getBounds();
         if (checkOverlap(bounds, obs)) {
@@ -45,10 +45,16 @@ void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::Fl
         }
     }
 
-    // 2. Move on Y-axis and resolve
+    character.setVelocity(vel);
+}
+
+void CollisionSolver::resolveY(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
+    sf::Vector2f vel = character.getVelocity();
+    sf::Vector2f pos = character.getPosition();
+
     pos.y += vel.y * deltaTime;
     character.setPosition(pos);
-    
+
     for (const auto& obs : obstacles) {
         sf::FloatRect bounds = character.getBounds();
         if (checkOverlap(bounds, obs)) {
@@ -63,6 +69,11 @@ void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::Fl
     }
 
     character.setVelocity(vel);
+}
+
+void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
+    resolveX(character, obstacles, deltaTime);
+    resolveY(character, obstacles, deltaTime);
 }
 
 // Helper to check intersection of two line segments: AB and CD

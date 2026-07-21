@@ -102,8 +102,12 @@ void GameplayState::update(float deltaTime) {
     // NOTE: CollisionSolver::resolveAABB applies velocity to position internally.
     // Do NOT manually integrate position (pos += vel * dt) in Character::update() 
     // or Player::update() to prevent double-movement bugs!
+    // We split into X and Y passes with an obstacle refresh between them so that
+    // if X-axis movement changes the character's elevation level (e.g. stepping
+    // onto stairs), the Y-axis pass uses the correct obstacle set.
     if (activeChamber) {
-        CollisionSolver::resolveAABB(*player, activeChamber->getObstacles(), deltaTime);
+        CollisionSolver::resolveX(*player, activeChamber->getObstaclesFor(player.get()), deltaTime);
+        CollisionSolver::resolveY(*player, activeChamber->getObstaclesFor(player.get()), deltaTime);
     } else {
         std::vector<sf::FloatRect> emptyObstacles;
         CollisionSolver::resolveAABB(*player, emptyObstacles, deltaTime);

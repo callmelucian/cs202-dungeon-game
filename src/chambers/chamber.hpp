@@ -47,7 +47,7 @@ public:
     };
     
     bool getIsCompleted() const;
-    const std::vector<sf::FloatRect>& getObstacles() const;
+    std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
     std::vector<Enemy*> getEnemiesRaw() const;
 
 protected:
@@ -57,7 +57,9 @@ protected:
     std::vector<DebugHitbox> debugHitboxes;
     
     std::vector<std::vector<int>> grid;
-    std::vector<sf::FloatRect> obstacles;
+    std::vector<sf::FloatRect> baseObstacles;
+    std::vector<sf::FloatRect> elevationObstacles;
+    std::vector<sf::FloatRect> inverseElevationObstacles;
     
     bool isCompleted;
     bool isFailed = false;

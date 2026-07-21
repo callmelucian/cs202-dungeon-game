@@ -150,9 +150,9 @@
 * **Developer A (Gauntlet, MidChamber & Level Progression)**
 
   - [x] Re-design the base `Chamber` class to following the Single Responsibility Principle.
-  - [ ] Implement `GauntletChamber`: wave tracker, 0s gap between waves (next wave begins the instant the last enemy of the prior wave dies — no delay), `waves : vector<vector<EnemyType>>`, `currentWaveIndex`, and `applyGauntletHeal(Player&)` granting +25% Max HP heal on chamber clear. This heal triggers at the end of Level 1 Ch.3, Level 2 Ch.3, and Level 3 Ch.3.
-  - [ ] Implement `MidChamber`: sets `Player::inMidChamber = true` on `onEnter()` (suspending the 4.0s switch cooldown entirely) and `false` on `onPlayerExit()`. On exit, grant the last-active form a flat +15 Momentum bonus (clamped to 100).
-  - [ ] Reimplement chamber grid logic (support more complicated objects like stairs, etc.).
+  - [x] Implement `GauntletChamber`: wave tracker, 0s gap between waves (next wave begins the instant the last enemy of the prior wave dies — no delay), `waves : vector<vector<EnemyType>>`, `currentWaveIndex`, and `applyGauntletHeal(Player&)` granting +25% Max HP heal on chamber clear. This heal triggers at the end of Level 1 Ch.3, Level 2 Ch.3, and Level 3 Ch.3.
+  - [x] Implement `MidChamber`: sets `Player::inMidChamber = true` on `onEnter()` (suspending the 4.0s switch cooldown entirely) and `false` on `onPlayerExit()`. On exit, grant the last-active form a flat +15 Momentum bonus (clamped to 100).
+  - [x] Reimplement chamber grid logic (support more complicated objects like stairs, etc.).
   - [ ] Implement level progression flow in `GameplayState: Level 1 -> Level 2 -> Level 3 -> Boss`. Wire chamber completion → next chamber transition with Mid-Chambers in between.
   - [ ] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
   - [ ] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.

@@ -48,6 +48,12 @@ public:
     // Integrates velocity per-axis then snaps the character flush to any wall it hits.
     static void resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime);
 
+    // Single-axis resolve helpers.  Call resolveX then resolveY with a fresh
+    // obstacle list between them when the obstacle set may change after X movement
+    // (e.g. elevation-level transitions).
+    static void resolveX(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime);
+    static void resolveY(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime);
+
     // Checks if a line segment intersects a rectangle and returns the closest intersection point
     static bool lineIntersectsRect(const sf::Vector2f& p1, const sf::Vector2f& p2, const sf::FloatRect& rect, sf::Vector2f& intersectionPoint);
 

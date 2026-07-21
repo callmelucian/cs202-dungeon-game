@@ -6,9 +6,12 @@
 class MidChamber : public Chamber {
 public:
     MidChamber(Player& player);
+    virtual ~MidChamber(); // handles onExit if destroyed
     
     void update(float dt) override;
-    void draw(sf::RenderWindow& window) override;
+    
+protected:
+    void completeChamber() override;
 };
 
 #endif // MID_CHAMBER_HPP
