@@ -2,6 +2,7 @@
 #include "../entities/player.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../utils/math-utility.hpp"
+#include "../utils/pathfinder.hpp"
 #include <iostream>
 
 ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime)
@@ -28,21 +29,7 @@ void ProtectChamber::setEchoPosition(sf::Vector2f pos) {
 }
 
 void ProtectChamber::update(float dt) {
-    // 1. Process dead enemies and remove them
-    for (auto it = enemies.begin(); it != enemies.end(); ) {
-        if (!(*it)->isAlive()) {
-            (*it)->onDeath();
-            spawnEnemyFragments((*it).get());
-            it = enemies.erase(it);
-        } else {
-            (*it)->update(dt);
-            (*it)->updateState(dt, *this);
-            ++it;
-        }
-    }
-
-    // Update active fragments and handle player collection physics
-    updateItems(dt);
+    Chamber::update(dt);
 
     // 2. Update Echo collection
     if (!isCollected) {
@@ -54,75 +41,23 @@ void ProtectChamber::update(float dt) {
             if (collectionTimer >= requiredCollectionTime) {
                 isCollected = true;
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
-                // Optionally apply clarity shard bonus or check intactness
+                completeChamber();
             }
         }
     }
-
-    // 3. Enemy attacks on Echo (handled externally by enemies if they target Echo)
-    // We would need to ensure enemies can target the Echo.
-
-    checkCollisions(dt);
 }
 
-void ProtectChamber::draw(sf::RenderWindow& window) {
-    window.draw(tileMap);
-    
+void ProtectChamber::drawBackground(sf::RenderWindow& window) {
     if (!isCollected) {
         window.draw(radiusShape);
         window.draw(echoShape);
     }
-
-    for (const auto& item : items) {
-        window.draw(*item);
-    }
-    for (const auto& enemy : enemies) {
-        enemy->draw(window);
-    }
-    
-    // Debug hitboxes if any
-    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
-        CollisionSolver::drawDebug(window, it->shape);
-        it->timer -= 0.016f; // approx
-        if (it->timer <= 0) {
-            it = debugHitboxes.erase(it);
-        } else {
-            ++it;
-        }
-    }
 }
 
-void ProtectChamber::processPlayerAttack(const Hitbox& hitbox) {
-    debugHitboxes.push_back({hitbox, 0.2f});
-    int killsThisAttack = 0;
-    std::vector<Enemy*> killedEnemies;
-
-    for (auto& enemy : enemies) {
-        if (!enemy->isAlive()) continue;
-
-        if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
-            float hpBefore = enemy->getHp();
-            float damage = player.getEffectiveStats().damage;
-            enemy->takeDamage(damage);
-
-            if (hpBefore > 0 && enemy->getHp() <= 0) {
-                killsThisAttack++;
-                killedEnemies.push_back(enemy.get());
-            }
-
-            // Apply Wraithblade knockback if active form is Wraithblade
-            if (player.getActiveFormType() == FormType::WRAITHBLADE) {
-                applyWraithbladeKnockback(enemy.get());
-            }
-        }
-    }
-
-    // Voidcaster Multiplier: +1 fragment per additional enemy killed beyond the first in one shot
-    if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
-        for (size_t i = 1; i < killedEnemies.size(); ++i) {
-            killedEnemies[i]->addBonusFragments(1);
-            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
-        }
+void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    // Apply Wraithblade knockback if active form is Wraithblade
+    if (player.getActiveFormType() == FormType::WRAITHBLADE) {
+        applyWraithbladeKnockback(enemy);
     }
 }
 
@@ -165,7 +100,7 @@ void ProtectChamber::applyWraithbladeKnockback(Enemy* enemy) {
     sf::Vector2f targetPos = enemy->getPosition() + dir * (4.0f * cellSize);
     
     // Move enemy safely
-    if (isWalkable(targetPos)) {
+    if (Pathfinder::isWalkable(targetPos, getGrid())) {
         enemy->setPosition(targetPos);
     } else {
         // Collided with wall/obstacle! Grant +1 bonus fragment if not already awarded

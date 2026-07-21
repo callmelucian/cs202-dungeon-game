@@ -18,8 +18,8 @@ public:
 
     virtual void update(float deltaTime) = 0;
     virtual void draw(sf::RenderWindow &window) const;
-    
     virtual void takeDamage(float rawAmount);
+    virtual void heal(float amount);
     void applyStatusEffect(std::unique_ptr<StatusEffect> effect);
 
     void addObserver(CharacterObserver* observer);

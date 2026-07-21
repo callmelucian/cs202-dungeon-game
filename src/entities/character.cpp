@@ -101,18 +101,23 @@ void Character::draw(sf::RenderWindow &window) const {
 }
 
 void Character::takeDamage(float rawAmount) {
-    float mitigated = calculateMitigatedDamage(rawAmount);
-    baseStats.hp -= mitigated;
-    if (baseStats.hp < 0.0f) {
-        baseStats.hp = 0.0f;
-    }
-
+    if (!isAlive()) return;
+    float finalDmg = calculateMitigatedDamage(rawAmount);
+    baseStats.hp -= finalDmg;
+    std::cout << "Character took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
+    
     for (auto observer : observers) {
-        observer->onDamaged(*this, mitigated);
+        observer->onDamaged(*this, finalDmg);
         if (!isAlive()) {
             observer->onDefeated(*this);
         }
     }
+}
+
+void Character::heal(float amount) {
+    if (!isAlive()) return;
+    baseStats.hp = std::min(baseStats.hp + amount, baseStats.maxHp);
+    std::cout << "Character healed " << amount << " HP. HP now: " << baseStats.hp << "\n";
 }
 
 float Character::calculateMitigatedDamage(float rawAmount) {

@@ -43,7 +43,3 @@ void MidChamber::draw(sf::RenderWindow& window) {
     }
 }
 
-void MidChamber::processPlayerAttack(const Hitbox& hitbox) {
-    debugHitboxes.push_back({hitbox, 0.2f});
-    // In the future, check hit against enemies
-}

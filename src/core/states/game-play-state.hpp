@@ -25,13 +25,15 @@
 
 
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
-class GameplayState : public GameState, public EchoObserver {
+class GameplayState : public GameState, public EchoObserver, public ChamberObserver {
 public:
     GameplayState(StateManager& manager, ChamberSelectionType type);
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;
     void onEchoPowerChanged(float power) override;
+    void onChamberCompleted() override;
+    void onChamberFailed() override;
 private:
     UI::Container* overlays;
     UI::Text* titleText;

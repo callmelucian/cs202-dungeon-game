@@ -14,6 +14,75 @@ Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
     player.setChamber(this);
 }
 
+void Chamber::update(float dt) {
+    for (auto it = enemies.begin(); it != enemies.end(); ) {
+        if (!(*it)->isAlive()) {
+            (*it)->onDeath();
+            if (dropsFragments) {
+                itemManager.spawnEnemyFragments((*it).get(), player);
+            }
+            it = enemies.erase(it);
+        } else {
+            (*it)->update(dt);
+            (*it)->updateState(dt, *this);
+            ++it;
+        }
+    }
+    
+    itemManager.update(dt, player, *this);
+    checkCollisions(dt);
+}
+
+void Chamber::draw(sf::RenderWindow& window) {
+    window.draw(tileMap);
+    
+    drawBackground(window);
+    
+    itemManager.draw(window);
+    for (const auto& enemy : enemies) {
+        enemy->draw(window);
+    }
+    
+    drawForeground(window);
+    
+    for (const auto& hb : debugHitboxes) {
+        CollisionSolver::drawDebug(window, hb.shape);
+    }
+    debugHitboxes.clear();
+}
+
+const std::vector<std::vector<int>>& Chamber::getGrid() const {
+    return grid;
+}
+
+const std::vector<sf::FloatRect>& Chamber::getObstacles() const {
+    return obstacles;
+}
+
+void Chamber::onFragmentCollected(float value) {
+    // Default implementation does nothing
+}
+
+void Chamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    // Default implementation does nothing
+}
+
+void Chamber::completeChamber() {
+    if (isCompleted || isFailed) return;
+    isCompleted = true;
+    if (observer) {
+        observer->onChamberCompleted();
+    }
+}
+
+void Chamber::failChamber() {
+    if (isCompleted || isFailed) return;
+    isFailed = true;
+    if (observer) {
+        observer->onChamberFailed();
+    }
+}
+
 std::vector<Enemy*> Chamber::getEnemiesRaw() const {
     std::vector<Enemy*> raw;
     for (const auto& e : enemies) {
@@ -60,125 +129,36 @@ void Chamber::checkCollisions(float dt) {
     }
 }
 
-bool Chamber::isWalkable(sf::Vector2f position) const {
-    if (grid.empty() || grid[0].empty()) return false;
-    
-    float size = SettingManager::getInstance().getCellSize();
-    float ox = SettingManager::getInstance().getGridOffsetX();
-    float oy = SettingManager::getInstance().getGridOffsetY();
-    
-    int x = static_cast<int>(std::floor((position.x - ox) / size));
-    int y = static_cast<int>(std::floor((position.y - oy) / size));
-    
-    if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
-        return grid[y][x] == 0; // 0 is floor
-    }
-    return false;
-}
 
-std::vector<sf::Vector2f> Chamber::findPath(sf::Vector2f start, sf::Vector2f target) const {
-    if (grid.empty() || grid[0].empty()) return {};
+void Chamber::processPlayerAttack(const Hitbox& hitbox) {
+    debugHitboxes.push_back({hitbox, 0.2f});
+    int killsThisAttack = 0;
+    std::vector<Enemy*> killedEnemies;
 
-    float size = SettingManager::getInstance().getCellSize();
-    float ox = SettingManager::getInstance().getGridOffsetX();
-    float oy = SettingManager::getInstance().getGridOffsetY();
-    
-    int startX = static_cast<int>(std::floor((start.x - ox) / size));
-    int startY = static_cast<int>(std::floor((start.y - oy) / size));
-    int targetX = static_cast<int>(std::floor((target.x - ox) / size));
-    int targetY = static_cast<int>(std::floor((target.y - oy) / size));
-    
-    if (startY < 0 || startY >= grid.size() || startX < 0 || startX >= grid[0].size()) return {};
-    if (targetY < 0 || targetY >= grid.size() || targetX < 0 || targetX >= grid[0].size()) return {};
-    if (grid[targetY][targetX] != 0) {
-        return {}; // target is unreachable/unwalkable
-    }
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
 
-    if (startX == targetX && startY == targetY) {
-        return {target};
-    }
-
-    std::vector<std::vector<bool>> visited(grid.size(), std::vector<bool>(grid[0].size(), false));
-    std::vector<std::vector<sf::Vector2i>> parent(grid.size(), std::vector<sf::Vector2i>(grid[0].size(), {-1, -1}));
-    
-    std::queue<sf::Vector2i> q;
-    q.push({startX, startY});
-    visited[startY][startX] = true;
-    
-    const int dx[] = {0, 1, 0, -1};
-    const int dy[] = {-1, 0, 1, 0};
-    
-    bool found = false;
-    while (!q.empty()) {
-        sf::Vector2i curr = q.front();
-        q.pop();
-        
-        if (curr.x == targetX && curr.y == targetY) {
-            found = true;
-            break;
-        }
-        
-        for (int i = 0; i < 4; ++i) {
-            int nx = curr.x + dx[i];
-            int ny = curr.y + dy[i];
+        if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
+            float hpBefore = enemy->getHp();
+            float damage = player.getEffectiveStats().damage;
+            bool lethal = (hpBefore - damage) <= 0;
             
-            if (ny >= 0 && ny < grid.size() && nx >= 0 && nx < grid[0].size()) {
-                if (!visited[ny][nx] && grid[ny][nx] == 0) {
-                    visited[ny][nx] = true;
-                    parent[ny][nx] = curr;
-                    q.push({nx, ny});
-                }
+            enemy->takeDamage(damage);
+            
+            if (hpBefore > 0 && enemy->getHp() <= 0) {
+                killsThisAttack++;
+                killedEnemies.push_back(enemy.get());
             }
+
+            onEnemyHit(enemy.get(), lethal);
         }
     }
-    
-    if (!found) return {};
-    
-    std::vector<sf::Vector2f> path;
-    sf::Vector2i curr = {targetX, targetY};
-    while (curr.x != -1 && curr.y != -1) {
-        path.push_back({ox + curr.x * size + size / 2.0f, oy + curr.y * size + size / 2.0f});
-        curr = parent[curr.y][curr.x];
-    }
-    
-    std::reverse(path.begin(), path.end());
-    if (!path.empty()) path.erase(path.begin());
-    
-    if (!path.empty()) {
-        path.back() = target;
-    }
-    
-    return path;
-}
 
-void Chamber::spawnFragments(sf::Vector2f position, int count) {
-    for (int i = 0; i < count; ++i) {
-        items.push_back(std::make_unique<EchoFragment>(position, 1.0f));
+    // Voidcaster Multiplier: +1 fragment per additional enemy killed beyond the first in one shot
+    if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
+        for (size_t i = 1; i < killedEnemies.size(); ++i) {
+            killedEnemies[i]->addBonusFragments(1);
+            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
+        }
     }
-    std::cout << "Chamber: Spawned " << count << " EchoFragments at (" << position.x << ", " << position.y << ")\n";
-}
-
-void Chamber::updateItems(float dt) {
-    sf::Vector2f playerPos = player.getPosition();
-    for (auto it = items.begin(); it != items.end();) {
-        (*it)->update(dt, playerPos);
-        if ((*it)->isCollected()) {
-            (*it)->onCollect(player, *this);
-            it = items.erase(it);
-        } else ++it;
-    }
-}
-
-void Chamber::spawnEnemyFragments(Enemy* enemy) {
-    if (!enemy) return;
-    
-    int count = enemy->getFragmentDropCount();
-    
-    // Ironshell Multiplier: Double drops if killed while Slowed
-    if (player.getActiveFormType() == FormType::IRONSHELL && enemy->isSlowed()) {
-        count *= 2;
-        std::cout << "Ironshell killed a Slowed enemy! Doubling fragments to: " << count << "\n";
-    }
-    
-    spawnFragments(enemy->getPosition(), count);
 }

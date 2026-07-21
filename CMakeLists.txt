@@ -86,10 +86,12 @@ add_executable(game
     ## items & economy
     src/economy/item.cpp
     src/economy/echo.cpp
+    src/economy/item-manager.cpp
 
     # utils
     src/utils/math-utility.cpp
     src/utils/collision-solver.cpp
+    src/utils/pathfinder.cpp
 
     # chambers
     src/chambers/chamber.cpp
@@ -98,6 +100,7 @@ add_executable(game
     src/chambers/mid-chamber.cpp
     src/chambers/protect-chamber.cpp
     src/chambers/prevent-chamber.cpp
+    src/chambers/gauntlet-chamber.cpp
     src/chambers/tile-map-generator.cpp
 )
 

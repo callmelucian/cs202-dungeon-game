@@ -22,8 +22,8 @@ public:
     virtual ~ProtectChamber() = default;
 
     void update(float dt) override;
-    void draw(sf::RenderWindow& window) override;
-    void processPlayerAttack(const Hitbox& hitbox) override;
+    void drawBackground(sf::RenderWindow& window) override;
+    void onEnemyHit(Enemy* enemy, bool lethal) override;
 
     void setEchoPosition(sf::Vector2f pos);
     

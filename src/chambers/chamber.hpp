@@ -9,57 +9,68 @@
 #include "tile-map-generator.hpp"
 
 #include "../entities/enemy/enemy.hpp"
-#include "../economy/item.hpp"
+#include "../economy/item-manager.hpp"
 
 // Forward declarations for missing components
 class Player;
+
+class ChamberObserver {
+public:
+    virtual ~ChamberObserver() = default;
+    virtual void onChamberCompleted() = 0;
+    virtual void onChamberFailed() = 0;
+};
 
 class Chamber {
 public:
     Chamber(Player& player);
     virtual ~Chamber() = default;
 
-    virtual void update(float dt) = 0;
-    virtual void draw(sf::RenderWindow& window) = 0;
+    void setObserver(ChamberObserver* obs) { observer = obs; }
+
+    virtual void update(float dt);
+    virtual void draw(sf::RenderWindow& window);
     
-    void setGrid(const std::vector<std::vector<int>>& newGrid);
+    virtual void processPlayerAttack(const Hitbox& hitbox);
+    virtual void onFragmentCollected(float value);
+    virtual void onEnemyHit(Enemy* enemy, bool lethal);
+
+    void setGrid (const std::vector<std::vector<int>>& newGrid);
+    const std::vector<std::vector<int>>& getGrid() const;
     
     void spawnEnemy(std::unique_ptr<Enemy> enemy);
     void checkCollisions(float dt);
     
-    // Pathfinding & collision
-    bool isWalkable(sf::Vector2f position) const;
-    std::vector<sf::Vector2f> findPath(sf::Vector2f start, sf::Vector2f target) const;
-
-    virtual void processPlayerAttack(const Hitbox& hitbox) = 0;
-
-    void spawnFragments(sf::Vector2f position, int count);
-    void spawnEnemyFragments(Enemy* enemy);
-    void updateItems(float dt);
-    virtual void onFragmentCollected(float value) {}
-
     struct DebugHitbox {
         Hitbox shape;
         float timer;
     };
     
-    bool getIsCompleted() const { return isCompleted; }
-    const std::vector<sf::FloatRect>& getObstacles() const { return obstacles; }
+    bool getIsCompleted() const;
+    const std::vector<sf::FloatRect>& getObstacles() const;
     std::vector<Enemy*> getEnemiesRaw() const;
 
 protected:
     Player& player;
     std::vector<std::unique_ptr<Enemy>> enemies;
-    std::vector<std::unique_ptr<Item>> items;
+    ItemManager itemManager;
     std::vector<DebugHitbox> debugHitboxes;
     
     std::vector<std::vector<int>> grid;
     std::vector<sf::FloatRect> obstacles;
     
     bool isCompleted;
+    bool isFailed = false;
+    bool dropsFragments = true;
+    ChamberObserver* observer = nullptr;
     
+    virtual void completeChamber();
+    virtual void failChamber();
+
+    virtual void drawBackground(sf::RenderWindow& window) {}
+    virtual void drawForeground(sf::RenderWindow& window) {}
+
     RenderableTileMap tileMap;
-    
     void buildObstaclesFromGrid();
 };
 

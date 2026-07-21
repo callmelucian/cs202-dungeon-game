@@ -3,6 +3,7 @@
 #include "game-over-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
+#include "choose-chamber-state.hpp"
 #include "../game.hpp"
 #include <cmath>
 
@@ -72,6 +73,9 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
     activeChamber = ChamberFactory::createChamber(type, 1, 1, *player);
+    if (activeChamber) {
+        activeChamber->setObserver(this);
+    }
     // Only Protect Chambers have a physical Echo artifact.
     // If we are in one, safely cast the active chamber to access the Echo and register GameplayState as its observer.
     auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
@@ -246,4 +250,14 @@ void GameplayState::onEchoPowerChanged(float power) {
     if (echoPowerText) {
         echoPowerText->setString("Echo Power: " + std::to_string((int)power) + "%");
     }
+}
+
+void GameplayState::onChamberCompleted() {
+    std::cout << "GameplayState: Chamber Completed! Transitioning to ChooseChamberState...\n";
+    stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
+}
+
+void GameplayState::onChamberFailed() {
+    std::cout << "GameplayState: Chamber Failed! Transitioning to GameOverState...\n";
+    stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
 }
