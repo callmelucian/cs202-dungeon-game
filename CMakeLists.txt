@@ -83,6 +83,7 @@ add_executable(game
     src/entities/enemy/shard-soldier.cpp
     src/entities/enemy/bone-sprinter.cpp
     src/entities/enemy/siege-wraith.cpp
+    src/entities/enemy/choir-husk.cpp
 
     ## items & economy
     src/economy/item.cpp
