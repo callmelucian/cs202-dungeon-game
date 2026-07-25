@@ -82,6 +82,7 @@ add_executable(game
     src/entities/enemy/waterlogged-scribe.cpp
     src/entities/enemy/shard-soldier.cpp
     src/entities/enemy/bone-sprinter.cpp
+    src/entities/enemy/siege-wraith.cpp
 
     ## items & economy
     src/economy/item.cpp
