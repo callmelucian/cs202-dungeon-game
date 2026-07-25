@@ -7,7 +7,7 @@ class WaterloggedScribe : public Enemy {
 public:
     WaterloggedScribe(Player& player);
     
-    void onDeath() override;
+    void onDeath(Chamber* chamber = nullptr) override;
 };
 
 #endif // WATERLOGGED_SCRIBE_HPP

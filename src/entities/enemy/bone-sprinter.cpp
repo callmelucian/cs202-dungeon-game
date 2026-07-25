@@ -25,7 +25,7 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
 }
 
 // Placeholder, will update later
-void BoneSprinter::onDeath() {
+void BoneSprinter::onDeath(Chamber* chamber) {
     if (isCarrier) {
         std::cout << "BoneSprinter died and dropped " << fragmentDropCount << " Fragment(s)!\n";
     } else {

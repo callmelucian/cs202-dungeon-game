@@ -20,6 +20,6 @@ WaterloggedScribe::WaterloggedScribe(Player& player) : Enemy("waterlogged_scribe
 
 
 // PLaceholder, will update later
-void WaterloggedScribe::onDeath() {
+void WaterloggedScribe::onDeath(Chamber* chamber) {
     std::cout << "WaterloggedScribe died and dropped " << fragmentDropCount << " Fragment(s)!\n";
 }

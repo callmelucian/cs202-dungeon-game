@@ -20,7 +20,7 @@ ShardSoldier::ShardSoldier(Player& player)
 
 
 // Placeholder, will update later
-void ShardSoldier::onDeath() {
+void ShardSoldier::onDeath(Chamber* chamber) {
     std::cout << "ShardSoldier died and dropped " << fragmentDropCount << " Fragment(s)!\n";
 }
 

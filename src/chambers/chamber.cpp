@@ -17,7 +17,7 @@ Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
 void Chamber::update(float dt) {
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
-            (*it)->onDeath();
+            (*it)->onDeath(this);
             if (dropsFragments) {
                 itemManager.spawnEnemyFragments((*it).get(), player);
             }

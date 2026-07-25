@@ -10,7 +10,7 @@ private:
 public:
     ShardSoldier(Player& player);
     
-    void onDeath() override;
+    void onDeath(Chamber* chamber = nullptr) override;
     void update(float deltaTime) override; 
     
     void applySelfHeal(float dt);

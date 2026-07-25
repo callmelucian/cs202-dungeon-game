@@ -32,7 +32,7 @@ public:
     void setSteeringStrategy(std::unique_ptr<EnemySteeringStrategy> strategy);
     EnemySteeringStrategy* getSteeringStrategy() const;
     
-    virtual void onDeath() = 0;
+    virtual void onDeath(Chamber* chamber = nullptr) = 0;
     void addBonusFragments(int count);
     int getFragmentDropCount() const;
 

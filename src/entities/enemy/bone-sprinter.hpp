@@ -10,7 +10,7 @@ private:
 public:
     BoneSprinter(Player& player, bool isCarrier = false);
     
-    void onDeath() override;
+    void onDeath(Chamber* chamber = nullptr) override;
 };
 
 #endif // BONE_SPRINTER_HPP
