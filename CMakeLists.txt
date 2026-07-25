@@ -85,6 +85,7 @@ add_executable(game
     src/entities/enemy/siege-wraith.cpp
     src/entities/enemy/choir-husk.cpp
     src/entities/enemy/resonant-cantor.cpp
+    src/entities/enemy/hushed-stalker.cpp
 
     ## items & economy
     src/economy/item.cpp
