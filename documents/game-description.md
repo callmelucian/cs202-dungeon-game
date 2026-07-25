@@ -96,7 +96,7 @@ final_damage     = max( 1, round(mitigated_damage) )
   (actual) HP lost, since that is what the HP pool actually recorded.
 - Defense is a flat, independent stat per form, exactly like Speed, Base Damage, or Attack Rate, and simply takes on the newly-active form's value the instant a switch completes (subject to the normal 4.0s switch cooldown before the *next* switch, per §2.2).
 
-**Worked example:** A Sarcophagus Warden (Damage 10/hit, §11.4) hits Serin —
+**Worked example:** A Siege Wraith (Damage 10/hit, §11.4) hits Serin —
 - As Wraithblade (Defense 15): `10 × 100/115 = 8.70` → **9 damage**.
 - As Voidcaster (Defense 5): `10 × 100/105 = 9.52` → **10 damage**.
 - As Ironshell (Defense 35): `10 × 100/135 = 7.41` → **7 damage**.
@@ -594,7 +594,7 @@ abandoned outer wards and the fully-awake inner sanctum.
 #### 11.3.3 Chamber 3 — The Hunger Pit (Gauntlet)
 
 - **5 waves, 4× Void Shunter each = 20 total** — HP 25 each, Damage 11/hit
-  (charge attack only; Void Shunters have no ranged attack), Speed 4.0 units/s
+  (charge attack only; Void Shunters have no ranged attack), Speed 6.0 units/s
   when charging.
 - **Spawn pattern:** each wave spawns progressively closer to Serin's starting
   position — Wave 1 spawns at the arena edge (10 units out), Wave 5 spawns at
@@ -603,9 +603,7 @@ abandoned outer wards and the fully-awake inner sanctum.
   5 units.
 - **Knockback interaction:** Wraithblade's standard knockback (4 units, per
   §7.1) and Riftcrush's enhanced knockback can push Void Shunters into the pit
-  for an instant kill; conversely, a Void Shunter's charge attack that connects
-  with Serin **while she is within 2 units of the pit edge** pushes Serin back
-  3 units, which can carry her into the pit if she has no room to be pushed.
+  for an instant kill.
 - **Obsidian Key flicker modifier (if stolen, §10.2):** pit-edge visual
   telegraphing (the warning glow/outline at the pit's boundary) is reduced in
   opacity by 60% for this chamber; the actual physical boundary is unchanged.
@@ -622,11 +620,9 @@ mechanically (Echo Power can still be raised on already-collected Echoes is
 one-time **+20% Max HP** buff for the Final Chamber only, on top of carried-
 over HP per §6.1).
 
-- **Enemies:** 6× Sarcophagus Warden — HP 28 each, Damage 10/hit, Speed 3.0
-  units/s, periodically (every 6s) one Warden enters a brief **Guard Stance**
-  (immune to knockback, +50% damage resistance for 2s) — Voidcaster pierce
-  shots ignore Guard Stance's damage resistance, rewarding ranged play in this
-  specific window.
+- **Enemies:** 4× Void Shunter (HP 25, Damage 11/hit charging, Speed 6.0 charging)
+  and 2× Choir Husk (HP 20, Damage 7/hit, Speed 4.0 units/s). Voidcaster pierce
+  shots are highly effective for managing the charging Shunters at range.
 - **Collection time:** **10 seconds** base (subject to the standing Clarity
   Shard reduction from §8.1, same as all Protect chambers).
 - **Reward:** successful collection grants the +20% Max HP buff described

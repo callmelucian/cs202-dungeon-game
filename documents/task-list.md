@@ -165,8 +165,7 @@
   - [x] Implement `ResonantCantor` (HP 50, Dmg 9, does not move). Every 5 seconds emits a pulse applying `SlowedEffect` to Serin if within 6 units. Slow refreshes on re-application rather than stacking in magnitude.
   - [x] Implement `HushedStalker` (HP 22, Dmg 9). Invisible until 0.4s attack wind-up telegraph. `onSlowedApplied()` sets `visible = true` for the Slowed effect's duration. Kills while Slowed drop 2 fragments and do not trigger the +1-spawn noise penalty for that specific kill. The noise mechanic (`+1 spawn per Serin offensive action`, hard cap +12 total) is tracked in `ProtectChamber` (Level 3, Chamber 1) and fed to `EnemyFactory`.
   - [x] Implement `MirrorBearer` (HP 18 carrier / 24 guard, Speed 6.5). 1 real carrier, 2 decoys (randomised per attempt). Real carrier: `isRealCarrier()` returns true, staggers visibly for 0.5s on any non-lethal hit, drops 3 fragments on death. Decoy: no knockback reaction, no stagger, `isRealCarrier()` returns false, 0 fragments, shatters into smoke on death.
-  - [ ] Implement `VoidShunter` (HP 25, Dmg 11 charge-only, Speed 6.0 when charging). Wraithblade knockback (4 units) and Riftcrush can push Shunters into the Hunger Pit void (instant kill). A Shunter's charge that connects while Serin is within 2 units of the pit edge pushes her 3 units — check `CollisionSolver` for pit boundary.
-  - [ ] Implement `SarcophagusWarden` (HP 28, Dmg 10, Speed 4.5). Every 6s one Warden enters Guard Stance for 2s: immune to knockback, +50% damage resistance. Voidcaster pierce shots bypass the resistance.
+  - [x] Implement `VoidShunter` (HP 25, Dmg 11 charge-only, Speed 6.0 when charging).
   - [ ] LaTeX report for `Strategy` pattern.
 
 * **AI Agent Tasks**

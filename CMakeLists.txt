@@ -87,6 +87,7 @@ add_executable(game
     src/entities/enemy/resonant-cantor.cpp
     src/entities/enemy/hushed-stalker.cpp
     src/entities/enemy/mirror-bearer.cpp
+    src/entities/enemy/void-shunter.cpp
 
     ## items & economy
     src/economy/item.cpp

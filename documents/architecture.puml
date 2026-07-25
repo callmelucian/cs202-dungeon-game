@@ -529,7 +529,6 @@ package "Entities" {
         - isReal : bool
     }
     class VoidShunter extends Enemy
-    class SarcophagusWarden extends Enemy
     class ShardWraith extends Enemy
     class BossMalachar extends Enemy {
         - currentPhase : int
