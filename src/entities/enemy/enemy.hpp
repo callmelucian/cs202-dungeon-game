@@ -43,6 +43,8 @@ public:
     
     void setIsRealCarrier(bool real);
     bool getIsRealCarrier() const;
+    
+    virtual bool canBeKnockedBack() const { return true; }
 };
 
 #endif // ENEMY_HPP

@@ -57,7 +57,8 @@ void ProtectChamber::drawBackground(sf::RenderWindow& window) {
 void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
     // Apply Wraithblade knockback if active form is Wraithblade
     if (player.getActiveFormType() == FormType::WRAITHBLADE) {
-        applyWraithbladeKnockback(enemy);
+        if (enemy->canBeKnockedBack())
+            applyWraithbladeKnockback(enemy);
     }
 }
 
