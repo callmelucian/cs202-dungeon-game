@@ -21,10 +21,10 @@
 // GameOverState: Represents the state when the game ends, displaying the corresponding EndingType (A, B, or C).
 class GameOverState : public GameState {
 public:
-    GameOverState(StateManager& manager, EndingType endingType);
+    GameOverState(StateManager& manager, std::optional<EndingType> endingType = std::nullopt);
 
 private:
-    EndingType endingType;
+    std::optional<EndingType> endingType;
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
     UI::Text* endingText;

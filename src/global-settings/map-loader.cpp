@@ -73,6 +73,16 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
         config.width = j.value("width", 20);
         config.height = j.value("height", 20);
 
+        if (j.contains("playerSpawn")) {
+            if (j["playerSpawn"].is_object()) {
+                config.playerSpawnX = j["playerSpawn"].value("x", -1.0f);
+                config.playerSpawnY = j["playerSpawn"].value("y", -1.0f);
+            } else if (j["playerSpawn"].is_array() && j["playerSpawn"].size() >= 2) {
+                config.playerSpawnX = j["playerSpawn"][0].get<float>();
+                config.playerSpawnY = j["playerSpawn"][1].get<float>();
+            }
+        }
+
         if (j.contains("grid") && j["grid"].is_array()) {
             for (const auto& row : j["grid"]) {
                 std::vector<int> rowVec;
@@ -115,4 +125,49 @@ std::vector<WaveConfig> MapLoader::loadWaves(const std::string& filepath) {
     }
 
     return waves;
+}
+
+CampaignConfig MapLoader::loadCampaign(const std::string& filepath) {
+    CampaignConfig config;
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open campaign config file: " << filepath << std::endl;
+        return config;
+    }
+
+    try {
+        json j;
+        file >> j;
+
+        if (j.contains("levels") && j["levels"].is_array()) {
+            for (const auto& levelObj : j["levels"]) {
+                CampaignLevelConfig lvl;
+                lvl.levelIndex = levelObj.value("levelIndex", 1);
+                lvl.name = levelObj.value("name", "Unknown Level");
+                if (levelObj.contains("chambers") && levelObj["chambers"].is_array()) {
+                    for (const auto& chamberObj : levelObj["chambers"]) {
+                        lvl.chambers.push_back(chamberObj.value("file", ""));
+                    }
+                }
+                config.levels.push_back(lvl);
+            }
+        }
+    } catch (const json::exception& e) {
+        std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
+    }
+
+    return config;
+}
+
+std::string MapLoader::getChamberFilepath(int level, int chamberIndex) {
+    CampaignConfig campaign = loadCampaign("maps/campaign.json");
+    for (const auto& lvl : campaign.levels) {
+        if (lvl.levelIndex == level) {
+            // chamberIndex is 1-based
+            if (chamberIndex >= 1 && chamberIndex <= static_cast<int>(lvl.chambers.size())) {
+                return lvl.chambers[chamberIndex - 1];
+            }
+        }
+    }
+    return "";
 }

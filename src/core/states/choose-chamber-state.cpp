@@ -29,11 +29,19 @@ ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manage
     buttonBox->setChildDefaults({
         .modeX = UI::SizeMode::Fixed,
         .modeY = UI::SizeMode::Fixed,
-        .fixedWidth = 250.f,
+        .fixedWidth = 220.f,
         .fixedHeight = 50.f,
     });
 
     // Add buttons
+    playCampaignBtn = buttonBox->createChild<UI::Button>("Play Campaign", "regular", 25)
+        ->setOnClick([this]() {
+            RunState& runState = Game::getInstance().getRunState();
+            runState.currentLevel = 1;
+            runState.currentChamber = 1;
+            stateManager.pushState(std::make_unique<GameplayState>(stateManager));
+        });
+
     testChamberBtn = buttonBox->createChild<UI::Button>("Test Chamber", "regular", 25)
         ->setOnClick([this]() {
             stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::TEST));

@@ -3,11 +3,53 @@
 #include "game-over-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
+#include "../../global-settings/map-loader.hpp"
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
 #include <cmath>
 
-GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager) {
+GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebugMode(false) {
+    setupUI();
+    
+    RunState& runState = Game::getInstance().getRunState();
+    activeChamber = ChamberFactory::createChamber(runState.currentLevel, runState.currentChamber, *player);
+    if (activeChamber) {
+        activeChamber->setObserver(this);
+    }
+    
+    auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
+    if (protect && protect->getEcho()) {
+        Echo* echo = protect->getEcho();
+        echo->attach(this);
+        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
+        echoPowerText->setMarginBottom(15.f);
+        cooldownText->setMarginBottom(15.f);
+    }
+
+    initPlayerPosition();
+}
+
+GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager), isDebugMode(true) {
+    setupUI();
+    
+    activeChamber = ChamberFactory::createDebugChamber(type, *player);
+    if (activeChamber) {
+        activeChamber->setObserver(this);
+    }
+    
+    auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
+    if (protect && protect->getEcho()) {
+        Echo* echo = protect->getEcho();
+        echo->attach(this);
+        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
+        echoPowerText->setMarginBottom(15.f);
+        cooldownText->setMarginBottom(15.f);
+    }
+
+    initPlayerPosition();
+}
+
+void GameplayState::setupUI() {
     SettingManager& settings = SettingManager::getInstance();
     root->setAlignmentY(UI::AlignmentY::Middle);
 
@@ -67,29 +109,7 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
-    float cellSize = SettingManager::getInstance().getCellSize();
-    float ox = SettingManager::getInstance().getGridOffsetX();
-    float oy = SettingManager::getInstance().getGridOffsetY();
-    player->setPosition({ox + 5.5f * cellSize, oy + 5.5f * cellSize}); // Spawn exactly in the center of cell (5, 5)
 
-    activeChamber = ChamberFactory::createChamber(type, 1, 1, *player);
-    if (activeChamber) {
-        activeChamber->setObserver(this);
-    }
-    // Only Protect Chambers have a physical Echo artifact.
-    // If we are in one, safely cast the active chamber to access the Echo and register GameplayState as its observer.
-    auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
-    if (protect && protect->getEcho()) {
-        Echo* echo = protect->getEcho();
-        echo->attach(this); // Register GameplayState (this) to receive power level callbacks
-        
-        // Populate and format the HUD element for the active Echo power
-        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
-        echoPowerText->setMarginBottom(15.f);
-        cooldownText->setMarginBottom(15.f);
-    }
-
-    // Initialize camera View
     currentZoom = 0.5f;
     cameraView.setSize({static_cast<float>(settings.getWindowWidth()) * currentZoom, static_cast<float>(settings.getWindowHeight()) * currentZoom});
 }
@@ -257,11 +277,72 @@ void GameplayState::onEchoPowerChanged(float power) {
 }
 
 void GameplayState::onChamberCompleted() {
-    std::cout << "GameplayState: Chamber Completed! Transitioning to ChooseChamberState...\n";
-    stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
+    std::cout << "GameplayState: Chamber Completed!\n";
+    if (isDebugMode) {
+        stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
+    } else {
+        RunState& runState = Game::getInstance().getRunState();
+        std::string nextPath = MapLoader::getChamberFilepath(runState.currentLevel, runState.currentChamber + 1);
+        
+        if (!nextPath.empty()) {
+            // Next chamber in same level
+            runState.currentChamber++;
+        } else {
+            // Check if there's a next level
+            std::string nextLevelPath = MapLoader::getChamberFilepath(runState.currentLevel + 1, 1);
+            if (!nextLevelPath.empty()) {
+                runState.currentLevel++;
+                runState.currentChamber = 1;
+            } else {
+                // Game completely over! (Win)
+                stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
+                return;
+            }
+        }
+        stateManager.changeState(std::make_unique<GameplayState>(stateManager));
+    }
 }
 
 void GameplayState::onChamberFailed() {
-    std::cout << "GameplayState: Chamber Failed! Transitioning to GameOverState...\n";
-    stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
+    std::cout << "GameplayState: Chamber Failed! Transitioning to GameOverState (Retry)...\n";
+    stateManager.changeState(std::make_unique<GameOverState>(stateManager, std::nullopt));
+}
+
+void GameplayState::initPlayerPosition() {
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+    
+    float spawnX = -1.0f;
+    float spawnY = -1.0f;
+
+    if (activeChamber) {
+        sf::Vector2f cfgSpawn = activeChamber->getPlayerSpawn();
+        if (cfgSpawn.x >= 0.0f && cfgSpawn.y >= 0.0f) {
+            spawnX = cfgSpawn.x;
+            spawnY = cfgSpawn.y;
+        } else {
+            const auto& grid = activeChamber->getGrid();
+            bool found = false;
+            // Search for the first walkable ground tile (type 0)
+            for (size_t y = 1; y < grid.size() && !found; ++y) {
+                for (size_t x = 1; x < grid[y].size() && !found; ++x) {
+                    if (grid[y][x] == 0) {
+                        spawnX = static_cast<float>(x) + 0.5f;
+                        spawnY = static_cast<float>(y) + 0.5f;
+                        found = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if (spawnX < 0.0f || spawnY < 0.0f) {
+        spawnX = 2.5f;
+        spawnY = 2.5f;
+    }
+
+    if (player) {
+        player->setPosition({ox + spawnX * cellSize, oy + spawnY * cellSize});
+    }
 }

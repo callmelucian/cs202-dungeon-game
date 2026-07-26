@@ -70,20 +70,35 @@ static int getTileIdFor9Slice(const std::vector<std::vector<int>>& grid, int x, 
 
     std::string suffix;
     
-    // Explicit corner handling for outer bounds (since they are 1-thick walls surrounded by out-of-bounds walls)
     if (invert && x == 0                       && y == 0)                      suffix = "upper-left";
     else if (invert && x == (int)grid[y].size()-1 && y == 0)                   suffix = "upper-right";
     else if (invert && x == 0                  && y == (int)grid.size()-1)     suffix = "lower-left";
     else if (invert && x == (int)grid[y].size()-1 && y == (int)grid.size()-1) suffix = "lower-right";
-    else if (!u && !l) suffix = "upper-left";
-    else if (!u && !r) suffix = "upper-right";
-    else if (!d && !l) suffix = "lower-left";
-    else if (!d && !r) suffix = "lower-right";
-    else if (!u) suffix = "upper";
-    else if (!d) suffix = "lower";
-    else if (!l) suffix = "left";
-    else if (!r) suffix = "right";
-    else suffix = "center";
+    else {
+        bool pu = !u;
+        bool pd = !d;
+        bool pl = !l;
+        bool pr = !r;
+
+        if (y == 1) pu = true; // Row 1 is under the top cliff row (y=0), so top edge MUST be paved!
+
+        if (pu && pd && pl && pr) suffix = "surrounded";
+        else if (pu && pd && pl) suffix = "upper-lower-left";
+        else if (pu && pd && pr) suffix = "upper-lower-right";
+        else if (pu && pl && pr) suffix = "upper-left-right";
+        else if (pd && pl && pr) suffix = "lower-left-right";
+        else if (pu && pl) suffix = "upper-left";
+        else if (pu && pr) suffix = "upper-right";
+        else if (pd && pl) suffix = "lower-left";
+        else if (pd && pr) suffix = "lower-right";
+        else if (pu && pd) suffix = "upper";
+        else if (pl && pr) suffix = "left";
+        else if (pu) suffix = "upper";
+        else if (pd) suffix = "lower";
+        else if (pl) suffix = "left";
+        else if (pr) suffix = "right";
+        else suffix = "center";
+    }
 
     int id = TileManager::getInstance().getTileId(prefix + "-" + suffix);
     if (id == -1 && suffix != "center") {
@@ -113,39 +128,34 @@ static int getFloorTileId(const std::vector<std::vector<int>>& grid, int x, int 
     int rows = static_cast<int>(grid.size());
     int cols = static_cast<int>(grid[0].size());
 
-    // Returns true when the neighbour (nx, ny) is out of bounds (map boundary)
-    auto isBoundary = [&](int nx, int ny) -> bool {
-        return nx < 0 || nx >= cols || ny < 0 || ny >= rows;
-    };
+    // Only map boundaries and cells immediately below a cliff face get paved.
+    bool u = false;
+    if (y - 1 < 0) u = true; // map boundary
+    else if (y == 1) u = true; // immediately below the visual top-row cliff
+    else if (grid[y - 1][x] == 6) u = true; // below a cliff face
 
-    bool topEdge = false;
-    if (y - 1 < 0) {
-        topEdge = true; // Map boundary
-    } else if (y == 1) {
-        topEdge = true; // Row lying under the top cliff row (which is at y == 0)
-    } else {
-        topEdge = (grid[y - 1][x] == 6); // Only if directly under a cliff tile (wall-front)
-    }
+    bool d = (y + 1 >= rows);
+    bool l = (x - 1 < 0);
+    bool r = (x + 1 >= cols);
 
-    bool bottomEdge = isBoundary(x, y + 1);
-    bool leftEdge   = isBoundary(x - 1, y);
-    bool rightEdge  = isBoundary(x + 1, y);
-
-    // Select tile name from edge combination
     std::string suffix;
-    if      (topEdge && bottomEdge && leftEdge && rightEdge) suffix = "surrounded";
-    else if (topEdge && bottomEdge && leftEdge)  suffix = "upper-lower-left";
-    else if (topEdge && bottomEdge && rightEdge) suffix = "upper-lower-right";
-    else if (topEdge && leftEdge   && rightEdge) suffix = "upper-left-right";
-    else if (bottomEdge && leftEdge && rightEdge) suffix = "lower-left-right";
-    else if (topEdge    && leftEdge)  suffix = "upper-left";
-    else if (topEdge    && rightEdge) suffix = "upper-right";
-    else if (bottomEdge && leftEdge)  suffix = "lower-left";
-    else if (bottomEdge && rightEdge) suffix = "lower-right";
-    else if (topEdge)    suffix = "upper";
-    else if (bottomEdge) suffix = "lower";
-    else if (leftEdge)   suffix = "left";
-    else if (rightEdge)  suffix = "right";
+    
+    // Lookup for the corresponding square in the spritesheet using caseworking
+    if (u && d && l && r) suffix = "surrounded";
+    else if (u && d && l) suffix = "upper-lower-left";
+    else if (u && d && r) suffix = "upper-lower-right";
+    else if (u && l && r) suffix = "upper-left-right";
+    else if (d && l && r) suffix = "lower-left-right";
+    else if (u && l)      suffix = "upper-left";
+    else if (u && r)      suffix = "upper-right";
+    else if (d && l)      suffix = "lower-left";
+    else if (d && r)      suffix = "lower-right";
+    else if (u && d)      suffix = "upper"; // Fallback as upper-lower doesn't exist
+    else if (l && r)      suffix = "left";  // Fallback as left-right doesn't exist
+    else if (u)           suffix = "upper";
+    else if (d)           suffix = "lower";
+    else if (l)           suffix = "left";
+    else if (r)           suffix = "right";
     else {
         // Interior floor — randomise between plain center and stone variant
         if (std::rand() % 100 < 5) return TileManager::getInstance().getTileId("tile-center-with-stone");
@@ -153,7 +163,9 @@ static int getFloorTileId(const std::vector<std::vector<int>>& grid, int x, int 
     }
 
     int id = TileManager::getInstance().getTileId("tile-" + suffix);
-    if (id == -1) id = TileManager::getInstance().getTileId("tile-center");
+    if (id == -1) {
+        id = TileManager::getInstance().getTileId("tile-center");
+    }
     return id;
 }
 
@@ -186,15 +198,29 @@ RenderableTileMap TileMapGenerator::generate(const std::vector<std::vector<int>>
                 bool l = isElevated(x - 1, y);
                 bool r = isElevated(x + 1, y);
                 
+                bool pu = !u;
+                bool pd = !d;
+                bool pl = !l;
+                bool pr = !r;
+
+                if (y == 1) pu = true; // Row 1 is under top cliff row (y=0)
+
                 std::string suffix;
-                if      (!u && !l) suffix = "upper-left";
-                else if (!u && !r) suffix = "upper-right";
-                else if (!d && !l) suffix = "lower-left";
-                else if (!d && !r) suffix = "lower-right";
-                else if (!u) suffix = "upper";
-                else if (!d) suffix = "lower";
-                else if (!l) suffix = "left";
-                else if (!r) suffix = "right";
+                if (pu && pd && pl && pr) suffix = "surrounded";
+                else if (pu && pd && pl) suffix = "upper-lower-left";
+                else if (pu && pd && pr) suffix = "upper-lower-right";
+                else if (pu && pl && pr) suffix = "upper-left-right";
+                else if (pd && pl && pr) suffix = "lower-left-right";
+                else if (pu && pl) suffix = "upper-left";
+                else if (pu && pr) suffix = "upper-right";
+                else if (pd && pl) suffix = "lower-left";
+                else if (pd && pr) suffix = "lower-right";
+                else if (pu && pd) suffix = "upper";
+                else if (pl && pr) suffix = "left";
+                else if (pu) suffix = "upper";
+                else if (pd) suffix = "lower";
+                else if (pl) suffix = "left";
+                else if (pr) suffix = "right";
                 else suffix = "center";
                 baseTileId = TileManager::getInstance().getTileId("tile-" + suffix);
             } else if (type == 5) { // Stairs

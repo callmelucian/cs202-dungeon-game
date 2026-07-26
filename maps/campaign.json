@@ -1,0 +1,21 @@
+{
+  "levels": [
+    {
+      "levelIndex": 1,
+      "name": "The Outer Wards",
+      "chambers": [
+        { "file": "maps/level1/chamber1.json" },
+        { "file": "maps/level1/chamber2.json" },
+        { "file": "maps/level1/chamber3.json" },
+        { "file": "maps/level1/mid.json" }
+      ]
+    },
+    {
+      "levelIndex": 2,
+      "name": "The Sunken Choir",
+      "chambers": [
+        { "file": "maps/level1/chamber1.json" }
+      ]
+    }
+  ]
+}

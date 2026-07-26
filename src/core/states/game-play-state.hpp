@@ -27,7 +27,8 @@
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
 class GameplayState : public GameState, public EchoObserver, public ChamberObserver {
 public:
-    GameplayState(StateManager& manager, ChamberSelectionType type);
+    GameplayState(StateManager& manager); // Campaign mode
+    GameplayState(StateManager& manager, ChamberSelectionType type); // Debug mode
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;
@@ -51,9 +52,13 @@ private:
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;
     std::unique_ptr<Chamber> activeChamber;
+    bool isDebugMode = false;
 
     sf::View cameraView;
     float currentZoom;
+    
+    void setupUI();
+    void initPlayerPosition();
 };
 
 #endif // GAME_PLAY_STATE

@@ -38,6 +38,9 @@ public:
     void setGrid (const std::vector<std::vector<int>>& newGrid);
     const std::vector<std::vector<int>>& getGrid() const;
     
+    void setPlayerSpawn(const sf::Vector2f& spawn) { playerSpawn = spawn; }
+    sf::Vector2f getPlayerSpawn() const { return playerSpawn; }
+    
     void spawnEnemy(std::unique_ptr<Enemy> enemy);
     void checkCollisions(float dt);
     
@@ -56,6 +59,7 @@ protected:
     ItemManager itemManager;
     std::vector<DebugHitbox> debugHitboxes;
     
+    sf::Vector2f playerSpawn = {-1.0f, -1.0f};
     std::vector<std::vector<int>> grid;
     std::vector<sf::FloatRect> baseObstacles;
     std::vector<sf::FloatRect> elevationObstacles;
