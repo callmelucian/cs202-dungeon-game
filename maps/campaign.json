@@ -14,7 +14,21 @@
       "levelIndex": 2,
       "name": "The Sunken Choir",
       "chambers": [
-        { "file": "maps/level1/chamber1.json" }
+        { "file": "maps/level2/chamber1.json" },
+        { "file": "maps/level2/chamber2.json" },
+        { "file": "maps/level2/chamber3.json" },
+        { "file": "maps/level2/mid.json" }
+      ]
+    },
+    {
+      "levelIndex": 3,
+      "name": "The Inner Sanctum",
+      "chambers": [
+        { "file": "maps/level3/chamber1.json" },
+        { "file": "maps/level3/chamber2.json" },
+        { "file": "maps/level3/chamber3.json" },
+        { "file": "maps/level3/chamber4.json" },
+        { "file": "maps/level3/mid.json" }
       ]
     }
   ]

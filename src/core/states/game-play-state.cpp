@@ -27,6 +27,10 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
     }
 
     initPlayerPosition();
+    if (player) {
+        camera.setTargetCenter(player->getPosition());
+        camera.snapToTarget();
+    }
 }
 
 GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager), isDebugMode(true) {
@@ -47,6 +51,10 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     }
 
     initPlayerPosition();
+    if (player) {
+        camera.setTargetCenter(player->getPosition());
+        camera.snapToTarget();
+    }
 }
 
 void GameplayState::setupUI() {
@@ -110,8 +118,7 @@ void GameplayState::setupUI() {
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
 
-    currentZoom = 0.5f;
-    cameraView.setSize({static_cast<float>(settings.getWindowWidth()) * currentZoom, static_cast<float>(settings.getWindowHeight()) * currentZoom});
+    camera.init({static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())}, 0.5f);
 }
 
 void GameplayState::update(float deltaTime) {
@@ -158,37 +165,18 @@ void GameplayState::update(float deltaTime) {
         cooldownText->setString("Cooldown: Ready");
     }
 
-    // 4. Update camera
+    // 4. Update camera position lerp & zoom lerp
     if (player) {
-        sf::Vector2f playerPos = player->getPosition();
-        
+        camera.setTargetCenter(player->getPosition());
+
         SettingManager& settings = SettingManager::getInstance();
-        float viewWidth = cameraView.getSize().x;
-        float viewHeight = cameraView.getSize().y;
-        
-        // Define world boundaries based on grid
         float gridMinX = settings.getGridOffsetX();
         float gridMinY = settings.getGridOffsetY();
-        float gridMaxX = gridMinX + settings.getGridCols() * settings.getCellSize();
-        float gridMaxY = gridMinY + settings.getGridRows() * settings.getCellSize();
-        
-        float camX = playerPos.x;
-        float camY = playerPos.y;
-        
-        float halfW = viewWidth / 2.0f;
-        float halfH = viewHeight / 2.0f;
-        
-        // Clamp to edges
-        if (camX - halfW < gridMinX) camX = gridMinX + halfW;
-        if (camX + halfW > gridMaxX) camX = gridMaxX - halfW;
-        if (camY - halfH < gridMinY) camY = gridMinY + halfH;
-        if (camY + halfH > gridMaxY) camY = gridMaxY - halfH;
-        
-        // Center if grid is smaller than view
-        if (viewWidth > (gridMaxX - gridMinX)) camX = gridMinX + (gridMaxX - gridMinX) / 2.0f;
-        if (viewHeight > (gridMaxY - gridMinY)) camY = gridMinY + (gridMaxY - gridMinY) / 2.0f;
-        
-        cameraView.setCenter({camX, camY});
+        float gridWidth = settings.getGridCols() * settings.getCellSize();
+        float gridHeight = settings.getGridRows() * settings.getCellSize();
+
+        sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
+        camera.update(deltaTime, mapBounds);
     }
 
     // 5. Base class updates UI layouts
@@ -203,7 +191,7 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     window.clear(sf::Color(20, 20, 25));
 
     // Apply Camera View for World
-    window.setView(cameraView);
+    window.setView(camera.getView());
 
     if (activeChamber) activeChamber->draw(window);
     
@@ -214,8 +202,6 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     window.setView(uiView);
     GameState::draw(window);
 }
-
-
 
 void GameplayState::handleEvents(sf::Event& event) {
     // 1. Let the player handle its own single-press inputs
@@ -229,7 +215,7 @@ void GameplayState::handleEvents(sf::Event& event) {
                 sf::Vector2f dir;
                 if (player->getActiveFormType() == FormType::VOIDCASTER) {
                     sf::RenderWindow& window = Game::getInstance().getWindow();
-                    sf::Vector2f mouseWorldPos = window.mapPixelToCoords({mouseEvent->position.x, mouseEvent->position.y}, cameraView);
+                    sf::Vector2f mouseWorldPos = window.mapPixelToCoords({mouseEvent->position.x, mouseEvent->position.y}, camera.getView());
                     dir = mouseWorldPos - player->getPosition();
                     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
                     if (len != 0.0f) dir /= len;
@@ -249,20 +235,11 @@ void GameplayState::handleEvents(sf::Event& event) {
         }
     } else if (const auto* scrollEvent = event.getIf<sf::Event::MouseWheelScrolled>()) {
         if (scrollEvent->wheel == sf::Mouse::Wheel::Vertical) {
-            // Negative delta means scrolling down (zoom out), positive means scrolling up (zoom in)
-            // But we want smaller currentZoom = zoom in, so subtract delta
-            currentZoom -= scrollEvent->delta * 0.05f; 
-            
-            // Calculate max zoom out based on grid boundaries so it never shows out of bounds
             float gridWidth = settings.getGridCols() * settings.getCellSize();
             float gridHeight = settings.getGridRows() * settings.getCellSize();
             float maxZoomOut = std::min(gridWidth / settings.getWindowWidth(), gridHeight / settings.getWindowHeight());
             
-            // Enforce constraints (min zoom = 0.5f, max zoom = bounded by map)
-            if (currentZoom < 0.5f) currentZoom = 0.5f;
-            if (currentZoom > maxZoomOut) currentZoom = maxZoomOut;
-            
-            cameraView.setSize({settings.getWindowWidth() * currentZoom, settings.getWindowHeight() * currentZoom});
+            camera.zoomBy(scrollEvent->delta, maxZoomOut);
         }
     }
 

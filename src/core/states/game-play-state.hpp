@@ -9,6 +9,7 @@
 #include "../../entities/player.hpp"
 #include "../../entities/playable-character.hpp"
 #include "../../utils/collision-solver.hpp"
+#include "../../utils/camera.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../economy/echo.hpp"
@@ -54,8 +55,7 @@ private:
     std::unique_ptr<Chamber> activeChamber;
     bool isDebugMode = false;
 
-    sf::View cameraView;
-    float currentZoom;
+    Camera camera;
     
     void setupUI();
     void initPlayerPosition();

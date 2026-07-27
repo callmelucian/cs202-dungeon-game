@@ -23,6 +23,7 @@ public:
     void update(float dt, float speedMultiplier = 1.0f);
     void draw(sf::RenderWindow& window, sf::Vector2f position, sf::Vector2f size = sf::Vector2f(0.f, 0.f)) const;
     void setCharacterKey(const std::string& newKey);
+    void setTint(const sf::Color& color) { colorTint = color; }
     bool isCurrentAnimationFinished() const;
     bool hasSprite() const { return sprite != nullptr; }
 
@@ -31,6 +32,7 @@ private:
     std::string characterKey;
     std::string currentAnimationKey;
     float hitFlashTimer, currentAnimationElapsed;
+    sf::Color colorTint = sf::Color::White;
 };
 
 #endif // CHARACTER_ANIMATOR_HPP

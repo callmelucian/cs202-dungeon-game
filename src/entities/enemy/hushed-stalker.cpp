@@ -3,6 +3,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../player.hpp"
+#include "../animation/character-animator.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -51,7 +52,15 @@ void HushedStalker::updateState(float dt, Chamber& chamber) {
 }
 
 void HushedStalker::draw(sf::RenderWindow& window) const {
-    if (isVisible) Character::draw(window);
+    if (animator) {
+        if (isVisible) {
+            animator->setTint(sf::Color::White);
+        } else {
+            // Stealth mode: cloaked semi-transparent shimmer
+            animator->setTint(sf::Color(120, 160, 255, 45));
+        }
+    }
+    Character::draw(window);
 }
 
 void HushedStalker::onDeath(Chamber* chamber) {

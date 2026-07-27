@@ -92,6 +92,8 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
                 config.grid.push_back(rowVec);
             }
         }
+        
+        config.waves = loadWaves(filepath);
     } catch (const json::exception& e) {
         std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
     }

@@ -86,7 +86,7 @@ void CharacterAnimator::draw(sf::RenderWindow& window, sf::Vector2f position, sf
         if (hitFlashTimer > 0.0f) {
             sprite->setColor(sf::Color::Red);
         } else {
-            sprite->setColor(sf::Color::White);
+            sprite->setColor(colorTint);
         }
         window.draw(*sprite);
     }

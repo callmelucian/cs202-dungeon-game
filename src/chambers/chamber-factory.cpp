@@ -31,7 +31,11 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         preventChamber->setExitPosition({500.f, 500.f}); // Can be extracted from config later
         chamber = std::move(preventChamber);
     } else if (config.chamberType == "GauntletChamber") {
-        chamber = std::make_unique<GauntletChamber>(player);
+        auto gauntlet = std::make_unique<GauntletChamber>(player);
+        if (!config.waves.empty()) {
+            gauntlet->setWaves(config.waves);
+        }
+        chamber = std::move(gauntlet);
     } else if (config.chamberType == "MidChamber") {
         chamber = std::make_unique<MidChamber>(player);
     } else {

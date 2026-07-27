@@ -2741,6 +2741,14 @@
         "Serin_Ironshell": "iron-shell",
         "waterlogged_scribe": "waterlogged-scribe",
         "shard_soldier": "shard-soldier",
-        "bone_sprinter": "bone-sprinter"
+        "bone_sprinter": "bone-sprinter",
+        "siege_wraith": "shard-soldier",
+        "choir_husk": "waterlogged-scribe",
+        "resonant_cantor": "waterlogged-scribe",
+        "hushed_stalker": "shard-soldier",
+        "mirror_bearer": "shard-soldier",
+        "void_shunter": "bone-sprinter",
+        "sarcophagus_warden": "shard-soldier",
+        "boss_malachar": "voidcaster-final"
     }
 }

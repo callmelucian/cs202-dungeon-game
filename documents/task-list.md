@@ -155,9 +155,8 @@
   - [x] Reimplement chamber grid logic (support more complicated objects like stairs, etc.).
   - [x] Implement level progression flow in `GameplayState: Level 1 -> Level 2 -> Level 3 -> Boss`. Wire chamber completion → next chamber transition with Mid-Chambers in between.
   - [x] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
-  - [ ] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
+  - [x] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
   - [ ] Reimplement logic camera view.
-  - [ ] Weekly Report.
 
 * **Developer B (Advanced Enemies — Level 2 & 3)**
   - [x] Implement `SiegeWraith` (HP 40, Dmg 10; on death calls `explode()` dealing 15 AOE damage in a 3-unit radius — can chain into other nearby enemies including other Siege Wraiths).
@@ -169,10 +168,10 @@
   - [ ] LaTeX report for `Strategy` pattern.
 
 * **AI Agent Tasks**
-  - [ ] Wave spawner timers and count checks.
-  - [ ] Invisibility shader/sprite blending code for `HushedStalker`.
-  - [ ] Exploding entity radius checker algorithm (reuse `CollisionSolver::circleIntersect()`).
-  - [ ] Enemy sprite generation prompts for new enemy types.
+  - [x] Wave spawner timers and count checks.
+  - [x] Invisibility shader/sprite blending code for `HushedStalker`.
+  - [x] Exploding entity radius checker algorithm (reuse `CollisionSolver::circleIntersect()`).
+  - [x] Enemy sprite generation prompts for new enemy types.
   - **Prompt (Dev A provides):** *"Generate GauntletChamber and MidChamber classes inheriting from Chamber. GauntletChamber: wave spawning with 0s delay, +25% MaxHP heal on clear. MidChamber: suspend switch cooldown, +15 Momentum on exit. Also generate wave spawner utility that reads WaveConfig and spawns enemies via EnemyFactory with configurable spawn delays and positions."*
 
 * **Deliverable**: Complete playable Level 1 (all 3 chambers + mid-chambers) with level progression flow. Level 2/3 enemy behaviors testable. Verify: `MidChamber` suspends cooldown and grants +15 Momentum on exit; `GauntletChamber` wave gap is truly 0s; Gauntlet clear grants +25% MaxHP heal. Test all advanced enemy actions. Enemy damage is correctly reduced by Serin's active form defense (mitigated via `calculateMitigatedDamage()`). Chamber retry on death restarts current chamber only.
@@ -191,7 +190,6 @@
   - [ ] Implement Phase 4 (HP ≤ 25% → HP = 0): notify `BossChamber` to begin shrinking platforms at 0.1 units/sec (floor radius 1.5). Add **Soul Lance** attack every 10 seconds: single targeted bolt, Dmg 30, 1.0s telegraph (extended to 1.6s if Foretell active). Carry over Marrow regen if active; Obsidian Key blink does **not** carry into Phase 4 (shrinking platforms replace it). Trigger third Resonance Core transition burst at the 25% threshold crossing.
   - [ ] On phase transition, read `RunState` to apply all relevant modifiers: Hollow Bell stolen → activate `reflectWardActive` (first hit every 8s reflects 20% back to Serin, Phase 1 only); Foretell from Clarity Shard collected at any Power → begin extended telegraphs in Phase 2 (or Phase 1 if fully intact).
   - [ ] Boss sprite/animation assets — design and implement multi-phase boss visuals.
-  - [ ] PowerPoint presentation on `Decorator` pattern.
   - [ ] Weekly Report.
 
 * **Developer B (HUD, Audio, Camera & Save/Load)**
