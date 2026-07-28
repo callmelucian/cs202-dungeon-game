@@ -42,6 +42,9 @@ Game::Game() : running(false) {
     assets.loadTexture("waterlogged-scribe", resolvePath("assets/textures/waterlogged-scribe.png"));
     assets.loadTexture("shard-soldier", resolvePath("assets/textures/shard-soldier.png"));
     assets.loadTexture("bone-sprinter", resolvePath("assets/textures/bone-sprinter.png"));
+    
+    // Load HUD textures
+    assets.loadTexture("health-bar", resolvePath("assets/textures/health-bar.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();

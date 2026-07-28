@@ -7,6 +7,7 @@
 #include <string>
 #include "effects/status-effect.hpp"
 #include "stats.hpp"
+#include "../ui/widgets/health-bar.hpp"
 
 class CharacterObserver;
 class CharacterAnimator;
@@ -38,17 +39,27 @@ public:
     bool isAlive() const;
     bool isSlowed() const;
 
+    virtual std::string getDisplayName() const;
+    void setDisplayName(const std::string& name);
+
+    UI::HealthBar* getHealthBar();
+    const UI::HealthBar* getHealthBar() const;
+    void setHealthBar(std::unique_ptr<UI::HealthBar> bar);
+
 protected:
     void notifyStateChanged(std::string visualKey);
     float calculateMitigatedDamage(float rawAmount);
     void tickStatusEffects(float dt);
 
+    std::string characterKey;
+    std::string displayName;
     sf::Vector2f position, velocity;
     Stats baseStats;
     std::vector<std::unique_ptr<StatusEffect>> statusEffects;
     std::vector<std::unique_ptr<StatusEffect>> pendingStatusEffects;
     std::vector<CharacterObserver*> observers;
     std::unique_ptr<CharacterAnimator> animator;
+    std::unique_ptr<UI::HealthBar> healthBar;
 };
 
 #endif // CHARACTER_HPP

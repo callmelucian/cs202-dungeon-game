@@ -3,6 +3,9 @@
 #include "../widgets/button.hpp"
 #include "../widgets/slider.hpp"
 #include "../widgets/text-input.hpp"
+#include "../widgets/health-bar.hpp"
+#include "../widgets/player-health-bar.hpp"
+#include "../widgets/enemy-health-bar.hpp"
 #include "../containers/flex-box.hpp"
 #include "../containers/container.hpp"
 
@@ -156,5 +159,6 @@ template class SetterMixin<TextInput>;
 template class SetterMixin<Container>;
 template class SetterMixin<HorizontalBox>;
 template class SetterMixin<VerticalBox>;
+template class SetterMixin<HealthBar>;
 
 } // namespace UI

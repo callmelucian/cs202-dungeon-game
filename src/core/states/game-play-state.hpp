@@ -23,6 +23,8 @@
 #include "../../ui/containers/flex-box.hpp"
 #include "../../ui/widgets/button.hpp"
 #include "../../ui/base/text.hpp"
+#include "../../ui/widgets/player-health-bar.hpp"
+#include "../../ui/widgets/enemy-health-bar.hpp"
 
 
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.

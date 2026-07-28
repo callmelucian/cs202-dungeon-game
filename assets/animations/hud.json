@@ -1,0 +1,12 @@
+{
+    "player-health-bar": {
+        "toggler": { "x": 19, "y": 30, "width": 4, "height": 4 },
+        "health-fill": { "x": 23, "y": 30, "width": 58, "height": 4 },
+        "momentum-fill": { "x": 20, "y": 35, "width": 56, "height": 2 },
+        "health-bar-outline": { "x": 18, "y": 40, "width": 64, "height": 10 }
+    },
+    "enemy-health-bar": {
+        "health-fill": { "x": 28, "y": 61, "width": 56, "height": 4 },
+        "health-bar-outline": { "x": 27, "y": 71, "width": 58, "height": 7 }
+    }
+}

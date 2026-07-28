@@ -5,6 +5,7 @@
 #include "player-form.hpp"
 #include "playable-character.hpp"
 #include "../core/enums.hpp"
+#include "../ui/widgets/player-health-bar.hpp"
 #include <SFML/Window/Event.hpp>
 #include <memory>
 #include <map>
@@ -17,7 +18,6 @@ public:
     void handleInput(const sf::Event& event);
 
     void update(float deltaTime) override;
-    void draw(sf::RenderWindow &window) const override;
     void takeDamage(float rawAmount) override;
 
     bool switchForm(FormType newForm);
@@ -44,6 +44,9 @@ public:
     PlayerCombatStateMachine& getStateMachine();
 
     Stats getEffectiveStats() const override;
+
+    UI::PlayerHealthBar* getPlayerHealthBar();
+    const UI::PlayerHealthBar* getPlayerHealthBar() const;
 
 private:
     PlayableCharacter* character;

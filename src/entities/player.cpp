@@ -44,6 +44,8 @@ Player::Player(PlayableCharacter& character)
             animator->setCharacterKey(this->character->getName() + "_" + activeForm->getVisualKey());
         }
     }
+
+    setHealthBar(std::make_unique<UI::PlayerHealthBar>());
 }
 
 void Player::handleInput(const sf::Event& event) {
@@ -117,6 +119,11 @@ void Player::update(float deltaTime) {
         auto enemies = currentChamber->getEnemiesRaw();
         applySlowAura(enemies);
     }
+
+    // 6. Update player momentum on healthBar (health update & drawing handled by Character)
+    if (healthBar) {
+        healthBar->setMomentum(getMomentum(getActiveFormType()), special1Threshold);
+    }
 }
 
 void Player::setChamber(Chamber* chamber) {
@@ -135,15 +142,6 @@ void Player::applySlowAura(std::vector<Enemy*>& enemies) {
             enemy->applyStatusEffect(std::make_unique<SlowedEffect>(0.5f));
         }
     }
-}
-
-void Player::draw(sf::RenderWindow &window) const {
-    // Let the base animator draw the sprite if implemented
-    Character::draw(window);
-
-    // Fallback: draw the bounding box as a green square
-    sf::FloatRect bounds = getBounds();
-    animator->draw(window, getPosition(), bounds.size * SettingManager::getInstance().getSpriteMultiplier());
 }
 
 void Player::takeDamage(float rawAmount) {
@@ -313,4 +311,12 @@ Stats Player::getEffectiveStats() const {
 
 bool Player::getIsFacingRight() const {
     return isFacingRight;
+}
+
+UI::PlayerHealthBar* Player::getPlayerHealthBar() {
+    return dynamic_cast<UI::PlayerHealthBar*>(healthBar.get());
+}
+
+const UI::PlayerHealthBar* Player::getPlayerHealthBar() const {
+    return dynamic_cast<const UI::PlayerHealthBar*>(healthBar.get());
 }

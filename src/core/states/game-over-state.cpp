@@ -21,13 +21,27 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
         titleText = layoutBox->createChild<UI::Text>("bold", 54)->setString("You Died");
         endingText = layoutBox->createChild<UI::Text>("italic", 24)->setString("Serin has fallen. The Vault remains unbroken.");
         
-        menuButton = layoutBox->createChild<UI::Button>("Retry Chamber", "regular", 25)
+        auto buttonBox = layoutBox->createChild<UI::HorizontalBox>()
+            ->setModeX(UI::SizeMode::Contained)
+            ->setModeY(UI::SizeMode::Contained)
+            ->setSpacing(25.f);
+
+        menuButton = buttonBox->createChild<UI::Button>("Retry Chamber", "regular", 22)
             ->setModeX(UI::SizeMode::Fixed)
             ->setModeY(UI::SizeMode::Fixed)
-            ->setFixedWidth(280.f)
+            ->setFixedWidth(220.f)
             ->setFixedHeight(50.f)
             ->setOnClick([this]() {
                 stateManager.changeState(std::make_unique<GameplayState>(stateManager));
+            });
+
+        buttonBox->createChild<UI::Button>("Main Menu", "regular", 22)
+            ->setModeX(UI::SizeMode::Fixed)
+            ->setModeY(UI::SizeMode::Fixed)
+            ->setFixedWidth(220.f)
+            ->setFixedHeight(50.f)
+            ->setOnClick([this]() {
+                stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
             });
     } else {
         // Ending screen

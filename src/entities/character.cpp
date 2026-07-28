@@ -9,11 +9,31 @@
 #include "../global-settings/asset-manager.hpp"
 #include "effects/slowed-effect.hpp"
 
+static std::string formatDisplayName(const std::string& key) {
+    if (key.empty()) return "Character";
+    std::string result;
+    bool capitalize = true;
+    for (char ch : key) {
+        if (ch == '_' || ch == '-') {
+            result += ' ';
+            capitalize = true;
+        } else if (capitalize) {
+            result += static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+            capitalize = false;
+        } else {
+            result += ch;
+        }
+    }
+    return result;
+}
+
 // ---- Character implementation ----
-Character::Character(const std::string& characterKey)
-    : position(0.0f, 0.0f),
+Character::Character(const std::string& key)
+    : characterKey(key),
+      displayName(formatDisplayName(key)),
+      position(0.0f, 0.0f),
       velocity(0.0f, 0.0f),
-      animator(std::make_unique<CharacterAnimator>(characterKey))
+      animator(std::make_unique<CharacterAnimator>(key))
 {
     baseStats.hp = 100.0f;
     baseStats.maxHp = 100.0f;
@@ -49,6 +69,12 @@ void Character::update(float deltaTime) {
     pendingStatusEffects.clear();
 
     tickStatusEffects(deltaTime);
+
+    if (healthBar) {
+        Stats effStats = getEffectiveStats();
+        healthBar->setHealth(getHp(), effStats.maxHp);
+        healthBar->update(deltaTime);
+    }
 }
 
 void Character::tickStatusEffects(float dt) {
@@ -74,30 +100,60 @@ void Character::draw(sf::RenderWindow &window) const {
         window.draw(rect);
     }
 
-    // Draw Status and HP above character
+    float textBaseY = getPosition().y - getBounds().size.y / 2.0f - 14.0f;
+
+    if (isAlive() && healthBar) {
+        sf::Vector2f boundsSize = getBounds().size;
+        float headTopY = getPosition().y - boundsSize.y / 2.0f;
+        float barX = getPosition().x - healthBar->getSize().x / 2.0f;
+        float barY = headTopY - healthBar->getSize().y - 1.0f;
+        const_cast<UI::HealthBar*>(healthBar.get())->setPosition(sf::Vector2f(barX, barY));
+        healthBar->draw(window);
+
+        textBaseY = barY - 2.0f;
+    }
+
+    // Draw Name and Status above health bar
     try {
         const sf::Font& font = AssetManager::getInstance().getFont("regular");
         
-        std::string infoStr = "HP: " + std::to_string(static_cast<int>(getHp()));
+        std::string titleStr = getDisplayName();
         for (const auto& effect : statusEffects) {
-            // Check type for SlowedEffect
             if (dynamic_cast<SlowedEffect*>(effect.get())) {
-                infoStr += " [Slowed]";
+                titleStr += " [Slowed]";
             }
         }
         
-        sf::Text text(font, infoStr, 10);
-        text.setFillColor(sf::Color::White);
-        // text.setOutlineColor(sf::Color::Black);
-        // text.setOutlineThickness(1.0f);
-        
-        sf::FloatRect bounds = text.getLocalBounds();
-        text.setPosition({getPosition().x - bounds.size.x / 2.0f, getPosition().y - getBounds().size.y / 2.0f - 10.0f});
-        
-        window.draw(text);
+        if (!titleStr.empty()) {
+            sf::Text text(font, titleStr, 7);
+            text.setFillColor(sf::Color::White);
+            sf::FloatRect bounds = text.getLocalBounds();
+            text.setPosition({getPosition().x - bounds.size.x / 2.0f, textBaseY - bounds.size.y});
+            window.draw(text);
+        }
     } catch (...) {
         // Font not loaded, skip drawing text
     }
+}
+
+std::string Character::getDisplayName() const {
+    return displayName;
+}
+
+void Character::setDisplayName(const std::string& name) {
+    displayName = name;
+}
+
+UI::HealthBar* Character::getHealthBar() {
+    return healthBar.get();
+}
+
+const UI::HealthBar* Character::getHealthBar() const {
+    return healthBar.get();
+}
+
+void Character::setHealthBar(std::unique_ptr<UI::HealthBar> bar) {
+    healthBar = std::move(bar);
 }
 
 void Character::takeDamage(float rawAmount) {

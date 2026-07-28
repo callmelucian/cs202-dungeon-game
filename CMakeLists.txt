@@ -56,6 +56,9 @@ add_executable(game
     src/ui/widgets/button.cpp
     src/ui/widgets/slider.cpp
     src/ui/widgets/text-input.cpp
+    src/ui/widgets/health-bar.cpp
+    src/ui/widgets/player-health-bar.cpp
+    src/ui/widgets/enemy-health-bar.cpp
     src/ui-test.cpp
 
     # entities

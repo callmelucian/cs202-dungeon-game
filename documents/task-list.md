@@ -156,7 +156,7 @@
   - [x] Implement level progression flow in `GameplayState: Level 1 -> Level 2 -> Level 3 -> Boss`. Wire chamber completion → next chamber transition with Mid-Chambers in between.
   - [x] Implement chamber retry on death (restart current chamber, preserve prior chamber results per §6.2).
   - [x] Create Level 2 and Level 3 chamber layout data files (JSON/CSV) for MapLoader.
-  - [ ] Reimplement logic camera view.
+  - [x] Reimplement logic camera view.
 
 * **Developer B (Advanced Enemies — Level 2 & 3)**
   - [x] Implement `SiegeWraith` (HP 40, Dmg 10; on death calls `explode()` dealing 15 AOE damage in a 3-unit radius — can chain into other nearby enemies including other Siege Wraiths).

@@ -11,7 +11,12 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
       fragmentDropCount(1),
       isFacingRight(true),
       isRealCarrier(false),
-      hitWall(false) {}
+      hitWall(false) {
+    setHealthBar(std::make_unique<UI::EnemyHealthBar>());
+    if (healthBar) {
+        healthBar->setHealth(getHp(), getEffectiveStats().maxHp, true);
+    }
+}
 
 void Enemy::update(float deltaTime) {
     sf::Vector2f vel = getVelocity();
@@ -75,6 +80,14 @@ void Enemy::setHitWall(bool hit) {
 
 bool Enemy::getHitWall() const {
     return hitWall;
+}
+
+UI::EnemyHealthBar* Enemy::getEnemyHealthBar() {
+    return dynamic_cast<UI::EnemyHealthBar*>(healthBar.get());
+}
+
+const UI::EnemyHealthBar* Enemy::getEnemyHealthBar() const {
+    return dynamic_cast<const UI::EnemyHealthBar*>(healthBar.get());
 }
 
 Enemy::~Enemy() = default;

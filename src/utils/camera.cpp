@@ -71,11 +71,7 @@ void Camera::update(float deltaTime, const sf::FloatRect& mapBounds) {
     float viewHeight = windowSize.y * currentZoom;
     view.setSize({viewWidth, viewHeight});
 
-    // 2. Frame-rate independent exponential lerp for position
-    float tPos = 1.0f - std::exp(-positionSpeed * deltaTime);
-    currentCenter = Math::lerp(currentCenter, targetCenter, tPos);
-
-    // 3. Map boundary clamping
+    // 2. Map boundary calculations & target alignment
     float halfW = viewWidth / 2.0f;
     float halfH = viewHeight / 2.0f;
 
@@ -84,6 +80,20 @@ void Camera::update(float deltaTime, const sf::FloatRect& mapBounds) {
     float maxX = minX + mapBounds.size.x;
     float maxY = minY + mapBounds.size.y;
 
+    // If map width fits inside view width, center target horizontally on map center
+    if (mapBounds.size.x <= viewWidth) {
+        targetCenter.x = minX + mapBounds.size.x / 2.0f;
+    }
+    // If map height fits inside view height, center target vertically on map center
+    if (mapBounds.size.y <= viewHeight) {
+        targetCenter.y = minY + mapBounds.size.y / 2.0f;
+    }
+
+    // 3. Frame-rate independent exponential lerp for position
+    float tPos = 1.0f - std::exp(-positionSpeed * deltaTime);
+    currentCenter = Math::lerp(currentCenter, targetCenter, tPos);
+
+    // 4. Strict boundary clamping and central alignment
     float camX = currentCenter.x;
     float camY = currentCenter.y;
 

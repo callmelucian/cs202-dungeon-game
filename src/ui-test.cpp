@@ -1,6 +1,8 @@
 #include "ui/widgets/button.hpp"
 #include "ui/widgets/slider.hpp"
 #include "ui/widgets/text-input.hpp"
+#include "ui/widgets/player-health-bar.hpp"
+#include "ui/widgets/enemy-health-bar.hpp"
 #include "ui/base/text.hpp"
 #include "ui/containers/flex-box.hpp"
 #include "global-settings/asset-manager.hpp"
@@ -27,6 +29,12 @@ void compileTimeChecks() {
 
     UI::HorizontalBox* hb = nullptr;
     static_assert(std::is_same_v<decltype(hb->setModeY(UI::SizeMode::Expanded)->setPadding(10.f, 10.f, 10.f, 10.f)->setDistribution(UI::Distribution::SpaceBetween)), UI::HorizontalBox*>);
+
+    UI::PlayerHealthBar* phb = nullptr;
+    static_assert(std::is_convertible_v<decltype(phb->setHealthRatio(0.5f)->setMomentumRatio(0.2f)->setTogglerVisible(true)), UI::HealthBar*>);
+
+    UI::EnemyHealthBar* ehb = nullptr;
+    static_assert(std::is_convertible_v<decltype(ehb->setHealthRatio(0.8f)->setHealth(80.f, 100.f)), UI::HealthBar*>);
 }
 
 // Helper to load assets so widget constructors don't fail
@@ -38,6 +46,7 @@ void initializeAssetManager() {
         return path;
     };
     assets.loadFont("regular", resolvePath("assets/typeface/GoogleSansCode-Regular.ttf"));
+    assets.loadTexture("health-bar", resolvePath("assets/textures/health-bar.png"));
 }
 
 // Acceptance Criteria 3
@@ -102,6 +111,41 @@ void testPushPopScoping() {
     if (b3->getModeY() != UI::SizeMode::Expanded || b3->getFixedWidth() != 100.f) throw std::runtime_error("b3 defaults incorrect!");
 }
 
+void testHealthBars() {
+    UI::PlayerHealthBar phb;
+    phb.setHealthRatio(0.75f, true)
+       ->setMomentumRatio(0.5f, true)
+       ->setTogglerVisible(true);
+    if (phb.getHealthRatio() != 0.75f) throw std::runtime_error("PlayerHealthBar healthRatio failed!");
+    if (phb.getDisplayedHealthRatio() != 0.75f) throw std::runtime_error("PlayerHealthBar displayedHealthRatio immediate failed!");
+    if (phb.getMomentumRatio() != 0.5f) throw std::runtime_error("PlayerHealthBar momentumRatio failed!");
+    if (!phb.isTogglerVisible()) throw std::runtime_error("PlayerHealthBar toggler flag failed!");
+
+    // Test Lerp transition for PlayerHealthBar
+    phb.setHealthRatio(0.25f); // target changed, displayed still 0.75f before update
+    if (phb.getDisplayedHealthRatio() == 0.25f) throw std::runtime_error("PlayerHealthBar lerp did not start smooth!");
+    phb.update(0.1f);
+    if (phb.getDisplayedHealthRatio() >= 0.75f || phb.getDisplayedHealthRatio() <= 0.25f) throw std::runtime_error("PlayerHealthBar lerp update out of bounds!");
+    phb.update(2.0f); // enough time to converge
+    if (phb.getDisplayedHealthRatio() != 0.25f) throw std::runtime_error("PlayerHealthBar lerp did not converge!");
+
+    phb.setTogglerVisible(false);
+    if (phb.isTogglerVisible()) throw std::runtime_error("PlayerHealthBar toggler disable failed!");
+
+    phb.setHealthRatio(1.5f, true);
+    if (phb.getHealthRatio() != 1.0f) throw std::runtime_error("PlayerHealthBar ratio upper clamp failed!");
+
+    phb.setHealthRatio(-0.5f, true);
+    if (phb.getHealthRatio() != 0.0f) throw std::runtime_error("PlayerHealthBar ratio lower clamp failed!");
+
+    UI::EnemyHealthBar ehb;
+    ehb.setHealthRatio(1.0f, true);
+    ehb.setHealth(50.f, 200.f); // target = 0.25f
+    if (ehb.getHealthRatio() != 0.25f) throw std::runtime_error("EnemyHealthBar setHealth failed!");
+    ehb.update(2.0f);
+    if (ehb.getDisplayedHealthRatio() != 0.25f) throw std::runtime_error("EnemyHealthBar lerp convergence failed!");
+}
+
 void runUITests() {
     std::cout << "[RUNNING UI TESTS]" << std::endl;
     try {
@@ -119,6 +163,9 @@ void runUITests() {
 
         testPushPopScoping();
         std::cout << "testPushPopScoping passed.\n";
+
+        testHealthBars();
+        std::cout << "testHealthBars passed.\n";
 
         // Test user's crashing case (using chained setters)
         std::cout << "Running testCrashIssue (chained setters)..." << std::endl;

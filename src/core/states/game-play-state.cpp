@@ -106,8 +106,6 @@ void GameplayState::setupUI() {
         ->setAlignmentX(UI::AlignmentX::Left)
         ->setAlignmentY(UI::AlignmentY::Bottom)
         ->setPadding(20.f, 20.f, 20.f, 20.f);
-        // Note: setSpacing() is ignored by FlexBox when using FlexStart distribution without Expanded children,
-        // so we use setMarginBottom on the text elements instead.
 
     formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade")->setFixedHeight(30.f)->setMarginBottom(15.f);
     hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
@@ -123,15 +121,16 @@ void GameplayState::setupUI() {
 
 void GameplayState::update(float deltaTime) {
     // 1. Update player logic (including real-time WASD movement)
-    player->update(deltaTime);
+    if (player) {
+        player->update(deltaTime);
+
+        if (!player->isAlive()) {
+            onChamberFailed();
+            return;
+        }
+    }
 
     // 2. Resolve movement collisions
-    // NOTE: CollisionSolver::resolveAABB applies velocity to position internally.
-    // Do NOT manually integrate position (pos += vel * dt) in Character::update() 
-    // or Player::update() to prevent double-movement bugs!
-    // We split into X and Y passes with an obstacle refresh between them so that
-    // if X-axis movement changes the character's elevation level (e.g. stepping
-    // onto stairs), the Y-axis pass uses the correct obstacle set.
     if (activeChamber) {
         CollisionSolver::resolveX(*player, activeChamber->getObstaclesFor(player.get()), deltaTime);
         CollisionSolver::resolveY(*player, activeChamber->getObstaclesFor(player.get()), deltaTime);
@@ -174,6 +173,14 @@ void GameplayState::update(float deltaTime) {
         float gridMinY = settings.getGridOffsetY();
         float gridWidth = settings.getGridCols() * settings.getCellSize();
         float gridHeight = settings.getGridRows() * settings.getCellSize();
+
+        if (activeChamber) {
+            const auto& grid = activeChamber->getGrid();
+            if (!grid.empty() && !grid[0].empty()) {
+                gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
+                gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
+            }
+        }
 
         sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
         camera.update(deltaTime, mapBounds);
@@ -237,7 +244,14 @@ void GameplayState::handleEvents(sf::Event& event) {
         if (scrollEvent->wheel == sf::Mouse::Wheel::Vertical) {
             float gridWidth = settings.getGridCols() * settings.getCellSize();
             float gridHeight = settings.getGridRows() * settings.getCellSize();
-            float maxZoomOut = std::min(gridWidth / settings.getWindowWidth(), gridHeight / settings.getWindowHeight());
+            if (activeChamber) {
+                const auto& grid = activeChamber->getGrid();
+                if (!grid.empty() && !grid[0].empty()) {
+                    gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
+                    gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
+                }
+            }
+            float maxZoomOut = std::max(gridWidth / settings.getWindowWidth(), gridHeight / settings.getWindowHeight());
             
             camera.zoomBy(scrollEvent->delta, maxZoomOut);
         }

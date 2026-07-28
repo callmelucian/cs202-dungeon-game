@@ -2,6 +2,7 @@
 #define ENEMY_HPP
 
 #include "../character.hpp"
+#include "../../ui/widgets/enemy-health-bar.hpp"
 #include <memory>
 
 class Player;
@@ -43,6 +44,9 @@ public:
     
     void setIsRealCarrier(bool real);
     bool getIsRealCarrier() const;
+
+    UI::EnemyHealthBar* getEnemyHealthBar();
+    const UI::EnemyHealthBar* getEnemyHealthBar() const;
     
     virtual bool canBeKnockedBack() const { return true; }
 };
