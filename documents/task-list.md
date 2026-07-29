@@ -190,7 +190,7 @@
   - [x] Implement Phase 4 (HP ≤ 25% → HP = 0): notify `BossChamber` to begin shrinking platforms at 0.1 units/sec (floor radius 1.5). Add **Soul Lance** attack every 10 seconds: single targeted bolt, Dmg 30, 1.0s telegraph (extended to 1.6s if Foretell active). Carry over Marrow regen if active; Obsidian Key blink does **not** carry into Phase 4 (shrinking platforms replace it). Trigger third Resonance Core transition burst at the 25% threshold crossing.
   - [x] On phase transition, read `RunState` to apply all relevant modifiers: Hollow Bell stolen → activate `reflectWardActive` (first hit every 8s reflects 20% back to Serin, Phase 1 only); Foretell from Clarity Shard collected at any Power → begin extended telegraphs in Phase 2 (or Phase 1 if fully intact).
   - [ ] Boss sprite/animation assets — design and implement multi-phase boss visuals.
-  - [ ] Weekly Report.
+  - [x] Weekly Report.
 
 * **Developer B (HUD, Audio, Camera & Save/Load)**
   - [ ] Implement basic camera system: follow player position, smooth lerp, clamp to chamber bounds.
@@ -222,6 +222,7 @@
   - [ ] Complete Level 3 Chamber 4 (Sarcophagus Approach) decoy reliquary: successful 10s collect grants +20% Max HP buff for the Final Chamber only.
   - [ ] Full end-to-end game flow testing: Level 1 → Mid → Level 2 → Mid → Level 3 → Boss → Ending.
   - [ ] Asset polish: finalize all sprite animations, ensure consistent art style.
+  - [ ] Project folder super refine.
   - [ ] **Create OOP & Design Patterns documentation** for submission: describe all **7 patterns** (Singleton, State, Strategy, Factory, Observer, Abstract Factory, Decorator) with class examples and UML references. Frame the `PlayableCharacter` → `Serin` → 3 forms system as "multiple playable characters" per rubric criteria, showing how adding a new character requires only one new `PlayableCharacter` subclass.
   - [ ] **Export class diagram** from architecture.puml as PNG/PDF for submission.
   - [ ] Weekly Report.
