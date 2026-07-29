@@ -27,6 +27,12 @@
 #include "../../ui/widgets/enemy-health-bar.hpp"
 
 
+enum class ChamberIntroState {
+    TITLE_DISPLAY,
+    ZOOMING_IN,
+    PLAYING
+};
+
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
 class GameplayState : public GameState, public EchoObserver, public ChamberObserver {
 public:
@@ -45,6 +51,9 @@ private:
     UI::Button* pauseButton;
     UI::Button* quitButton;
 
+    UI::Container* titleContainer = nullptr;
+    UI::Text* chamberTitleText = nullptr;
+
     UI::VerticalBox* hudBox;
     UI::Text* formText;
     UI::Text* hpText;
@@ -58,9 +67,12 @@ private:
     bool isDebugMode = false;
 
     Camera camera;
+    ChamberIntroState introState = ChamberIntroState::TITLE_DISPLAY;
+    float introTimer = 0.0f;
     
     void setupUI();
     void initPlayerPosition();
+    void startChamberIntro(const std::string& titleStr);
 };
 
 #endif // GAME_PLAY_STATE

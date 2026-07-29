@@ -27,10 +27,12 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
     }
 
     initPlayerPosition();
-    if (player) {
-        camera.setTargetCenter(player->getPosition());
-        camera.snapToTarget();
-    }
+
+    std::string filepath = MapLoader::getChamberFilepath(runState.currentLevel, runState.currentChamber);
+    ChamberConfig cfg = MapLoader::loadChamber(filepath);
+    std::string chamberName = cfg.chamberType;
+    std::string titleStr = "Level " + std::to_string(runState.currentLevel) + " - Chamber " + std::to_string(runState.currentChamber) + ": " + chamberName;
+    startChamberIntro(titleStr);
 }
 
 GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager), isDebugMode(true) {
@@ -51,10 +53,7 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     }
 
     initPlayerPosition();
-    if (player) {
-        camera.setTargetCenter(player->getPosition());
-        camera.snapToTarget();
-    }
+    startChamberIntro("Debug Chamber");
 }
 
 void GameplayState::setupUI() {
@@ -98,6 +97,26 @@ void GameplayState::setupUI() {
             stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
         });
 
+    // Create centered overlay for Chamber Intro title container
+    UI::Container* centerOverlay = root->createChild<UI::Container>()
+        ->setModeX(UI::SizeMode::Fixed)
+        ->setModeY(UI::SizeMode::Fixed)
+        ->setFixedWidth(settings.getWindowWidth())
+        ->setFixedHeight(settings.getWindowHeight())
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setAlignmentY(UI::AlignmentY::Middle);
+
+    titleContainer = centerOverlay->createChild<UI::Container>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setAlignmentY(UI::AlignmentY::Middle)
+        ->setPadding(20.f, 20.f, 40.f, 40.f)
+        ->setColor(sf::Color(10, 10, 20, 220));
+
+    chamberTitleText = titleContainer->createChild<UI::Text>("regular", 32)
+        ->setString("");
+
     // Create HUD at bottom left with a fixed width to prevent text layout jitter
     hudBox = root->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Fixed)
@@ -119,7 +138,114 @@ void GameplayState::setupUI() {
     camera.init({static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())}, 0.5f);
 }
 
+void GameplayState::startChamberIntro(const std::string& titleStr) {
+    SettingManager& settings = SettingManager::getInstance();
+
+    float gridMinX = settings.getGridOffsetX();
+    float gridMinY = settings.getGridOffsetY();
+    float gridWidth = settings.getGridCols() * settings.getCellSize();
+    float gridHeight = settings.getGridRows() * settings.getCellSize();
+
+    if (activeChamber) {
+        const auto& grid = activeChamber->getGrid();
+        if (!grid.empty() && !grid[0].empty()) {
+            gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
+            gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
+        }
+    }
+
+    sf::Vector2f mapCenter({gridMinX + gridWidth / 2.0f, gridMinY + gridHeight / 2.0f});
+    float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
+                                gridHeight / static_cast<float>(settings.getWindowHeight()));
+
+    camera.setTargetCenter(mapCenter);
+    camera.setTargetZoom(maxZoomOut, maxZoomOut);
+    camera.snapToTarget();
+
+    // Prime the player's animator to the correct first-frame texture rect
+    // so it doesn't flash the full spritesheet on the very first draw.
+    // NOTE: We deliberately do NOT call activeChamber->update(0.f) here —
+    // doing so would run completion checks (e.g. enemies.empty()) before
+    // any enemies have been wave-spawned, causing chambers to complete prematurely.
+    if (player) {
+        player->update(0.f);
+    }
+
+    if (titleContainer && chamberTitleText) {
+        titleContainer->setColor(sf::Color(10, 10, 20, 220));
+        chamberTitleText->setString(titleStr);
+    }
+
+    introState = ChamberIntroState::TITLE_DISPLAY;
+    introTimer = 0.0f;
+}
+
+
 void GameplayState::update(float deltaTime) {
+    if (introState == ChamberIntroState::TITLE_DISPLAY) {
+        std::cout << "Title display" << std::endl;
+    }
+    else if (introState == ChamberIntroState::ZOOMING_IN) {
+        std::cout << "Zooming in" << std::endl;
+    }
+    else {
+        std::cout << "Playing" << std::endl;
+    }
+
+    SettingManager& settings = SettingManager::getInstance();
+    float gridMinX = settings.getGridOffsetX();
+    float gridMinY = settings.getGridOffsetY();
+    float gridWidth = settings.getGridCols() * settings.getCellSize();
+    float gridHeight = settings.getGridRows() * settings.getCellSize();
+
+    if (activeChamber) {
+        const auto& grid = activeChamber->getGrid();
+        if (!grid.empty() && !grid[0].empty()) {
+            gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
+            gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
+        }
+    }
+
+    sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
+
+    if (introState == ChamberIntroState::TITLE_DISPLAY) {
+        introTimer += deltaTime;
+        camera.update(0.0f, mapBounds); // Camera stays frozen at zoomed out view
+
+        if (introTimer >= 2.0f) {
+            if (titleContainer && chamberTitleText) {
+                titleContainer->setColor(sf::Color::Transparent);
+                chamberTitleText->setString("");
+            }
+            introState = ChamberIntroState::ZOOMING_IN;
+            if (player) {
+                float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
+                                            gridHeight / static_cast<float>(settings.getWindowHeight()));
+                camera.setTargetCenter(player->getPosition());
+                camera.setTargetZoom(0.5f, maxZoomOut);
+            }
+        }
+        GameState::update(deltaTime);
+        return; // Skip player and enemy updates so characters remain frozen!
+    } else if (introState == ChamberIntroState::ZOOMING_IN) {
+        if (player) {
+            float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
+                                        gridHeight / static_cast<float>(settings.getWindowHeight()));
+            camera.setTargetCenter(player->getPosition());
+            camera.update(deltaTime, mapBounds);
+
+            if (std::abs(camera.getCurrentZoom() - camera.getTargetZoom()) < 0.03f) {
+                introState = ChamberIntroState::PLAYING;
+                // Return immediately — game logic (chamber update, player movement) runs
+                // from the NEXT frame so that completeChamber() cannot fire on the same
+                // tick the intro ends.
+                GameState::update(deltaTime);
+                return;
+            }
+        }
+        GameState::update(deltaTime);
+        return; // Skip player and enemy updates while camera zooms in!
+    }
     // 1. Update player logic (including real-time WASD movement)
     if (player) {
         player->update(deltaTime);
@@ -211,6 +337,12 @@ void GameplayState::draw(sf::RenderWindow& window) const {
 }
 
 void GameplayState::handleEvents(sf::Event& event) {
+    if (introState != ChamberIntroState::PLAYING) {
+        // Pass events to UI components (e.g. pause/quit buttons) but skip player gameplay inputs
+        GameState::handleEvents(event);
+        return;
+    }
+
     // 1. Let the player handle its own single-press inputs
     player->handleInput(event);
 

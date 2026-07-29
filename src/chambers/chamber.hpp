@@ -7,6 +7,7 @@
 #include "../entities/character.hpp"
 #include "../utils/collision-solver.hpp"
 #include "tile-map-generator.hpp"
+#include "wave-spawner.hpp"
 
 #include "../entities/enemy/enemy.hpp"
 #include "../economy/item-manager.hpp"
@@ -27,6 +28,8 @@ public:
     virtual ~Chamber() = default;
 
     void setObserver(ChamberObserver* obs) { observer = obs; }
+
+    void setWaves(const std::vector<WaveConfig>& configs);
 
     virtual void update(float dt);
     virtual void draw(sf::RenderWindow& window);
@@ -57,6 +60,7 @@ protected:
     Player& player;
     std::vector<std::unique_ptr<Enemy>> enemies;
     ItemManager itemManager;
+    WaveSpawner waveSpawner;
     std::vector<DebugHitbox> debugHitboxes;
     
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};

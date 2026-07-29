@@ -49,7 +49,8 @@ void Camera::zoomBy(float delta, float maxAllowedZoomOut) {
 }
 
 void Camera::setTargetZoom(float zoom, float maxAllowedZoomOut) {
-    targetZoom = std::clamp(zoom, minZoom, maxAllowedZoomOut);
+    float effectiveMax = std::max(minZoom, maxAllowedZoomOut);
+    targetZoom = std::clamp(zoom, minZoom, effectiveMax);
 }
 
 void Camera::snapToTarget() {

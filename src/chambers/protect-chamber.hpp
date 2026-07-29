@@ -3,6 +3,7 @@
 
 #include "chamber.hpp"
 #include "../economy/echo.hpp"
+#include "../ui/widgets/enemy-health-bar.hpp"
 #include <memory>
 
 class ProtectChamber : public Chamber {
@@ -12,6 +13,9 @@ private:
     float collectionTimer;
     float requiredCollectionTime;
     bool isCollected;
+
+    // UI Collector Timer using EnemyHealthBar
+    UI::EnemyHealthBar collectorTimerBar;
 
     // Visuals for Echo
     sf::CircleShape echoShape;
@@ -23,6 +27,7 @@ public:
 
     void update(float dt) override;
     void drawBackground(sf::RenderWindow& window) override;
+    void drawForeground(sf::RenderWindow& window) override;
     void onEnemyHit(Enemy* enemy, bool lethal) override;
 
     void setEchoPosition(sf::Vector2f pos);

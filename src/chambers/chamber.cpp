@@ -14,6 +14,10 @@ Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
     player.setChamber(this);
 }
 
+void Chamber::setWaves(const std::vector<WaveConfig>& configs) {
+    waveSpawner.setWaves(configs);
+}
+
 void Chamber::update(float dt) {
     if (!player.isAlive()) {
         if (observer) {
@@ -21,6 +25,8 @@ void Chamber::update(float dt) {
         }
         return;
     }
+
+    waveSpawner.update(dt, *this, player);
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {

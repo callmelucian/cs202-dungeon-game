@@ -37,7 +37,7 @@ void PreventChamber::update(float dt) {
         }
     }
 
-    if (enemies.empty() && !isFailed) {
+    if (waveSpawner.isFinished() && enemies.empty() && !isFailed) {
         completeChamber();
     }
 

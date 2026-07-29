@@ -94,6 +94,7 @@ void CharacterAnimator::draw(sf::RenderWindow& window, sf::Vector2f position, sf
 
 void CharacterAnimator::setCharacterKey(const std::string& newKey) {
     characterKey = newKey;
+    currentAnimationElapsed = 0.0f;
     const AnimationSet& animSet = AnimationManager::getInstance().getAnimationSet(characterKey);
     if (!animSet.textureKey.empty()) {
         const sf::Texture& texture = AssetManager::getInstance().getTexture(animSet.textureKey);
@@ -101,6 +102,15 @@ void CharacterAnimator::setCharacterKey(const std::string& newKey) {
             sprite->setTexture(texture, true);
         } else {
             sprite = std::make_unique<sf::Sprite>(texture);
+        }
+        // Re-apply the first frame rect immediately so the sprite never shows
+        // the full spritesheet between setCharacterKey() and the next update() tick.
+        const Animation& anim = animSet.getAnimation(currentAnimationKey);
+        const AnimationFrame& frame = anim.getFrame(0.0f);
+        if (frame.frameRegion.size.x != 0 && frame.frameRegion.size.y != 0) {
+            sprite->setTextureRect(frame.frameRegion);
+            sprite->setOrigin(sf::Vector2f(std::abs(frame.frameRegion.size.x) / 2.0f,
+                                           std::abs(frame.frameRegion.size.y) / 2.0f));
         }
     }
 }

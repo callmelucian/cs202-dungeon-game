@@ -1,6 +1,7 @@
 #include "chamber-factory.hpp"
 #include "test-chamber.hpp"
 #include "../global-settings/map-loader.hpp"
+#include "../global-settings/setting-manager.hpp"
 #include <iostream>
 
 #include "prevent-chamber.hpp"
@@ -54,6 +55,37 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     } else {
         std::vector<std::vector<int>> defaultGrid = MapLoader::loadChamberGrid(level, chamberIndex);
         chamber->setGrid(defaultGrid);
+    }
+
+    if (chamber && !config.waves.empty()) {
+        chamber->setWaves(config.waves);
+    }
+
+    // Set exit position on MidChamber after the grid is known.
+    // Place it at the bottom-center of the walkable map area.
+    if (config.chamberType == "MidChamber") {
+        auto* midChamber = dynamic_cast<MidChamber*>(chamber.get());
+        if (midChamber) {
+            const auto& grid = chamber->getGrid();
+            float cellSize = SettingManager::getInstance().getCellSize();
+            float ox = SettingManager::getInstance().getGridOffsetX();
+            float oy = SettingManager::getInstance().getGridOffsetY();
+            if (!grid.empty() && !grid[0].empty()) {
+                int rows = static_cast<int>(grid.size());
+                int cols = static_cast<int>(grid[0].size());
+                // Find the bottom-most walkable row, center column
+                int exitRow = rows - 2;
+                for (int r = rows - 1; r >= 1; --r) {
+                    for (int c = 0; c < cols; ++c) {
+                        if (grid[r][c] == 0) { exitRow = r; break; }
+                    }
+                    if (exitRow != rows - 2) break;
+                }
+                float exitX = ox + (cols / 2.f) * cellSize;
+                float exitY = oy + (exitRow + 0.5f) * cellSize;
+                midChamber->setExitPosition({exitX, exitY});
+            }
+        }
     }
 
     return chamber;

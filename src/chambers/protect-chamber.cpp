@@ -26,6 +26,9 @@ void ProtectChamber::setEchoPosition(sf::Vector2f pos) {
     echoPosition = pos;
     echoShape.setPosition(pos);
     radiusShape.setPosition(pos);
+    // Prime the bar's sprite positions immediately so they're correct on the
+    // first draw (during the chamber intro, before update() has ever run).
+    collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -35.0f));
 }
 
 void ProtectChamber::update(float dt) {
@@ -44,6 +47,11 @@ void ProtectChamber::update(float dt) {
                 completeChamber();
             }
         }
+
+        // Update Echo collection timer bar (EnemyHealthBar UI)
+        collectorTimerBar.setHealth(collectionTimer, requiredCollectionTime);
+        collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -35.0f));
+        collectorTimerBar.update(dt);
     }
 }
 
@@ -51,6 +59,12 @@ void ProtectChamber::drawBackground(sf::RenderWindow& window) {
     if (!isCollected) {
         window.draw(radiusShape);
         window.draw(echoShape);
+    }
+}
+
+void ProtectChamber::drawForeground(sf::RenderWindow& window) {
+    if (!isCollected) {
+        collectorTimerBar.draw(window);
     }
 }
 
