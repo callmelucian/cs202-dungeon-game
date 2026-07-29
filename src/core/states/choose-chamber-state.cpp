@@ -14,8 +14,8 @@ ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manage
         ->setSpacing(50.f)
         ->setDistribution(UI::Distribution::SpaceBetween);
 
-    // Title Text (bold, size 54, auto-sized)
-    titleText = layoutBox->createChild<UI::Text>("bold", 54)
+    // Title Text (header, size 36, auto-sized)
+    titleText = layoutBox->createChild<UI::Text>("header", 36)
         ->setString("Select Chamber");
 
     // Vertical Box for buttons (contained to fit children)

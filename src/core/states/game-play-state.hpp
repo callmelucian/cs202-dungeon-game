@@ -45,9 +45,13 @@ public:
     void onChamberCompleted() override;
     void onChamberFailed() override;
 private:
-    UI::Container* overlays;
-    UI::Text* titleText;
+    // UI::Container* overlays;
+    UI::VerticalBox* playerInfoBox;
+    UI::Container* playerInfoBoxWrapper;
     UI::HorizontalBox* buttonBox;
+    UI::Container* buttonBoxWrapper;
+    
+    UI::Text* titleText;
     UI::Button* pauseButton;
     UI::Button* quitButton;
 

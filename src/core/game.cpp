@@ -29,10 +29,13 @@ Game::Game() : running(false) {
     unsigned height = settings.getWindowHeight();
 
     // load assets via assets manager
-    assets.loadFont("regular", resolvePath("assets/typeface/GoogleSansCode-Regular.ttf"));
-    assets.loadFont("italic", resolvePath("assets/typeface/GoogleSansCode-Italic.ttf"));
-    assets.loadFont("bold", resolvePath("assets/typeface/GoogleSansCode-Bold.ttf"));
-    assets.loadFont("bold-italic", resolvePath("assets/typeface/GoogleSansCode-BoldItalic.ttf"));
+    assets.loadFont("header", resolvePath("assets/typeface/press-start/PressStart2P-Regular.ttf"));
+    assets.loadFont("regular", resolvePath("assets/typeface/cascadia/CascadiaMono-Regular.ttf"));
+    // assets.loadFont("medium", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Medium.ttf"));
+    // assets.loadFont("semibold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-SemiBold.ttf"));
+    assets.loadFont("bold", resolvePath("assets/typeface/cascadia/CascadiaMono-Bold.ttf"));
+    assets.loadFont("italic", resolvePath("assets/typeface/cascadia/CascadiaMono-Italic.ttf"));
+    assets.loadFont("bold-italic", resolvePath("assets/typeface/cascadia/CascadiaMono-BoldItalic.ttf"));
     // assets.loadTexture("character-sprite-sheet", resolvePath("assets/textures/character-sprite-sheet.png"));
     assets.loadTexture("wraithblade-final", resolvePath("assets/textures/wraithblade-final.png"));
     assets.loadTexture("voidcaster-final", resolvePath("assets/textures/voidcaster-final.png"));

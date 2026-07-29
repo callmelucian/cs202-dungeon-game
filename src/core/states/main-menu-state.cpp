@@ -15,11 +15,11 @@ MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
         ->setModeX(UI::SizeMode::Expanded)
         ->setModeY(UI::SizeMode::Contained)
         ->setAlignmentX(UI::AlignmentX::Center)
-        ->setSpacing(50.f)
+        ->setSpacing(80.f)
         ->setDistribution(UI::Distribution::SpaceBetween);
 
-    // Title Text (bold, size 54, auto-sized)
-    titleText = layoutBox->createChild<UI::Text>("bold", 54)
+    // Title Text (header, size 32, auto-sized)
+    titleText = layoutBox->createChild<UI::Text>("header", 50)
         ->setString("Echoes of the Ashen Vault");
 
     // Horizontal Box for buttons (contained to fit children)

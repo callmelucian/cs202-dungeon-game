@@ -58,20 +58,27 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
 
 void GameplayState::setupUI() {
     SettingManager& settings = SettingManager::getInstance();
-    root->setAlignmentY(UI::AlignmentY::Middle);
+    // root->setAlignmentY(UI::AlignmentY::Middle);
+    root->setChildDefaults({
+        .modeX = UI::SizeMode::Expanded,
+        .modeY = UI::SizeMode::Expanded
+    });
 
     // Create an overlaying container
-    overlays = root->createChild<UI::Container>()
-        ->setModeX(UI::SizeMode::Fixed)
-        ->setModeY(UI::SizeMode::Fixed)
-        ->setFixedWidth(SettingManager::getInstance().getWindowWidth())
-        ->setFixedHeight(SettingManager::getInstance().getWindowHeight())
+    buttonBoxWrapper = root->createChild<UI::Container>()
+        // ->setFixedWidth(SettingManager::getInstance().getWindowWidth())
+        // ->setFixedHeight(SettingManager::getInstance().getWindowHeight())
         ->setAlignmentX(UI::AlignmentX::Right)
         ->setAlignmentY(UI::AlignmentY::Top)
         ->setPadding(20.f, 20.f, 20.f, 20.f);
 
+    playerInfoBoxWrapper = root->createChild<UI::Container>()
+        ->setAlignmentX(UI::AlignmentX::Left)
+        ->setAlignmentY(UI::AlignmentY::Bottom)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+
     // Horizontal Box for buttons (contained to fit children)
-    buttonBox = overlays->createChild<UI::HorizontalBox>()
+    buttonBox = buttonBoxWrapper->createChild<UI::HorizontalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setSpacing(25.f)
@@ -114,23 +121,41 @@ void GameplayState::setupUI() {
         ->setPadding(20.f, 20.f, 40.f, 40.f)
         ->setColor(sf::Color(10, 10, 20, 220));
 
-    chamberTitleText = titleContainer->createChild<UI::Text>("regular", 32)
+    chamberTitleText = titleContainer->createChild<UI::Text>("header", 28)
         ->setString("");
 
-    // Create HUD at bottom left with a fixed width to prevent text layout jitter
-    hudBox = root->createChild<UI::VerticalBox>()
-        ->setModeX(UI::SizeMode::Fixed)
-        ->setFixedWidth(300.f)
+    playerInfoBox = playerInfoBoxWrapper->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setAlignmentX(UI::AlignmentX::Left)
-        ->setAlignmentY(UI::AlignmentY::Bottom)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
+        ->setPadding(30.f, 30.f, 30.f, 30.f)
+        ->setColor(sf::Color(10, 10, 10, 200))
+        ->setSpacing(10.f)
+        ->setDistribution(UI::Distribution::SpaceBetween);
 
-    formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready")->setFixedHeight(30.f);
-    echoPowerText = hudBox->createChild<UI::Text>("regular", 24)->setString("")->setFixedHeight(30.f);
+    formText = playerInfoBox->createChild<UI::Text>("header", 25)
+        ->setString("Serin");
+    hpText = playerInfoBox->createChild<UI::Text>("regular", 20)
+        ->setString("HP: 100/100");
+    momentumText = playerInfoBox->createChild<UI::Text>("regular", 20)
+        ->setString("Momentum: 0");
+
+    // Create HUD at bottom left with a fixed width to prevent text layout jitter
+    // hudBox = root->createChild<UI::VerticalBox>()
+    //     ->setModeX(UI::SizeMode::Fixed)
+    //     ->setFixedWidth(300.f)
+    //     ->setModeY(UI::SizeMode::Contained)
+    //     ->setAlignmentX(UI::AlignmentX::Left)
+    //     ->setAlignmentY(UI::AlignmentY::Bottom)
+    //     ->setPadding(20.f, 20.f, 20.f, 20.f);
+
+    cooldownText = new UI::Text("regular", 24);
+    echoPowerText = new UI::Text("regular", 24);
+    // formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    // hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    // momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0")->setFixedHeight(30.f)->setMarginBottom(15.f);
+    // cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready")->setFixedHeight(30.f);
+    // echoPowerText = hudBox->createChild<UI::Text>("regular", 24)->setString("")->setFixedHeight(30.f);
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
@@ -182,16 +207,6 @@ void GameplayState::startChamberIntro(const std::string& titleStr) {
 
 
 void GameplayState::update(float deltaTime) {
-    if (introState == ChamberIntroState::TITLE_DISPLAY) {
-        std::cout << "Title display" << std::endl;
-    }
-    else if (introState == ChamberIntroState::ZOOMING_IN) {
-        std::cout << "Zooming in" << std::endl;
-    }
-    else {
-        std::cout << "Playing" << std::endl;
-    }
-
     SettingManager& settings = SettingManager::getInstance();
     float gridMinX = settings.getGridOffsetX();
     float gridMinY = settings.getGridOffsetY();
@@ -275,7 +290,7 @@ void GameplayState::update(float deltaTime) {
     if (currentForm == FormType::WRAITHBLADE) formStr = "Wraithblade";
     else if (currentForm == FormType::VOIDCASTER) formStr = "Voidcaster";
     else if (currentForm == FormType::IRONSHELL) formStr = "Ironshell";
-    formText->setString("Form: " + formStr);
+    // formText->setString("Form: " + formStr);
     
     Stats currentStats = player->getEffectiveStats();
     hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));

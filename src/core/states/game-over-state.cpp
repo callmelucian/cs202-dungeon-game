@@ -18,7 +18,7 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
 
     if (!endingType.has_value()) {
         // Death / Retry screen
-        titleText = layoutBox->createChild<UI::Text>("bold", 54)->setString("You Died");
+        titleText = layoutBox->createChild<UI::Text>("header", 40)->setString("You Died");
         endingText = layoutBox->createChild<UI::Text>("italic", 24)->setString("Serin has fallen. The Vault remains unbroken.");
         
         auto buttonBox = layoutBox->createChild<UI::HorizontalBox>()
@@ -45,7 +45,7 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
             });
     } else {
         // Ending screen
-        titleText = layoutBox->createChild<UI::Text>("bold", 54)->setString("Game Over");
+        titleText = layoutBox->createChild<UI::Text>("header", 40)->setString("Game Over");
         
         std::string endingStr;
         switch (endingType.value()) {

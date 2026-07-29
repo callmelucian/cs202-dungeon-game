@@ -125,11 +125,11 @@ void Character::draw(sf::RenderWindow &window) const {
         }
         
         if (!titleStr.empty()) {
-            sf::Text text(font, titleStr, 7);
+            sf::Text text(font, titleStr, 10);
             text.setFillColor(sf::Color::White);
             sf::FloatRect bounds = text.getLocalBounds();
             text.setPosition({getPosition().x - bounds.size.x / 2.0f, textBaseY - bounds.size.y});
-            window.draw(text);
+            // window.draw(text);
         }
     } catch (...) {
         // Font not loaded, skip drawing text

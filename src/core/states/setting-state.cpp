@@ -13,8 +13,8 @@ SettingState::SettingState(StateManager& manager) : GameState(manager) {
         ->setSpacing(50.f)
         ->setDistribution(UI::Distribution::SpaceBetween);
 
-    // Title Text (bold, size 54, auto-sized)
-    titleText = layoutBox->createChild<UI::Text>("bold", 54)
+    // Title Text (header, size 36, auto-sized)
+    titleText = layoutBox->createChild<UI::Text>("header", 36)
         ->setString("Settings");
 
     // Vertical Box for buttons/sliders (contained to fit children)

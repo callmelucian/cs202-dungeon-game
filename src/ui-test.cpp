@@ -45,7 +45,13 @@ void initializeAssetManager() {
         if (std::filesystem::exists("../" + path)) return "../" + path;
         return path;
     };
-    assets.loadFont("regular", resolvePath("assets/typeface/GoogleSansCode-Regular.ttf"));
+    assets.loadFont("header", resolvePath("assets/typeface/press-start/PressStart2P-Regular.ttf"));
+    assets.loadFont("regular", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Regular.ttf"));
+    assets.loadFont("medium", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Medium.ttf"));
+    assets.loadFont("semibold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-SemiBold.ttf"));
+    assets.loadFont("bold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Bold.ttf"));
+    assets.loadFont("italic", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Regular.ttf"));
+    assets.loadFont("bold-italic", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Bold.ttf"));
     assets.loadTexture("health-bar", resolvePath("assets/textures/health-bar.png"));
 }
 
