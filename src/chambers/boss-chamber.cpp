@@ -1,6 +1,7 @@
 #include "boss-chamber.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../utils/collision-solver.hpp"
+#include "../utils/math-utility.hpp"
 #include "../entities/player.hpp"
 #include <cmath>
 #include <iostream>
@@ -61,6 +62,26 @@ void BossChamber::update(float dt) {
 
     // Update platform state ( shrinking in Phase 4, sunder timers )
     updatePlatforms(dt);
+
+    // Hazard check: player taking void damage if off-platform during Phase 3 & 4
+    if (currentPhase >= 3 && player.isAlive()) {
+        sf::Vector2f playerPos = player.getPosition();
+        float cellSize = SettingManager::getInstance().getCellSize();
+        bool onPlatform = false;
+
+        for (const auto& p : platforms) {
+            if (p.isSundered) continue;
+            float dist = Math::distance(playerPos, p.center);
+            if (dist <= p.radius * cellSize) {
+                onPlatform = true;
+                break;
+            }
+        }
+
+        if (!onPlatform) {
+            player.takeDamage(10.0f * dt); // 10 damage/sec while in void
+        }
+    }
 }
 
 void BossChamber::updatePlatforms(float dt) {
@@ -95,17 +116,13 @@ void BossChamber::updatePlatforms(float dt) {
 }
 
 void BossChamber::sunderPlatformAt(const sf::Vector2f& pos) {
-    float cellSize = SettingManager::getInstance().getCellSize();
     int closestIdx = -1;
     float closestDist = 999999.0f;
 
     for (size_t i = 0; i < platforms.size(); ++i) {
         if (platforms[i].isSundered) continue;
 
-        float dx = pos.x - platforms[i].center.x;
-        float dy = pos.y - platforms[i].center.y;
-        float dist = std::sqrt(dx * dx + dy * dy);
-
+        float dist = Math::distance(pos, platforms[i].center);
         if (dist < closestDist) {
             closestDist = dist;
             closestIdx = static_cast<int>(i);

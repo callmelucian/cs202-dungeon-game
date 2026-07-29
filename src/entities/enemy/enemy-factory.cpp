@@ -2,6 +2,7 @@
 #include "waterlogged-scribe.hpp"
 #include "shard-soldier.hpp"
 #include "bone-sprinter.hpp"
+#include "shard-wraith.hpp"
 #include "siege-wraith.hpp"
 #include "choir-husk.hpp"
 #include "resonant-cantor.hpp"
@@ -14,6 +15,7 @@ EnemyType EnemyFactory::stringToEnemyType(const std::string& typeName) {
     if (typeName == "WATERLOGGED_SCRIBE") return EnemyType::WATERLOGGED_SCRIBE;
     if (typeName == "SHARD_SOLDIER") return EnemyType::SHARD_SOLDIER;
     if (typeName == "BONE_SPRINTER") return EnemyType::BONE_SPRINTER;
+    if (typeName == "SHARD_WRAITH") return EnemyType::SHARD_WRAITH;
     if (typeName == "SIEGE_WRAITH") return EnemyType::SIEGE_WRAITH;
     if (typeName == "CHOIR_HUSK") return EnemyType::CHOIR_HUSK;
     if (typeName == "RESONANT_CANTOR") return EnemyType::RESONANT_CANTOR;
@@ -32,6 +34,8 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, Player& player)
             return std::make_unique<ShardSoldier>(player);
         case EnemyType::BONE_SPRINTER:
             return std::make_unique<BoneSprinter>(player, false);
+        case EnemyType::SHARD_WRAITH:
+            return std::make_unique<ShardWraith>(player);
         case EnemyType::SIEGE_WRAITH:
             return std::make_unique<SiegeWraith>(player);
         case EnemyType::CHOIR_HUSK:
