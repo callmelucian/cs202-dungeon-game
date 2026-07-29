@@ -9,7 +9,8 @@ class Player;
 enum class ChamberSelectionType {
     TEST,
     PROTECT,
-    PREVENT
+    PREVENT,
+    BOSS
 };
 
 class ChamberFactory {

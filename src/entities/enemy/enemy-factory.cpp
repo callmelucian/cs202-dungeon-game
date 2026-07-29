@@ -8,6 +8,7 @@
 #include "hushed-stalker.hpp"
 #include "mirror-bearer.hpp"
 #include "void-shunter.hpp"
+#include "boss-malachar.hpp"
 
 EnemyType EnemyFactory::stringToEnemyType(const std::string& typeName) {
     if (typeName == "WATERLOGGED_SCRIBE") return EnemyType::WATERLOGGED_SCRIBE;
@@ -19,6 +20,7 @@ EnemyType EnemyFactory::stringToEnemyType(const std::string& typeName) {
     if (typeName == "HUSHED_STALKER") return EnemyType::HUSHED_STALKER;
     if (typeName == "MIRROR_BEARER") return EnemyType::MIRROR_BEARER;
     if (typeName == "VOID_SHUNTER") return EnemyType::VOID_SHUNTER;
+    if (typeName == "BOSS_MALACHAR") return EnemyType::BOSS_MALACHAR;
     return EnemyType::WATERLOGGED_SCRIBE;
 }
 
@@ -42,6 +44,8 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, Player& player)
             return std::make_unique<MirrorBearer>(player, MirrorVariant::GUARD);
         case EnemyType::VOID_SHUNTER:
             return std::make_unique<VoidShunter>(player);
+        case EnemyType::BOSS_MALACHAR:
+            return std::make_unique<BossMalachar>(player);
         default:
             return std::make_unique<WaterloggedScribe>(player);
     }

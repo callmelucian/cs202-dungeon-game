@@ -8,6 +8,7 @@
 
 #include "gauntlet-chamber.hpp"
 #include "mid-chamber.hpp"
+#include "boss-chamber.hpp"
 
 std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberIndex, Player& player) {
     std::cout << "Creating Chamber - Level: " << level << ", Index: " << chamberIndex << "\n";
@@ -38,6 +39,8 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         chamber = std::move(gauntlet);
     } else if (config.chamberType == "MidChamber") {
         chamber = std::make_unique<MidChamber>(player);
+    } else if (config.chamberType == "BossChamber") {
+        chamber = std::make_unique<BossChamber>(player);
     } else {
         chamber = std::make_unique<TestChamber>(player);
     }
@@ -69,6 +72,8 @@ std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType
         auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", 10.0f);
         protectChamber->setEchoPosition({300.f, 300.f});
         chamber = std::move(protectChamber);
+    } else if (type == ChamberSelectionType::BOSS) {
+        chamber = std::make_unique<BossChamber>(player);
     } else {
         chamber = std::make_unique<TestChamber>(player);
     }

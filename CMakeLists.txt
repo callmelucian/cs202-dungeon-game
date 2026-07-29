@@ -91,6 +91,7 @@ add_executable(game
     src/entities/enemy/hushed-stalker.cpp
     src/entities/enemy/mirror-bearer.cpp
     src/entities/enemy/void-shunter.cpp
+    src/entities/enemy/boss-malachar.cpp
 
     ## items & economy
     src/economy/item.cpp
@@ -111,6 +112,7 @@ add_executable(game
     src/chambers/protect-chamber.cpp
     src/chambers/prevent-chamber.cpp
     src/chambers/gauntlet-chamber.cpp
+    src/chambers/boss-chamber.cpp
     src/chambers/wave-spawner.cpp
     src/chambers/tile-map-generator.cpp
 )

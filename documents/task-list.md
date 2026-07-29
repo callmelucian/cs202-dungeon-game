@@ -181,7 +181,7 @@
 ## Week 6: Boss Fight, HUD & Audio (26.07 -> 01.08)
 
 * **Developer A (Boss — All 4 Phases & BossChamber)**
-  - [ ] Create `BossChamber` wrapping `BossMalachar`. `BossChamber` owns the platform layout (6 platforms, radius 3 each for Phase 3; Phase 4 shrinks each at 0.1 units/sec, floor 1.5 units). Phase and platform state are managed here; AI behaviour is delegated to `BossMalachar`.
+  - [x] Create `BossChamber` wrapping `BossMalachar`. `BossChamber` owns the platform layout (6 platforms, radius 3 each for Phase 3; Phase 4 shrinks each at 0.1 units/sec, floor 1.5 units). Phase and platform state are managed here; AI behaviour is delegated to `BossMalachar`.
   - [ ] Implement `BossMalachar` class with `currentPhase`, `transitionPhase(int)`, `platformSunder(Chamber&)`, `soulLance(Chamber&)` (per architecture.puml).
   - [ ] Implement Phase 1 behaviour: **Void Bolt Cycle** (3 ranged bolts, Dmg 14 each, fired 0.8s apart, 0.5s charge-glow telegraph — extended to 1.1s total if Foretell is active from a fully-intact Clarity Shard); **Summoning Burst** (spawns 2× Shard Wraith, HP 30, Dmg 8, fly toward Serin). Fixed 12-second repeating cycle. Phase 1→2 transition check at 75% HP (937.5 HP).
   - [ ] Implement `ShardWraith` enemy (HP 30, Dmg 8) — spawned by BossMalachar Phase 1.
