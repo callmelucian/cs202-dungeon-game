@@ -20,10 +20,10 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
     auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
     if (protect && protect->getEcho()) {
         Echo* echo = protect->getEcho();
+        echo->attach(hud);
         echo->attach(this);
-        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
-        echoPowerText->setMarginBottom(15.f);
-        cooldownText->setMarginBottom(15.f);
+        hud->setHasEcho(true);
+        hud->onEchoPowerChanged(echo->getPower());
     }
 
     initPlayerPosition();
@@ -46,10 +46,10 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     auto* protect = dynamic_cast<ProtectChamber*>(activeChamber.get());
     if (protect && protect->getEcho()) {
         Echo* echo = protect->getEcho();
+        echo->attach(hud);
         echo->attach(this);
-        echoPowerText->setString("Echo Power: " + std::to_string((int)echo->getPower()) + "%");
-        echoPowerText->setMarginBottom(15.f);
-        cooldownText->setMarginBottom(15.f);
+        hud->setHasEcho(true);
+        hud->onEchoPowerChanged(echo->getPower());
     }
 
     initPlayerPosition();
@@ -66,15 +66,8 @@ void GameplayState::setupUI() {
 
     // Create an overlaying container
     buttonBoxWrapper = root->createChild<UI::Container>()
-        // ->setFixedWidth(SettingManager::getInstance().getWindowWidth())
-        // ->setFixedHeight(SettingManager::getInstance().getWindowHeight())
         ->setAlignmentX(UI::AlignmentX::Right)
         ->setAlignmentY(UI::AlignmentY::Top)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
-
-    playerInfoBoxWrapper = root->createChild<UI::Container>()
-        ->setAlignmentX(UI::AlignmentX::Left)
-        ->setAlignmentY(UI::AlignmentY::Bottom)
         ->setPadding(20.f, 20.f, 20.f, 20.f);
 
     // Horizontal Box for buttons (contained to fit children)
@@ -124,6 +117,12 @@ void GameplayState::setupUI() {
     chamberTitleText = titleContainer->createChild<UI::Text>("header", 28)
         ->setString("");
 
+    // Add old debug HUD
+    playerInfoBoxWrapper = root->createChild<UI::Container>()
+        ->setAlignmentX(UI::AlignmentX::Left)
+        ->setAlignmentY(UI::AlignmentY::Bottom)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+
     playerInfoBox = playerInfoBoxWrapper->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
@@ -139,23 +138,13 @@ void GameplayState::setupUI() {
         ->setString("HP: 100/100");
     momentumText = playerInfoBox->createChild<UI::Text>("regular", 20)
         ->setString("Momentum: 0");
+    cooldownText = playerInfoBox->createChild<UI::Text>("regular", 20)
+        ->setString("Cooldown: Ready");
+    echoPowerText = playerInfoBox->createChild<UI::Text>("regular", 20)
+        ->setString("");
 
-    // Create HUD at bottom left with a fixed width to prevent text layout jitter
-    // hudBox = root->createChild<UI::VerticalBox>()
-    //     ->setModeX(UI::SizeMode::Fixed)
-    //     ->setFixedWidth(300.f)
-    //     ->setModeY(UI::SizeMode::Contained)
-    //     ->setAlignmentX(UI::AlignmentX::Left)
-    //     ->setAlignmentY(UI::AlignmentY::Bottom)
-    //     ->setPadding(20.f, 20.f, 20.f, 20.f);
-
-    cooldownText = new UI::Text("regular", 24);
-    echoPowerText = new UI::Text("regular", 24);
-    // formText = hudBox->createChild<UI::Text>("regular", 24)->setString("Form: Wraithblade")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    // hpText = hudBox->createChild<UI::Text>("regular", 24)->setString("HP: 100/100")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    // momentumText = hudBox->createChild<UI::Text>("regular", 24)->setString("Momentum: 0")->setFixedHeight(30.f)->setMarginBottom(15.f);
-    // cooldownText = hudBox->createChild<UI::Text>("regular", 24)->setString("Cooldown: Ready")->setFixedHeight(30.f);
-    // echoPowerText = hudBox->createChild<UI::Text>("regular", 24)->setString("")->setFixedHeight(30.f);
+    // Add the new HUD component
+    hud = root->createChild<UI::HUD>();
 
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
@@ -284,25 +273,32 @@ void GameplayState::update(float deltaTime) {
         activeChamber->update(deltaTime);
     }
 
-    // 3. Update HUD text
-    FormType currentForm = player->getActiveFormType();
-    std::string formStr = "Unknown";
-    if (currentForm == FormType::WRAITHBLADE) formStr = "Wraithblade";
-    else if (currentForm == FormType::VOIDCASTER) formStr = "Voidcaster";
-    else if (currentForm == FormType::IRONSHELL) formStr = "Ironshell";
-    // formText->setString("Form: " + formStr);
+    // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
+    if (player && hud) {
+        hud->updatePlayerState(*player);
+    }
     
-    Stats currentStats = player->getEffectiveStats();
-    hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));
-    momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(currentForm)));
-    
-    float cd = player->getSwitchCooldownTimer();
-    if (cd > 0.0f) {
-        char buffer[32];
-        snprintf(buffer, sizeof(buffer), "Cooldown: %.1fs", cd);
-        cooldownText->setString(buffer);
-    } else {
-        cooldownText->setString("Cooldown: Ready");
+    // 3.5 Update Debug HUD text
+    if (player && formText && hpText && momentumText && cooldownText) {
+        FormType currentForm = player->getActiveFormType();
+        std::string formStr = "Unknown";
+        if (currentForm == FormType::WRAITHBLADE) formStr = "Wraithblade";
+        else if (currentForm == FormType::VOIDCASTER) formStr = "Voidcaster";
+        else if (currentForm == FormType::IRONSHELL) formStr = "Ironshell";
+        formText->setString("Form: " + formStr);
+        
+        Stats currentStats = player->getEffectiveStats();
+        hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));
+        momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(currentForm)));
+        
+        float cd = player->getSwitchCooldownTimer();
+        if (cd > 0.0f) {
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "Cooldown: %.1fs", cd);
+            cooldownText->setString(buffer);
+        } else {
+            cooldownText->setString("Cooldown: Ready");
+        }
     }
 
     // 4. Update camera position lerp & zoom lerp

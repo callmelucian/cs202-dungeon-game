@@ -25,6 +25,7 @@
 #include "../../ui/base/text.hpp"
 #include "../../ui/widgets/player-health-bar.hpp"
 #include "../../ui/widgets/enemy-health-bar.hpp"
+#include "../../ui/widgets/hud.hpp"
 
 
 enum class ChamberIntroState {
@@ -46,19 +47,19 @@ public:
     void onChamberFailed() override;
 private:
     // UI::Container* overlays;
-    UI::VerticalBox* playerInfoBox;
-    UI::Container* playerInfoBoxWrapper;
     UI::HorizontalBox* buttonBox;
     UI::Container* buttonBoxWrapper;
     
-    UI::Text* titleText;
     UI::Button* pauseButton;
     UI::Button* quitButton;
 
     UI::Container* titleContainer = nullptr;
     UI::Text* chamberTitleText = nullptr;
 
-    UI::VerticalBox* hudBox;
+    UI::HUD* hud;
+    
+    UI::VerticalBox* playerInfoBox;
+    UI::Container* playerInfoBoxWrapper;
     UI::Text* formText;
     UI::Text* hpText;
     UI::Text* momentumText;

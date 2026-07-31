@@ -2,6 +2,7 @@
 #define STATUS_EFFECT_HPP
 
 #include "../stats.hpp"
+#include <string>
 
 class Character;
 
@@ -14,6 +15,7 @@ public:
     virtual void apply (Character& character) = 0;
     virtual void remove (Character& character) = 0;
     virtual bool update (float dt, Character& character);
+    virtual std::string getName() const = 0;
 
     void refresh(const StatusEffect& other);
 

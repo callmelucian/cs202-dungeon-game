@@ -194,7 +194,7 @@
 
 * **Developer B (HUD, Audio, Camera & Save/Load)**
   - [x] Implement basic camera system: follow player position, smooth lerp, clamp to chamber bounds.
-  - [ ] Complete `HUD` as concrete `EchoObserver`: render health bar (sized to active form's MaxHP), active status effect icons, active form indicator, 3 persistent Momentum meters (one per form, frozen meters visually distinct), switch cooldown indicator, and Echo Power bar via `onEchoPowerChanged()`.
+  - [x] Complete `HUD` as concrete `EchoObserver`: render health bar (sized to active form's MaxHP), active status effect icons, active form indicator, 3 persistent Momentum meters (one per form, frozen meters visually distinct), switch cooldown indicator, and Echo Power bar via `onEchoPowerChanged()`.
   - [ ] Integrate sound effects (form switching, sword swings, projectile fire, enemy hit, fragment pickup, Echo collection, boss phase transitions).
   - [ ] Design and implement particle effects: fragment pickup sparkle, Echo collection glow, enemy death poof, boss phase transition bursts.
   - [ ] Wire `SaveLoadManager` to correctly serialise all `RunState` fields. Verify that loading correctly restores per-form Momentum, Echo outcomes, `special1MomentumThreshold`, and Foretell flags so the run resumes identically.
