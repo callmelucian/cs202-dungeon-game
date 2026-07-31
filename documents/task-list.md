@@ -189,7 +189,8 @@
   - [x] Implement Phase 3 (HP ≤ 50% → HP ≤ 25%): notify `BossChamber` to shatter the floor into 6 floating platforms. Add **Platform Sunder** attack every 15 seconds: telegraphs Serin's current platform, which collapses 3 seconds after telegraph (forcing relocation). Carry over Phase 2 modifiers (Marrow regen, Obsidian blink). Trigger second Resonance Core transition burst at the 50% threshold crossing.
   - [x] Implement Phase 4 (HP ≤ 25% → HP = 0): notify `BossChamber` to begin shrinking platforms at 0.1 units/sec (floor radius 1.5). Add **Soul Lance** attack every 10 seconds: single targeted bolt, Dmg 30, 1.0s telegraph (extended to 1.6s if Foretell active). Carry over Marrow regen if active; Obsidian Key blink does **not** carry into Phase 4 (shrinking platforms replace it). Trigger third Resonance Core transition burst at the 25% threshold crossing.
   - [x] On phase transition, read `RunState` to apply all relevant modifiers: Hollow Bell stolen → activate `reflectWardActive` (first hit every 8s reflects 20% back to Serin, Phase 1 only); Foretell from Clarity Shard collected at any Power → begin extended telegraphs in Phase 2 (or Phase 1 if fully intact).
-  - [ ] Boss sprite/animation assets — design and implement multi-phase boss visuals.
+  - [x] Detailed plan of the new tile-map loader with robust tile picker logic.
+  - [ ] Implment new tile-map loader and refine new chambers.
   - [x] Weekly Report.
 
 * **Developer B (HUD, Audio, Camera & Save/Load)**
@@ -215,6 +216,7 @@
 * **Developer A (Endings, SettingState & Full Game Polish)**
 
   - [ ] Refined enemy steering logic.
+  - [ ] Boss sprite/animation assets — design and implement multi-phase boss visuals.
   - [ ] Implement ending checker in `GameplayState` after boss defeat: count `RunState.echoesStolen`. 0 stolen → `EndingType::ENDING_A_SHATTER`; 1–2 stolen → `EndingType::ENDING_B_RETREAT`; 3–5 stolen → `EndingType::ENDING_C_WARNING`. Push `GameOverState(ending)`.
   - [ ] Enhance `GameOverState` to display: narrative text and visual treatment for each ending (A: triumphant golden palette, B: somber blue-grey, C: dark red-black), Echo Power summary table (all 5 Echoes with final Power% and Collected/Stolen status), fade-in animation, "Return to Main Menu" button.
   - [ ] Fix `EndingType` enum duplication: remove from `game-over-state.hpp`, use only `enums.hpp` version.
