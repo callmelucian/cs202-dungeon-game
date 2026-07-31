@@ -38,6 +38,7 @@ public:
     virtual Stats getEffectiveStats() const;
     bool isAlive() const;
     bool isSlowed() const;
+    const std::vector<std::unique_ptr<StatusEffect>>& getStatusEffects() const { return statusEffects; }
 
     virtual std::string getDisplayName() const;
     void setDisplayName(const std::string& name);

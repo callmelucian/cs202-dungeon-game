@@ -11,6 +11,7 @@ public:
 
     void apply(Character& character) override;
     void remove(Character& character) override;
+    std::string getName() const override { return "Paralyzed"; }
 };
 
 #endif // PARALYZED_EFFECT_HPP

@@ -12,6 +12,7 @@ public:
     void apply (Character &character) override;
     void remove (Character &character) override;
     bool update(float dt, Character &character) override;
+    std::string getName() const override { return "Slowed"; }
 };
 
 #endif // SLOWED_EFFECT_HPP
