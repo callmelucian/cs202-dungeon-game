@@ -1,0 +1,22 @@
+{
+    "activeForm": 0,
+    "collectTimeReduction": 1.0,
+    "currentChamber": 3,
+    "currentLevel": 1,
+    "echoOutcomes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+    },
+    "echoesStolen": 0,
+    "foretellActive": false,
+    "foretellPhase1": false,
+    "ironshellMomentum": 0.0,
+    "playerHP": 100.0,
+    "special1MomentumThreshold": 50.0,
+    "special2MomentumThreshold": 100.0,
+    "voidcasterMomentum": 0.0,
+    "wraithbladeMomentum": 0.0
+}

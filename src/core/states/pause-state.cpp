@@ -1,6 +1,9 @@
 #include "pause-state.hpp"
 #include "main-menu-state.hpp"
 #include "setting-state.hpp"
+#include "../../global-settings/save-load-manager.hpp"
+#include "../game.hpp"
+#include <iostream>
 
 PauseState::PauseState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
@@ -37,6 +40,13 @@ PauseState::PauseState(StateManager& manager) : GameState(manager) {
     resumeButton = buttonBox->createChild<UI::Button>("Resume", "regular", 25.f)
         ->setOnClick([this]() {
             stateManager.popState();
+        });
+    saveButton = buttonBox->createChild<UI::Button>("Save Game", "regular", 25.f)
+        ->setOnClick([this]() {
+            bool ok = SaveLoadManager::getInstance().saveGame(Game::getInstance().getRunState());
+            if (ok) {
+                std::cout << "Game saved successfully.\n";
+            }
         });
     settingButton = buttonBox->createChild<UI::Button>("Settings", "regular", 25.f)
         ->setOnClick([this]() {
