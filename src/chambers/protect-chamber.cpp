@@ -73,11 +73,7 @@ void ProtectChamber::drawForeground(sf::RenderWindow& window) {
 }
 
 void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
-    // Apply Wraithblade knockback if active form is Wraithblade
-    if (player.getActiveFormType() == FormType::WRAITHBLADE) {
-        if (enemy->canBeKnockedBack())
-            applyWraithbladeKnockback(enemy);
-    }
+    Chamber::onEnemyHit(enemy, lethal);
 }
 
 void ProtectChamber::onEchoHit(float rawDamage) {
@@ -110,23 +106,4 @@ bool ProtectChamber::checkIronshellRedirect() {
         }
     }
     return false;
-}
-
-void ProtectChamber::applyWraithbladeKnockback(Enemy* enemy) {
-    float cellSize = SettingManager::getInstance().getCellSize();
-    sf::Vector2f dir = Math::normalize(enemy->getPosition() - echoPosition);
-    // Push enemy 4 units away from Echo
-    sf::Vector2f targetPos = enemy->getPosition() + dir * (4.0f * cellSize);
-    
-    // Move enemy safely
-    if (Pathfinder::isWalkable(targetPos, getGrid())) {
-        enemy->setPosition(targetPos);
-    } else {
-        // Collided with wall/obstacle! Grant +1 bonus fragment if not already awarded
-        if (enemy && !enemy->getHitWall()) {
-            enemy->addBonusFragments(1);
-            enemy->setHitWall(true);
-            std::cout << "Enemy knocked into wall! +1 Bonus Fragment queued.\n";
-        }
-    }
-}
+}

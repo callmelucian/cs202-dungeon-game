@@ -24,6 +24,7 @@ private:
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
+    UI::Button* continueButton;
     UI::Button* playButton;
     UI::Button* optionsButton;
     UI::Button* exitButton;

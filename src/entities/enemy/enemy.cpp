@@ -4,6 +4,8 @@
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
 #include "../../graphics/particle-system.hpp"
+#include "../../utils/math-utility.hpp"
+#include <iostream>
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -44,6 +46,17 @@ void Enemy::takeDamage(float rawAmount) {
     
     if (!isAlive()) {
         ParticleSystem::getInstance().emitBurst(getPosition(), 30, sf::Color(150, 150, 150, 200), 50.0f, 150.0f, 0.3f, 0.8f, 6.0f);
+    }
+}
+
+void Enemy::onWallCollision() {
+    // If knocked back heavily and hit a wall
+    if (Math::length(getKnockbackVelocity()) > 100.0f) {
+        if (!hitWall) {
+            addBonusFragments(1);
+            setHitWall(true);
+            std::cout << "Enemy knocked into wall! +1 Bonus Fragment queued.\n";
+        }
     }
 }
 

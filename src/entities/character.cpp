@@ -33,6 +33,7 @@ Character::Character(const std::string& key)
       displayName(formatDisplayName(key)),
       position(0.0f, 0.0f),
       velocity(0.0f, 0.0f),
+      knockbackVelocity(0.0f, 0.0f),
       animator(std::make_unique<CharacterAnimator>(key))
 {
     baseStats.hp = 100.0f;
@@ -49,6 +50,14 @@ Character::~Character() = default;
 void Character::update(float deltaTime) {
     if (animator) {
         animator->update(deltaTime, getSpeed() / 5.0f);
+    }
+
+    // Apply knockback damping
+    const float KNOCKBACK_FRICTION = 10.0f;
+    if (Math::length(knockbackVelocity) > 0.1f) {
+        knockbackVelocity -= knockbackVelocity * KNOCKBACK_FRICTION * deltaTime;
+    } else {
+        knockbackVelocity = {0.f, 0.f};
     }
 
     // Process pending status effects to avoid iterator invalidation
@@ -218,6 +227,28 @@ sf::Vector2f Character::getVelocity() const {
 
 void Character::setVelocity(const sf::Vector2f& vel) {
     velocity = vel;
+}
+
+sf::Vector2f Character::getKnockbackVelocity() const {
+    return knockbackVelocity;
+}
+
+void Character::setKnockbackVelocity(const sf::Vector2f& kvel) {
+    knockbackVelocity = kvel;
+}
+
+sf::Vector2f Character::getEffectiveVelocity() const {
+    return velocity + knockbackVelocity;
+}
+
+void Character::applyKnockback(const sf::Vector2f& direction, float magnitude) {
+    if (Math::length(direction) > 0.0f) {
+        knockbackVelocity = Math::normalize(direction) * magnitude;
+    }
+}
+
+void Character::onWallCollision() {
+    // Default implementation does nothing
 }
 
 float Character::getHp() const {

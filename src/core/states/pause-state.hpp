@@ -26,6 +26,7 @@ private:
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
     UI::Button* resumeButton;
+    UI::Button* saveButton;
     UI::Button* settingButton;
     UI::Button* menuButton;
 };

@@ -5,6 +5,10 @@
 #include "choose-chamber-state.hpp"
 #include "setting-state.hpp"
 #include "pause-state.hpp"
+#include "game-play-state.hpp"
+#include "../../global-settings/save-load-manager.hpp"
+#include "../game.hpp"
+#include <fstream>
 
 MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
     SettingManager& settings = SettingManager::getInstance();
@@ -38,7 +42,18 @@ MainMenuState::MainMenuState(StateManager& manager) : GameState(manager) {
     });
 
     // Add buttons
-    playButton = buttonBox->createChild<UI::Button>("Play", "regular", 25)
+    // Check if a save file exists to enable Continue
+    bool hasSave = static_cast<bool>(std::ifstream("savegame.json"));
+
+    continueButton = buttonBox->createChild<UI::Button>("Continue", "regular", 25)
+        ->setEnabled(hasSave)
+        ->setOnClick([this]() {
+            RunState& runState = Game::getInstance().getRunState();
+            if (SaveLoadManager::getInstance().loadGame(runState)) {
+                stateManager.pushState(std::make_unique<GameplayState>(stateManager));
+            }
+        });
+    playButton = buttonBox->createChild<UI::Button>("New Game", "regular", 25)
         ->setOnClick([this]() {
             stateManager.pushState(std::make_unique<ChooseChamberState>(stateManager));
         });

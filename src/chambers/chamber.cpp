@@ -9,6 +9,7 @@
 #include "../entities/enemy/bone-sprinter.hpp"
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
+#include "../utils/math-utility.hpp"
 
 Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
     player.setChamber(this);
@@ -110,7 +111,13 @@ void Chamber::onFragmentCollected(float value) {
 }
 
 void Chamber::onEnemyHit(Enemy* enemy, bool lethal) {
-    // Default implementation does nothing
+    // Apply Wraithblade knockback if active form is Wraithblade
+    if (player.getActiveFormType() == FormType::WRAITHBLADE) {
+        if (enemy->canBeKnockedBack()) {
+            sf::Vector2f dir = Math::normalize(enemy->getPosition() - player.getPosition());
+            enemy->applyKnockback(dir, 1600.0f);
+        }
+    }
 }
 
 void Chamber::completeChamber() {

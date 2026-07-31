@@ -36,7 +36,6 @@ public:
     void onEchoHit(float rawDamage);
     void onFragmentCollected(float value) override;
     bool checkIronshellRedirect();
-    void applyWraithbladeKnockback(Enemy* enemy);
 
     Echo* getEcho() const { return echo.get(); }
     bool getIsCollected() const { return isCollected; }
