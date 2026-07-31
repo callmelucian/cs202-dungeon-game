@@ -190,7 +190,7 @@ bool Player::switchForm(FormType newForm) {
         animator->setCharacterKey(getCharacter().getName() + "_" + activeForm->getVisualKey());
     }
 
-    switchCooldownTimer = 4.0f;
+    switchCooldownTimer = SWITCH_COOLDOWN_DURATION;
     return true;
 }
 
@@ -198,7 +198,7 @@ void Player::gainMomentum(float amount, FormType form) {
     auto it = formMomentum.find(form);
     if (it != formMomentum.end()) {
         it->second += amount;
-        it->second = std::clamp(it->second, 0.0f, 100.0f);
+        it->second = std::clamp(it->second, 0.0f, MAX_MOMENTUM);
     }
 }
 
@@ -214,7 +214,7 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
             stateMachine.enterTemporaryState(std::move(specialState), *this);
         }
         momentum = 0.0f;
-    } else if (abilityIndex == 2 && momentum >= 100.0f) {
+    } else if (abilityIndex == 2 && momentum >= MAX_MOMENTUM) {
         auto specialState = activeForm->createSpecialState(2);
         if (specialState) {
             stateMachine.enterTemporaryState(std::move(specialState), *this);

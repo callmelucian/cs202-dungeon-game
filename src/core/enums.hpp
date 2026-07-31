@@ -58,4 +58,9 @@ enum class EnemyType {
     BOSS_MALACHAR
 };
 
+// Game-wide design constants — change here and it propagates everywhere
+constexpr float SWITCH_COOLDOWN_DURATION = 4.0f;   // seconds, form switch cooldown
+constexpr float MAX_MOMENTUM             = 100.0f;  // momentum cap per form
+constexpr float HUD_LERP_SPEED           = 10.0f;   // HUD bar smooth animation speed
+
 #endif // ENUMS_HPP
