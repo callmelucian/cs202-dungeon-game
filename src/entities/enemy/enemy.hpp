@@ -26,6 +26,7 @@ public:
     virtual ~Enemy();
 
     void update(float deltaTime) override;
+    void takeDamage(float rawAmount) override;
 
     virtual void updateState(float dt, Chamber& chamber);
     void changeState(std::unique_ptr<EnemyState> newState);

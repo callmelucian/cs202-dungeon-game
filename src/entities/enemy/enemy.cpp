@@ -2,6 +2,7 @@
 #include "enemy-state.hpp" 
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
+#include "../../global-settings/sound-manager.hpp"
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -33,6 +34,12 @@ void Enemy::update(float deltaTime) {
     }
     
     Character::update(deltaTime);
+}
+
+void Enemy::takeDamage(float rawAmount) {
+    if (!isAlive()) return;
+    Character::takeDamage(rawAmount);
+    SoundManager::getInstance().playSound("enemy-hit");
 }
 
 void Enemy::updateState(float dt, Chamber& chamber) {

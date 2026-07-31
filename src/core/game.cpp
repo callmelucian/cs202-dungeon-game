@@ -53,6 +53,13 @@ Game::Game() : running(false) {
     SoundManager &sounds = SoundManager::getInstance();
     sounds.loadSound("menu-nav", resolvePath("assets/sounds/menu-nav.wav"));
     sounds.loadSound("menu-select", resolvePath("assets/sounds/menu-select.wav"));
+    sounds.loadSound("switch", resolvePath("assets/sounds/switch.wav"));
+    sounds.loadSound("swing", resolvePath("assets/sounds/swing.wav"));
+    sounds.loadSound("shoot", resolvePath("assets/sounds/shoot.wav"));
+    sounds.loadSound("enemy-hit", resolvePath("assets/sounds/enemy-hit.wav"));
+    sounds.loadSound("pickup", resolvePath("assets/sounds/pickup.wav"));
+    sounds.loadSound("echo-collect", resolvePath("assets/sounds/echo-collect.wav"));
+    sounds.loadSound("boss-phase", resolvePath("assets/sounds/boss-phase.wav"));
     sounds.playMusic(resolvePath("assets/music/fallen-down-reprise.ogg"), true);
 
     // load animations and tiles

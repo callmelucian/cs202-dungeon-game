@@ -1,6 +1,7 @@
 #include "ironshell-form.hpp"
 #include "../player.hpp"
 #include "../../chambers/chamber.hpp"
+#include "../../global-settings/sound-manager.hpp"
 
 IronshellForm::IronshellForm()
     : PlayerForm(FormType::IRONSHELL, "Ironshell",
@@ -8,6 +9,8 @@ IronshellForm::IronshellForm()
                  1.0f, 1.0f) {}
 
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
+    SoundManager::getInstance().playSound("swing");
+    
     // Gain +3 momentum on hit
     player.gainMomentum(3.0f, FormType::IRONSHELL);
     

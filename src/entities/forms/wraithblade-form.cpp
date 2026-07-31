@@ -2,6 +2,7 @@
 #include "../player.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
+#include "../../global-settings/sound-manager.hpp"
 #include <cmath>
 
 WraithbladeForm::WraithbladeForm()
@@ -10,6 +11,8 @@ WraithbladeForm::WraithbladeForm()
                  1.5f, 2.0f) {}
 
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
+    SoundManager::getInstance().playSound("swing");
+    
     // Gain +5 momentum on hit
     player.gainMomentum(5.0f, FormType::WRAITHBLADE);
 

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include "../global-settings/sound-manager.hpp"
 
 Item::Item(sf::Vector2f startPos)
     : drag(2.0f), magnetRadius(250.0f), collectionRadius(20.0f), lifetime(0.0f), collected(false) {
@@ -71,6 +72,7 @@ EchoFragment::EchoFragment(sf::Vector2f startPos, float value)
 
 void EchoFragment::onCollect(Player& player, Chamber& chamber) {
     std::cout << "Echo fragment collected! Value: " << value << std::endl;
+    SoundManager::getInstance().playSound("pickup");
     chamber.onFragmentCollected(value);
     // In a full implementation, you would update player stats, economy, or momentum here.
 }

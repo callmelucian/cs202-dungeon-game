@@ -8,6 +8,7 @@
 #include <string>
 #include "../chambers/chamber.hpp"
 #include "effects/slowed-effect.hpp"
+#include "../global-settings/sound-manager.hpp"
 
 Player::Player(PlayableCharacter& character)
     : Character(character.getName()),
@@ -190,6 +191,7 @@ bool Player::switchForm(FormType newForm) {
         animator->setCharacterKey(getCharacter().getName() + "_" + activeForm->getVisualKey());
     }
 
+    SoundManager::getInstance().playSound("switch");
     switchCooldownTimer = SWITCH_COOLDOWN_DURATION;
     return true;
 }

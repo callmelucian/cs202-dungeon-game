@@ -3,6 +3,7 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../utils/math-utility.hpp"
 #include "../utils/pathfinder.hpp"
+#include "../global-settings/sound-manager.hpp"
 #include <iostream>
 
 ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime)
@@ -43,6 +44,7 @@ void ProtectChamber::update(float dt) {
             collectionTimer += dt;
             if (collectionTimer >= requiredCollectionTime) {
                 isCollected = true;
+                SoundManager::getInstance().playSound("echo-collect");
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
                 completeChamber();
             }

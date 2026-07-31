@@ -1,6 +1,7 @@
 #include "voidcaster-form.hpp"
 #include "../player.hpp"
 #include "../../chambers/chamber.hpp"
+#include "../../global-settings/sound-manager.hpp"
 #include <cmath>
 
 VoidcasterForm::VoidcasterForm()
@@ -9,6 +10,8 @@ VoidcasterForm::VoidcasterForm()
                  12.0f, 1.0f) {}
 
 void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
+    SoundManager::getInstance().playSound("shoot");
+    
     // Gain +8 momentum on hit (+4 bonus per additional enemy pierced)
     player.gainMomentum(8.0f, FormType::VOIDCASTER);
     
