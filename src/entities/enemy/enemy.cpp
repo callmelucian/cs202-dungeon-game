@@ -3,6 +3,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../graphics/particle-system.hpp"
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -40,6 +41,10 @@ void Enemy::takeDamage(float rawAmount) {
     if (!isAlive()) return;
     Character::takeDamage(rawAmount);
     SoundManager::getInstance().playSound("enemy-hit");
+    
+    if (!isAlive()) {
+        ParticleSystem::getInstance().emitBurst(getPosition(), 30, sf::Color(150, 150, 150, 200), 50.0f, 150.0f, 0.3f, 0.8f, 6.0f);
+    }
 }
 
 void Enemy::updateState(float dt, Chamber& chamber) {

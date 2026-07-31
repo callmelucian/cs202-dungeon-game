@@ -4,6 +4,7 @@
 #include "../utils/math-utility.hpp"
 #include "../utils/pathfinder.hpp"
 #include "../global-settings/sound-manager.hpp"
+#include "../graphics/particle-system.hpp"
 #include <iostream>
 
 ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime)
@@ -45,6 +46,7 @@ void ProtectChamber::update(float dt) {
             if (collectionTimer >= requiredCollectionTime) {
                 isCollected = true;
                 SoundManager::getInstance().playSound("echo-collect");
+                ParticleSystem::getInstance().emitGlow(echoPosition, 40, sf::Color(255, 255, 200, 200), 50.0f);
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
                 completeChamber();
             }

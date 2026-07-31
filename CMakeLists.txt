@@ -37,6 +37,9 @@ add_executable(game
     src/core/states/game-over-state.cpp
     src/core/states/setting-state.cpp
 
+    # graphics
+    src/graphics/particle-system.cpp
+
     # global-settings
     src/global-settings/setting-manager.cpp
     src/global-settings/sound-manager.cpp

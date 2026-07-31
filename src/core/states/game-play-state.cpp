@@ -4,6 +4,8 @@
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
 #include "../../global-settings/map-loader.hpp"
+#include "../../global-settings/setting-manager.hpp"
+#include "../../graphics/particle-system.hpp"
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
 #include <cmath>
@@ -272,6 +274,7 @@ void GameplayState::update(float deltaTime) {
     if (activeChamber) {
         activeChamber->update(deltaTime);
     }
+    ParticleSystem::getInstance().update(deltaTime);
 
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
     if (player && hud) {
@@ -341,6 +344,9 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     
     // Draw player
     if (player) player->draw(window);
+    
+    // Draw particles on top of world
+    window.draw(ParticleSystem::getInstance());
     
     // Restore UI View for HUD
     window.setView(uiView);

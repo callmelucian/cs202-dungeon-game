@@ -1,6 +1,7 @@
 #include "boss-chamber.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
+#include "../graphics/particle-system.hpp"
 #include "../utils/collision-solver.hpp"
 #include "../utils/math-utility.hpp"
 #include "../entities/player.hpp"
@@ -154,6 +155,11 @@ void BossChamber::setCurrentPhase(int phase) {
     if (currentPhase != phase) {
         currentPhase = phase;
         SoundManager::getInstance().playSound("boss-phase");
+        
+        if (boss) {
+            ParticleSystem::getInstance().emitBurst(boss->getPosition(), 100, sf::Color(255, 100, 100, 200), 100.0f, 300.0f, 0.5f, 1.5f, 10.0f);
+        }
+        
         std::cout << "[BossChamber] Phase changed to " << currentPhase << "\n";
         if (currentPhase == 3) {
             // Re-init / activate 6 floating platforms for Phase 3
