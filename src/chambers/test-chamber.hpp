@@ -8,7 +8,7 @@ public:
     TestChamber(Player& player);
     
     void update(float dt) override;
-    void onEnemyHit(Enemy* enemy, bool lethal) override;
+
 };
 
 #endif // TEST_CHAMBER_HPP

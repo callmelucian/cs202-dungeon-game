@@ -30,6 +30,11 @@ public:
     void setPosition(const sf::Vector2f& pos);
     sf::Vector2f getVelocity() const;
     void setVelocity(const sf::Vector2f& vel);
+    sf::Vector2f getKnockbackVelocity() const;
+    void setKnockbackVelocity(const sf::Vector2f& kvel);
+    sf::Vector2f getEffectiveVelocity() const;
+    void applyKnockback(const sf::Vector2f& direction, float magnitude);
+    virtual void onWallCollision();
     float getHp() const;
     float getSpeed() const;
     void setSpeed(float speed);
@@ -55,6 +60,7 @@ protected:
     std::string characterKey;
     std::string displayName;
     sf::Vector2f position, velocity;
+    sf::Vector2f knockbackVelocity;
     Stats baseStats;
     std::vector<std::unique_ptr<StatusEffect>> statusEffects;
     std::vector<std::unique_ptr<StatusEffect>> pendingStatusEffects;

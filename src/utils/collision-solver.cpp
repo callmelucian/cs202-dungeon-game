@@ -26,7 +26,7 @@ static bool checkOverlap(const sf::FloatRect& r1, const sf::FloatRect& r2) {
 }
 
 void CollisionSolver::resolveX(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
-    sf::Vector2f vel = character.getVelocity();
+    sf::Vector2f vel = character.getEffectiveVelocity();
     sf::Vector2f pos = character.getPosition();
 
     pos.x += vel.x * deltaTime;
@@ -40,16 +40,22 @@ void CollisionSolver::resolveX(Character& character, const std::vector<sf::Float
             } else if (vel.x < 0) {
                 pos.x = obs.position.x + obs.size.x + bounds.size.x / 2.0f;
             }
-            vel.x = 0;
+            
+            sf::Vector2f baseVel = character.getVelocity();
+            sf::Vector2f kVel = character.getKnockbackVelocity();
+            baseVel.x = 0;
+            kVel.x = 0;
+            character.setVelocity(baseVel);
+            character.setKnockbackVelocity(kVel);
+            
             character.setPosition(pos);
+            character.onWallCollision();
         }
     }
-
-    character.setVelocity(vel);
 }
 
 void CollisionSolver::resolveY(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {
-    sf::Vector2f vel = character.getVelocity();
+    sf::Vector2f vel = character.getEffectiveVelocity();
     sf::Vector2f pos = character.getPosition();
 
     pos.y += vel.y * deltaTime;
@@ -63,12 +69,18 @@ void CollisionSolver::resolveY(Character& character, const std::vector<sf::Float
             } else if (vel.y < 0) {
                 pos.y = obs.position.y + obs.size.y + bounds.size.y / 2.0f;
             }
-            vel.y = 0;
+            
+            sf::Vector2f baseVel = character.getVelocity();
+            sf::Vector2f kVel = character.getKnockbackVelocity();
+            baseVel.y = 0;
+            kVel.y = 0;
+            character.setVelocity(baseVel);
+            character.setKnockbackVelocity(kVel);
+            
             character.setPosition(pos);
+            character.onWallCollision();
         }
     }
-
-    character.setVelocity(vel);
 }
 
 void CollisionSolver::resolveAABB(Character& character, const std::vector<sf::FloatRect>& obstacles, float deltaTime) {

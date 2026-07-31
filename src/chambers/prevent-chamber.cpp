@@ -61,6 +61,7 @@ void PreventChamber::drawBackground(sf::RenderWindow& window) {
 }
 
 void PreventChamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    Chamber::onEnemyHit(enemy, lethal);
     // onCarrierHit(enemy, lethal);
     if (!lethal && enemy->getIsRealCarrier()) {
         // Trigger 0.5s stagger on real carrier
