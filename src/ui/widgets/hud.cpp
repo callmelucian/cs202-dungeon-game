@@ -108,18 +108,18 @@ void HUD::draw(sf::RenderTarget& target) const {
 
 // ---- Layout constants (relative to HUD position) ----
 static constexpr float PAD          = 20.0f;
-static constexpr float HP_BAR_W     = 200.0f;
-static constexpr float HP_BAR_H     = 18.0f;
-static constexpr float MOM_BAR_W    = 160.0f;
-static constexpr float MOM_BAR_H    = 8.0f;
+static constexpr float HP_BAR_W     = 300.0f;
+static constexpr float HP_BAR_H     = 26.0f;
+static constexpr float MOM_BAR_W    = 260.0f;
+static constexpr float MOM_BAR_H    = 20.0f;
 static constexpr float MOM_SPACING  = 13.0f;
-static constexpr float CD_BAR_W     = 160.0f;
-static constexpr float CD_BAR_H     = 5.0f;
-static constexpr float PANEL_W      = 210.0f;
-static constexpr float PANEL_H      = 130.0f;
-static constexpr float ECHO_BAR_W   = 280.0f;
-static constexpr float ECHO_BAR_H   = 12.0f;
-static constexpr float STATUS_ICON  = 14.0f;
+static constexpr float CD_BAR_W     = 260.0f;
+static constexpr float CD_BAR_H     = 14.0f;
+static constexpr float PANEL_W      = 330.0f;
+static constexpr float PANEL_H      = 180.0f;
+static constexpr float ECHO_BAR_W   = 400.0f;
+static constexpr float ECHO_BAR_H   = 22.0f;
+static constexpr float STATUS_ICON  = 20.0f;
 
 // Helper: draw a background + foreground filled bar at (x,y)
 static void drawBar(sf::RenderTarget& target,
@@ -139,21 +139,34 @@ static void drawBar(sf::RenderTarget& target,
     target.draw(fg);
 }
 
+// Helper: draw text
+static void drawText(sf::RenderTarget& target, float x, float y, const std::string& str, unsigned int size = 14, sf::Color color = sf::Color::White) {
+    const sf::Font& font = AssetManager::getInstance().getFont("regular");
+    sf::Text text(font, str, size);
+    text.setPosition({x, y});
+    text.setFillColor(color);
+    target.draw(text);
+}
+
 void HUD::drawMainPanel(sf::RenderTarget& target) const {
     float x = position.x + PAD;
     float y = position.y + PAD;
 
-    // Semi-transparent panel background
-    sf::RectangleShape panel({PANEL_W, PANEL_H});
-    panel.setPosition({x - 8.0f, y - 8.0f});
-    panel.setFillColor(sf::Color(10, 10, 20, 180));
-    target.draw(panel);
+    // HP label
+    drawText(target, x, y - 2.0f, "HP", 16, sf::Color(255, 100, 100));
 
     // Health bar
-    drawBar(target, x, y, HP_BAR_W, HP_BAR_H,
+    float barX = x + 36.0f;
+    float barW = HP_BAR_W - 36.0f;
+    drawBar(target, barX, y, barW, HP_BAR_H,
             displayedHpRatio,
             sf::Color(60, 0, 0, 200),
             sf::Color(210, 50, 50));
+
+    // Numeric HP overlay (e.g. "46/100")
+    std::string hpStr = std::to_string(static_cast<int>(std::round(currentHp)))
+                      + "/" + std::to_string(static_cast<int>(std::round(maxHp)));
+    drawText(target, barX + 4.0f, y + 2.0f, hpStr, 12, sf::Color(255, 220, 220));
 
     // Form colour chip next to health bar
     sf::Color formColor = sf::Color::White;
@@ -169,54 +182,57 @@ void HUD::drawMainPanel(sf::RenderTarget& target) const {
 
 void HUD::drawMomentumMeters(sf::RenderTarget& target) const {
     float x   = position.x + PAD;
-    float topY = position.y + PAD + HP_BAR_H + 10.0f;
+    float topY = position.y + PAD + HP_BAR_H + 24.0f;
 
     auto rowColor = [&](FormType form) -> std::pair<sf::Color, sf::Color> {
-        bool active = (activeForm == form);
         if (form == FormType::WRAITHBLADE)
-            return {sf::Color(60, 0, 0, 140),  active ? sf::Color(220, 60, 60)  : sf::Color(130, 30, 30)};
+            return {sf::Color(60, 0, 0, 140),  sf::Color(220, 60, 60)};
         if (form == FormType::VOIDCASTER)
-            return {sf::Color(40, 0, 60, 140),  active ? sf::Color(180, 60, 220) : sf::Color(100, 30, 140)};
+            return {sf::Color(40, 0, 60, 140), sf::Color(180, 60, 220)};
         // IRONSHELL
-        return   {sf::Color(50, 40, 0, 140),   active ? sf::Color(220, 200, 50) : sf::Color(130, 120, 30)};
+        return   {sf::Color(50, 40, 0, 140),   sf::Color(220, 200, 50)};
     };
 
-    struct Row { float ratio; FormType form; };
-    Row rows[3] = {
-        {displayedWraithblade, FormType::WRAITHBLADE},
-        {displayedVoidcaster,  FormType::VOIDCASTER},
-        {displayedIronshell,   FormType::IRONSHELL},
-    };
+    float ratio = 0.0f;
+    float rawMom = 0.0f;
+    if (activeForm == FormType::WRAITHBLADE) { ratio = displayedWraithblade; rawMom = wraithbladeMomentum; }
+    else if (activeForm == FormType::VOIDCASTER) { ratio = displayedVoidcaster; rawMom = voidcasterMomentum; }
+    else if (activeForm == FormType::IRONSHELL) { ratio = displayedIronshell; rawMom = ironshellMomentum; }
 
-    for (int i = 0; i < 3; ++i) {
-        auto [bg, fg] = rowColor(rows[i].form);
-        float rowY = topY + i * MOM_SPACING;
+    auto [bg, fg] = rowColor(activeForm);
 
-        // Active form row is slightly wider/brighter
-        float w = (activeForm == rows[i].form) ? MOM_BAR_W : MOM_BAR_W - 10.0f;
-        float h = (activeForm == rows[i].form) ? MOM_BAR_H + 1.0f : MOM_BAR_H - 1.0f;
+    drawText(target, x, topY - 16.0f, "Momentum", 13, sf::Color(200, 200, 200));
+    drawBar(target, x, topY, MOM_BAR_W, MOM_BAR_H, ratio, bg, fg);
 
-        drawBar(target, x, rowY, w, h, rows[i].ratio, bg, fg);
-    }
+    // Numeric momentum overlay (e.g. "46/100")
+    std::string momStr = std::to_string(static_cast<int>(std::round(rawMom))) + "/100";
+    drawText(target, x + 4.0f, topY + 1.0f, momStr, 11, sf::Color(240, 240, 240));
 }
 
 void HUD::drawCooldownBar(sf::RenderTarget& target) const {
     if (switchCooldownTimer <= 0.0f) return;
 
     float x = position.x + PAD;
-    float y = position.y + PAD + HP_BAR_H + 3 * MOM_SPACING + 14.0f;
+    float y = position.y + PAD + HP_BAR_H + 24.0f + MOM_BAR_H + 28.0f;
+
+    drawText(target, x, y - 16.0f, "Switch CD", 13, sf::Color(150, 200, 220));
 
     float ratio = std::clamp(switchCooldownTimer / maxSwitchCooldown, 0.0f, 1.0f);
     drawBar(target, x, y, CD_BAR_W, CD_BAR_H, ratio,
             sf::Color(20, 40, 50, 160),
             sf::Color(80, 200, 220));
+
+    // Numeric cooldown overlay (e.g. "2.4s")
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1fs", switchCooldownTimer);
+    drawText(target, x + 4.0f, y + 0.0f, buf, 10, sf::Color(200, 240, 255));
 }
 
 void HUD::drawStatusEffects(sf::RenderTarget& target) const {
     if (activeEffects.empty()) return;
 
     float x = position.x + PAD;
-    float y = position.y + PAD + HP_BAR_H + 3 * MOM_SPACING + 14.0f + CD_BAR_H + 8.0f;
+    float y = position.y + PAD + HP_BAR_H + 24.0f + MOM_BAR_H + 28.0f + CD_BAR_H + 16.0f;
 
     for (size_t i = 0; i < activeEffects.size(); ++i) {
         sf::Color col = sf::Color::White;
@@ -238,12 +254,18 @@ void HUD::drawStatusEffects(sf::RenderTarget& target) const {
 void HUD::drawEchoPowerBar(sf::RenderTarget& target) const {
     // Centered at the top of the screen
     float x = position.x + (fixedWidth - ECHO_BAR_W) / 2.0f;
-    float y = position.y + 8.0f;
+    float y = position.y + 30.0f;
+
+    drawText(target, x, y - 18.0f, "Echo Power", 15, sf::Color(0, 220, 180));
 
     drawBar(target, x, y, ECHO_BAR_W, ECHO_BAR_H,
             displayedEchoRatio,
             sf::Color(0, 40, 40, 200),
             sf::Color(0, 220, 180));
+
+    // Numeric echo power overlay (e.g. "78/100")
+    std::string echoStr = std::to_string(static_cast<int>(std::round(echoPower))) + "/100";
+    drawText(target, x + 4.0f, y + 2.0f, echoStr, 12, sf::Color(200, 255, 245));
 
     // Danger tint when Echo Power is critical (< 30%)
     if (displayedEchoRatio < 0.30f) {
