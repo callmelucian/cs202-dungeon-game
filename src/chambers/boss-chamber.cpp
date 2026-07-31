@@ -1,5 +1,6 @@
 #include "boss-chamber.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "../global-settings/sound-manager.hpp"
 #include "../utils/collision-solver.hpp"
 #include "../utils/math-utility.hpp"
 #include "../entities/player.hpp"
@@ -152,6 +153,7 @@ int BossChamber::getCurrentPhase() const {
 void BossChamber::setCurrentPhase(int phase) {
     if (currentPhase != phase) {
         currentPhase = phase;
+        SoundManager::getInstance().playSound("boss-phase");
         std::cout << "[BossChamber] Phase changed to " << currentPhase << "\n";
         if (currentPhase == 3) {
             // Re-init / activate 6 floating platforms for Phase 3
