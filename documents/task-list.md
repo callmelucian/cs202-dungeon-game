@@ -200,10 +200,10 @@
   - [x] Wire `SaveLoadManager` to correctly serialise all `RunState` fields. Verify that loading correctly restores per-form Momentum, Echo outcomes, `special1MomentumThreshold`, and Foretell flags so the run resumes identically.
 
 * **AI Agent Tasks**
-  - [ ] HUD layout positioning coordinates and bar rendering.
+  - [x] HUD layout positioning coordinates and bar rendering.
   - [x] Save data serialization structures for `RunState`.
-  - [ ] Boss attack pattern timer/state-machine boilerplate.
-  - [ ] Particle system basic framework.
+  - [x] Boss attack pattern timer/state-machine boilerplate.
+  - [x] Particle system basic framework.
   - **Prompt (Dev B provides):** *"Generate the HUD class implementing EchoObserver. It should render: health bar sized to active form MaxHP, 3 Momentum meters (active + 2 frozen), status effect icons, switch cooldown indicator, and Echo Power bar updated via onEchoPowerChanged(). Use SFML RectangleShape for bars and our UI::Text for labels. Also generate a basic particle emitter class for fragment pickup and death effects."*
 
 * **Deliverable**: Boss fight is fully playable through all 4 phases. HUD displays all game state. Sound effects integrated. Camera follows player. Verify: Resonance Core bursts fire at 75%, 50%, and 25% HP thresholds; platforms collapse in Phase 3 and shrink in Phase 4; Hollow Bell reflect ward active only Phase 1; Marrow regen persists Phases 2–4; Obsidian blink stops at Phase 4. Play Gauntlet waves, verify 0s delay transition. Confirm `MidChamber` suspends the switch cooldown and grants +15 Momentum to the exit form.
