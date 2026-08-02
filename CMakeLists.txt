@@ -48,6 +48,7 @@ add_executable(game
     src/global-settings/save-load-manager.cpp
     src/global-settings/animation-manager.cpp
     src/global-settings/tile-manager.cpp
+    src/global-settings/tilemap-loader.cpp
     src/global-settings/map-loader.cpp
 
     # ui

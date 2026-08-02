@@ -15,7 +15,8 @@ bool Pathfinder::isWalkable(sf::Vector2f position, const std::vector<std::vector
     int y = static_cast<int>(std::floor((position.y - oy) / size));
     
     if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
-        return grid[y][x] == 0; // 0 is floor
+        int cell = grid[y][x];
+        return (cell == 0 || cell == 3); // 0 is floor, 3 is bridge
     }
     return false;
 }
@@ -34,7 +35,7 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
     
     if (startY < 0 || startY >= grid.size() || startX < 0 || startX >= grid[0].size()) return {};
     if (targetY < 0 || targetY >= grid.size() || targetX < 0 || targetX >= grid[0].size()) return {};
-    if (grid[targetY][targetX] != 0) {
+    if (grid[targetY][targetX] != 0 && grid[targetY][targetX] != 3) {
         return {}; // target is unreachable/unwalkable
     }
 
@@ -67,7 +68,8 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
             int ny = curr.y + dy[i];
             
             if (ny >= 0 && ny < grid.size() && nx >= 0 && nx < grid[0].size()) {
-                if (!visited[ny][nx] && grid[ny][nx] == 0) {
+                int cell = grid[ny][nx];
+                if (!visited[ny][nx] && (cell == 0 || cell == 3)) {
                     visited[ny][nx] = true;
                     parent[ny][nx] = curr;
                     q.push({nx, ny});

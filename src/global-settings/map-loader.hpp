@@ -18,6 +18,9 @@ struct ChamberConfig {
     int height;
     float playerSpawnX = -1.0f;
     float playerSpawnY = -1.0f;
+    std::pair<int, int> playerSpawnCell = {-1, -1};
+    std::vector<std::vector<std::string>> typeGrid;
+    std::vector<std::vector<int>> levelGrid;
     std::vector<std::vector<int>> grid;
     std::vector<WaveConfig> waves;
 };

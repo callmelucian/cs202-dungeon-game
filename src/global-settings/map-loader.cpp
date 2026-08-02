@@ -57,11 +57,20 @@ std::vector<std::vector<int>> MapLoader::loadChamberGrid(int level, int chamberI
     return grid;
 }
 
+#include <filesystem>
+
+static std::string resolveFilePath(const std::string& path) {
+    if (std::filesystem::exists(path)) return path;
+    if (std::filesystem::exists("../" + path)) return "../" + path;
+    return path;
+}
+
 ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
     ChamberConfig config;
-    std::ifstream file(filepath);
+    std::string resolvedPath = resolveFilePath(filepath);
+    std::ifstream file(resolvedPath);
     if (!file.is_open()) {
-        std::cerr << "Failed to open chamber config file: " << filepath << std::endl;
+        std::cerr << "Failed to open chamber config file: " << filepath << " (resolved: " << resolvedPath << ")\n";
         return config;
     }
 
@@ -78,8 +87,31 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
                 config.playerSpawnX = j["playerSpawn"].value("x", -1.0f);
                 config.playerSpawnY = j["playerSpawn"].value("y", -1.0f);
             } else if (j["playerSpawn"].is_array() && j["playerSpawn"].size() >= 2) {
-                config.playerSpawnX = j["playerSpawn"][0].get<float>();
-                config.playerSpawnY = j["playerSpawn"][1].get<float>();
+                int spawnRow = j["playerSpawn"][0].get<int>();
+                int spawnCol = j["playerSpawn"][1].get<int>();
+                config.playerSpawnCell = {spawnRow, spawnCol};
+                config.playerSpawnX = static_cast<float>(spawnCol);
+                config.playerSpawnY = static_cast<float>(spawnRow);
+            }
+        }
+
+        if (j.contains("type-grid") && j["type-grid"].is_array()) {
+            for (const auto& row : j["type-grid"]) {
+                std::vector<std::string> rowVec;
+                for (const auto& cell : row) {
+                    rowVec.push_back(cell.get<std::string>());
+                }
+                config.typeGrid.push_back(rowVec);
+            }
+        }
+
+        if (j.contains("level-grid") && j["level-grid"].is_array()) {
+            for (const auto& row : j["level-grid"]) {
+                std::vector<int> rowVec;
+                for (const auto& cell : row) {
+                    rowVec.push_back(cell.get<int>());
+                }
+                config.levelGrid.push_back(rowVec);
             }
         }
 
@@ -103,9 +135,10 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
 
 std::vector<WaveConfig> MapLoader::loadWaves(const std::string& filepath) {
     std::vector<WaveConfig> waves;
-    std::ifstream file(filepath);
+    std::string resolvedPath = resolveFilePath(filepath);
+    std::ifstream file(resolvedPath);
     if (!file.is_open()) {
-        std::cerr << "Failed to open wave config file: " << filepath << std::endl;
+        std::cerr << "Failed to open wave config file: " << filepath << " (resolved: " << resolvedPath << ")\n";
         return waves;
     }
 
@@ -131,9 +164,10 @@ std::vector<WaveConfig> MapLoader::loadWaves(const std::string& filepath) {
 
 CampaignConfig MapLoader::loadCampaign(const std::string& filepath) {
     CampaignConfig config;
-    std::ifstream file(filepath);
+    std::string resolvedPath = resolveFilePath(filepath);
+    std::ifstream file(resolvedPath);
     if (!file.is_open()) {
-        std::cerr << "Failed to open campaign config file: " << filepath << std::endl;
+        std::cerr << "Failed to open campaign config file: " << filepath << " (resolved: " << resolvedPath << ")\n";
         return config;
     }
 

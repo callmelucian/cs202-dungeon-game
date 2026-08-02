@@ -99,6 +99,24 @@ void Player::update(float deltaTime) {
 
     // Scale movement based on cell size (originally 60.f for a 100.f cell size)
     const float SPEED_TO_PIXELS = SettingManager::getInstance().getCellSize() * SettingManager::getInstance().getSpeedMultiplier();
+    
+    // Section 7.1: Grid coordinate alignment when movement input is released
+    if (dir.x == 0.f && dir.y == 0.f) {
+        float cellSize = settings.getCellSize();
+        float ox = settings.getGridOffsetX();
+        float oy = settings.getGridOffsetY();
+        sf::Vector2f pos = getPosition();
+        int col = static_cast<int>(std::round((pos.x - ox) / cellSize - 0.5f));
+        int row = static_cast<int>(std::round((pos.y - oy) / cellSize - 0.5f));
+        sf::Vector2f targetPos(ox + (col + 0.5f) * cellSize, oy + (row + 0.5f) * cellSize);
+
+        sf::Vector2f diff = targetPos - pos;
+        float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        if (dist > 0.1f && dist < cellSize * 0.5f) {
+            setPosition(pos + diff * std::min(1.0f, deltaTime * 12.0f));
+        }
+    }
+
     setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
 
     // 2. Update cooldown

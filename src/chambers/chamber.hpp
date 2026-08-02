@@ -40,6 +40,7 @@ public:
 
     void setGrid (const std::vector<std::vector<int>>& newGrid);
     const std::vector<std::vector<int>>& getGrid() const;
+    void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
     
     void setPlayerSpawn(const sf::Vector2f& spawn) { playerSpawn = spawn; }
     sf::Vector2f getPlayerSpawn() const { return playerSpawn; }
@@ -65,6 +66,9 @@ protected:
     
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};
     std::vector<std::vector<int>> grid;
+    std::vector<std::vector<std::string>> typeGrid;
+    std::vector<std::vector<int>> levelGrid;
+    TilemapRenderData renderData2D5;
     std::vector<sf::FloatRect> baseObstacles;
     std::vector<sf::FloatRect> elevationObstacles;
     std::vector<sf::FloatRect> inverseElevationObstacles;

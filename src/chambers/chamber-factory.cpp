@@ -46,11 +46,17 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         chamber = std::make_unique<TestChamber>(player);
     }
     
-    if (config.playerSpawnX >= 0.0f && config.playerSpawnY >= 0.0f) {
+    if (config.playerSpawnCell.first >= 0 && config.playerSpawnCell.second >= 0) {
+        float spawnX = config.playerSpawnCell.second + 0.5f;
+        float spawnY = config.playerSpawnCell.first + 0.5f;
+        chamber->setPlayerSpawn({spawnX, spawnY});
+    } else if (config.playerSpawnX >= 0.0f && config.playerSpawnY >= 0.0f) {
         chamber->setPlayerSpawn({config.playerSpawnX, config.playerSpawnY});
     }
 
-    if (!config.grid.empty()) {
+    if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
+        chamber->setGrids2D5(config.typeGrid, config.levelGrid);
+    } else if (!config.grid.empty()) {
         chamber->setGrid(config.grid);
     } else {
         std::vector<std::vector<int>> defaultGrid = MapLoader::loadChamberGrid(level, chamberIndex);
@@ -110,8 +116,24 @@ std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType
         chamber = std::make_unique<TestChamber>(player);
     }
     
-    std::vector<std::vector<int>> grid = MapLoader::loadChamberGrid(1, 1);
-    chamber->setGrid(grid);
+    std::string filepath = MapLoader::getChamberFilepath(1, 1);
+    if (filepath.empty()) filepath = "assets/maps/level-1/chamber-1.json";
+    ChamberConfig config = MapLoader::loadChamber(filepath);
+    
+    if (config.playerSpawnCell.first >= 0 && config.playerSpawnCell.second >= 0) {
+        float spawnX = config.playerSpawnCell.second + 0.5f;
+        float spawnY = config.playerSpawnCell.first + 0.5f;
+        chamber->setPlayerSpawn({spawnX, spawnY});
+    }
+
+    if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
+        chamber->setGrids2D5(config.typeGrid, config.levelGrid);
+    } else if (!config.grid.empty()) {
+        chamber->setGrid(config.grid);
+    } else {
+        std::vector<std::vector<int>> grid = MapLoader::loadChamberGrid(1, 1);
+        chamber->setGrid(grid);
+    }
 
     return chamber;
 }
