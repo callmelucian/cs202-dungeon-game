@@ -1,0 +1,35 @@
+{
+  "levels": [
+    {
+      "levelIndex": 1,
+      "name": "The Outer Wards",
+      "chambers": [
+        { "file": "assets/maps/level-1/chamber-1.json" },
+        { "file": "assets/maps/level-1/chamber-2.json" },
+        { "file": "assets/maps/level-1/chamber-3.json" },
+        { "file": "assets/maps/level-1/mid.json" }
+      ]
+    },
+    {
+      "levelIndex": 2,
+      "name": "The Sunken Choir",
+      "chambers": [
+        { "file": "assets/maps/level-2/chamber-1.json" },
+        { "file": "assets/maps/level-2/chamber-2.json" },
+        { "file": "assets/maps/level-2/chamber-3.json" },
+        { "file": "assets/maps/level-2/mid.json" }
+      ]
+    },
+    {
+      "levelIndex": 3,
+      "name": "The Inner Sanctum",
+      "chambers": [
+        { "file": "assets/maps/level-3/chamber-1.json" },
+        { "file": "assets/maps/level-3/chamber-2.json" },
+        { "file": "assets/maps/level-3/chamber-3.json" },
+        { "file": "assets/maps/level-3/chamber-4.json" },
+        { "file": "assets/maps/level-3/mid.json" }
+      ]
+    }
+  ]
+}

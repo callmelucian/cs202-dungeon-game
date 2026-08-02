@@ -162,7 +162,7 @@ CampaignConfig MapLoader::loadCampaign(const std::string& filepath) {
 }
 
 std::string MapLoader::getChamberFilepath(int level, int chamberIndex) {
-    CampaignConfig campaign = loadCampaign("maps/campaign.json");
+    CampaignConfig campaign = loadCampaign("assets/maps/campaign.json");
     for (const auto& lvl : campaign.levels) {
         if (lvl.levelIndex == level) {
             // chamberIndex is 1-based

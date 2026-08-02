@@ -13,8 +13,8 @@ The `maps/campaign.json` file defines the overarching structure of the run:
       "levelIndex": 1,
       "name": "The Outer Wards",
       "chambers": [
-        { "file": "maps/level1/chamber1.json" },
-        { "file": "maps/level1/chamber2.json" }
+        { "file": "assets/maps/level-1/chamber-1.json" },
+        { "file": "assets/maps/level-1/chamber-2.json" }
       ]
     }
   ]

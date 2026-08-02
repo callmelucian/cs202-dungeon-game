@@ -1,198 +1,358 @@
 {
-    "tile-width": 16,
-    "tile-height": 16,
-    "tiles": [
-        {
-            "name": "tile-upper-left",
-            "id": 0,
-            "x": 32,
-            "y": 32
+    "tile-textures": {
+        "LAND": [
+            {
+                "coord": [64, 64],
+                "position": "FILLED",
+                "neighbors": "LLLLLLLL",
+                "texture": 0
+            },
+            {
+                "coord": [80, 48],
+                "position": "FILLED",
+                "neighbors": "LLLLLLLL",
+                "texture": 1
+            },
+            {
+                "coord": [64, 48],
+                "position": "ANY",
+                "neighbors": "LLL",
+                "texture": 0
+            },
+                                {
+                "coord": [40, 64],
+                "position": "ANY",
+                "neighbors": "LLL",
+                "texture": 1
+            },
+            {
+                "coord": [64, 96],
+                "position": "ANY",
+                "neighbors": "LLL",
+                "texture": 2
+            },
+            {
+                "coord": [99, 72],
+                "position": "ANY",
+                "neighbors": "LLL",
+                "texture": 3
+            },
+
+            {
+                "coord": [48, 32],
+                "position": "TL",
+                "neighbors": "VVL",
+                "texture": 0
+            },
+            {
+                "coord": [88, 32],
+                "position": "TL",
+                "neighbors": "VVL",
+                "texture": 1
+            },
+            {
+                "coord": [32, 48],
+                "position": "TL",
+                "neighbors": "VLV"
+            },
+            {
+                "coord": [32, 32],
+                "position": "TL",
+                "neighbors": "VVV"
+            },
+            {
+                "coord": [32, 32],
+                "position": "TL",
+                "neighbors": "LVV"
+            },
+            {
+                "coord": [48, 32],
+                "position": "TL",
+                "neighbors": "LVL"
+            },
+            {
+                "coord": [32, 48],
+                "position": "TL",
+                "neighbors": "LLV"
+            },
+            {
+                "coord": [148, 64],
+                "position": "TL",
+                "neighbors": "VLL"
+            },
+
+
+            {
+                "coord": [56, 32],
+                "position": "TR",
+                "neighbors": "VVL",
+                "texture": 0
+            },
+            {
+                "coord": [72, 32],
+                "position": "TR",
+                "neighbors": "VVL",
+                "texture": 1
+            },
+            {
+                "coord": [104, 48],
+                "position": "TR",
+                "neighbors": "LVV"
+            },
+            {
+                "coord": [104, 32],
+                "position": "TR",
+                "neighbors": "VVV"
+            },
+            {
+                "coord": [104, 32],
+                "position": "TR",
+                "neighbors": "VLV"
+            },
+            {
+                "coord": [56, 32],
+                "position": "TR",
+                "neighbors": "VLL"
+            },
+            {
+                "coord": [104, 48],
+                "position": "TR",
+                "neighbors": "LLV"
+            },
+            {
+                "coord": [124, 64],
+                "position": "TR",
+                "neighbors": "LVL"
+            },
+
+            {
+                "coord": [32, 56],
+                "position": "BL",
+                "neighbors": "VVL"
+            },
+            {
+                "coord": [48, 104],
+                "position": "BL",
+                "neighbors": "LVV"
+            },
+            {
+                "coord": [32, 104],
+                "position": "BL",
+                "neighbors": "VVV"
+            },
+            {
+                "coord": [32, 104],
+                "position": "BL",
+                "neighbors": "VLV"
+            },
+            {
+                "coord": [48, 104],
+                "position": "BL",
+                "neighbors": "LLV"
+            },
+            {
+                "coord": [32, 56],
+                "position": "BL",
+                "neighbors": "VLL"
+            },
+            {
+                "coord": [148, 40],
+                "position": "BL",
+                "neighbors": "LVL"
+            },
+
+            {
+                "coord": [104, 56],
+                "position": "BR",
+                "neighbors": "VLV"
+            },
+            {
+                "coord": [56, 104],
+                "position": "BR",
+                "neighbors": "LVV"
+            },
+            {
+                "coord": [104, 104],
+                "position": "BR",
+                "neighbors": "VVV"
+            },
+            {
+                "coord": [104, 104],
+                "position": "BR",
+                "neighbors": "VVL"
+            },
+            {
+                "coord": [56, 104],
+                "position": "BR",
+                "neighbors": "LVL"
+            },
+            {
+                "coord": [104, 56],
+                "position": "BR",
+                "neighbors": "VLL"
+            },
+            {
+                "coord": [124, 40],
+                "position": "BR",
+                "neighbors": "LLV"
+            }
+        ],
+        "LAND-SHADOWED-TOP": {
+            "coord": [168, 32],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-upper",
-            "id": 1,
-            "x": 48,
-            "y": 32
+        "LAND-SHADOWED-MIDDLE": {
+            "coord": [168, 48],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-upper-right",
-            "id": 2,
-            "x": 96,
-            "y": 32
+        "LAND-SHADOWED-BOTTOM": {
+            "coord": [168, 64],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-left",
-            "id": 3,
-            "x": 32,
-            "y": 48
+
+        "WATER": [
+            {
+                "coord": [252, 48],
+                "position": "ANY",
+                "neighbors": "WWW"
+            },
+
+            {
+                "coord": [236, 84],
+                "position": "TL",
+                "neighbors": "LLL"
+            },
+            {
+                "coord": [268, 84],
+                "position": "TL",
+                "neighbors": "LLW"
+            },
+            {
+                "coord": [268, 116],
+                "position": "TL",
+                "neighbors": "LWW"
+            },
+            {
+                "coord": [268, 100],
+                "position": "TL",
+                "neighbors": "WWL"
+            },
+            {
+                "coord": [252, 116],
+                "position": "TL",
+                "neighbors": "WLW"
+            },
+
+
+            {
+                "coord": [276, 84],
+                "position": "TR",
+                "neighbors": "LLL"
+            },
+            {
+                "coord": [244, 84],
+                "position": "TR",
+                "neighbors": "LLW"
+            },
+            {
+                "coord": [244, 116],
+                "position": "TR",
+                "neighbors": "WLW"
+            },
+            {
+                "coord": [244, 100],
+                "position": "TR",
+                "neighbors": "WWL"
+            },
+            {
+                "coord": [260, 116],
+                "position": "TR",
+                "neighbors": "LWW"
+            },
+
+
+            {
+                "coord": [236, 124],
+                "position": "BL",
+                "neighbors": "LLL"
+            },
+            {
+                "coord": [268, 124],
+                "position": "BL",
+                "neighbors": "WLL"
+            },
+            {
+                "coord": [268, 92],
+                "position": "BL",
+                "neighbors": "WLW"
+            },
+            {
+                "coord": [252, 92],
+                "position": "BL",
+                "neighbors": "WWL"
+            },
+            {
+                "coord": [268, 108],
+                "position": "BL",
+                "neighbors": "LWW"
+            },
+
+
+            {
+                "coord": [260, 124],
+                "position": "BR",
+                "neighbors": "WLL"
+            },
+            {
+                "coord": [276, 124],
+                "position": "BR",
+                "neighbors": "LLL"
+            },
+            {
+                "coord": [244, 92],
+                "position": "BR",
+                "neighbors": "WWL"
+            },
+            {
+                "coord": [244, 108],
+                "position": "BR",
+                "neighbors": "LWW"
+            },
+            {
+                "coord": [260, 92],
+                "position": "BR",
+                "neighbors": "WLW"
+            }
+        ]
+    },
+
+    "cliffs": {
+        "hard-cliff": {
+            "coord": [88, 208],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-center",
-            "id": 4,
-            "x": 64,
-            "y": 64
+        "semi-hard-cliff": {
+            "coord": [88, 308],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-center-with-stone",
-            "id": 5,
-            "x": 80,
-            "y": 48
+        "soft-cliff": {
+            "coord": [88, 324],
+            "position": "FILLED"
         },
-        {
-            "name": "tile-right",
-            "id": 6,
-            "x": 96,
-            "y": 48
-        },
-        {
-            "name": "tile-lower-left",
-            "id": 7,
-            "x": 32,
-            "y": 96
-        },
-        {
-            "name": "tile-lower",
-            "id": 8,
-            "x": 48,
-            "y": 96
-        },
-        {
-            "name": "tile-lower-right",
-            "id": 9,
-            "x": 96,
-            "y": 96
-        },
-        {
-            "name": "tile-upper-lower-left",
-            "id": 10,
-            "x": 32,
-            "y": 128
-        },
-        {
-            "name": "tile-upper-lower-right",
-            "id": 11,
-            "x": 48,
-            "y": 128
-        },
-        {
-            "name": "tile-upper-left-right",
-            "id": 12,
-            "x": 116,
-            "y": 96
-        },
-        {
-            "name": "tile-lower-left-right",
-            "id": 13,
-            "x": 116,
-            "y": 112
-        },
-        {
-            "name": "tile-surrounded",
-            "id": 14,
-            "x": 68,
-            "y": 128
-        },
-        {
-            "name": "lake-upper-left",
-            "id": 15,
-            "x": 236,
-            "y": 32
-        },
-        {
-            "name": "lake-upper",
-            "id": 16,
-            "x": 252,
-            "y": 32
-        },
-        {
-            "name": "lake-upper-right",
-            "id": 17,
-            "x": 268,
-            "y": 32
-        },
-        {
-            "name": "lake-left",
-            "id": 18,
-            "x": 236,
-            "y": 48
-        },
-        {
-            "name": "lake-center",
-            "id": 19,
-            "x": 252,
-            "y": 48
-        },
-        {
-            "name": "lake-right",
-            "id": 20,
-            "x": 268,
-            "y": 48
-        },
-        {
-            "name": "lake-lower-left",
-            "id": 21,
-            "x": 236,
-            "y": 64
-        },
-        {
-            "name": "lake-lower",
-            "id": 22,
-            "x": 252,
-            "y": 64
-        },
-        {
-            "name": "lake-lower-right",
-            "id": 23,
-            "x": 268,
-            "y": 64
-        },
-        {
-            "name": "stair",
-            "id": 24,
-            "x": 216,
-            "y": 48
-        },
-        {
-            "name": "chest",
-            "id": 25,
-            "x": 142,
-            "y": 112
-        },
-        {
-            "name": "cave-open",
-            "id": 26,
-            "x": 140,
-            "y": 212
-        },
-        {
-            "name": "cave-close",
-            "id": 27,
-            "x": 156,
-            "y": 212
-        },
-        {
-            "name": "cave-lock",
-            "id": 28,
-            "x": 172,
-            "y": 212
-        },
-        {
-            "name": "river-vertical",
-            "id": 29,
-            "x": 296,
-            "y": 160
-        },
-        {
-            "name": "waterfall-veritcal",
-            "id": 30,
-            "x": 296,
-            "y": 176
-        },
-        {
-            "name": "wall-front",
-            "id": 31,
-            "x": 88,
-            "y": 208
+        "water-cliff": {
+            "coord": [272, 140],
+            "position": "FILLED"
         }
-    ]
+    },
+
+    "overlays": {
+        "vertical-bridge": {
+            "coord": [165, 130],
+            "size": [16, 20]
+        },
+        "horizontal-bridge": {
+            "coord": [140, 132],
+            "size": [20, 16]
+        }
+    }
 }
