@@ -217,15 +217,11 @@
                 "neighbors": "WWW"
             },
 
+
             {
                 "coord": [236, 84],
                 "position": "TL",
-                "neighbors": "LLL"
-            },
-            {
-                "coord": [268, 84],
-                "position": "TL",
-                "neighbors": "LLW"
+                "neighbors": "?LL"
             },
             {
                 "coord": [268, 116],
@@ -235,24 +231,19 @@
             {
                 "coord": [268, 100],
                 "position": "TL",
-                "neighbors": "WWL"
+                "neighbors": "?WL"
             },
             {
                 "coord": [252, 116],
                 "position": "TL",
-                "neighbors": "WLW"
+                "neighbors": "?LW"
             },
 
 
             {
                 "coord": [276, 84],
                 "position": "TR",
-                "neighbors": "LLL"
-            },
-            {
-                "coord": [244, 84],
-                "position": "TR",
-                "neighbors": "LLW"
+                "neighbors": "L?L"
             },
             {
                 "coord": [244, 116],
@@ -262,24 +253,19 @@
             {
                 "coord": [244, 100],
                 "position": "TR",
-                "neighbors": "WWL"
+                "neighbors": "W?L"
             },
             {
                 "coord": [260, 116],
                 "position": "TR",
-                "neighbors": "LWW"
+                "neighbors": "L?W"
             },
 
 
             {
                 "coord": [236, 124],
                 "position": "BL",
-                "neighbors": "LLL"
-            },
-            {
-                "coord": [268, 124],
-                "position": "BL",
-                "neighbors": "WLL"
+                "neighbors": "L?L"
             },
             {
                 "coord": [268, 92],
@@ -289,24 +275,19 @@
             {
                 "coord": [252, 92],
                 "position": "BL",
-                "neighbors": "WWL"
+                "neighbors": "W?L"
             },
             {
                 "coord": [268, 108],
                 "position": "BL",
-                "neighbors": "LWW"
+                "neighbors": "L?W"
             },
 
 
-            {
-                "coord": [260, 124],
-                "position": "BR",
-                "neighbors": "WLL"
-            },
             {
                 "coord": [276, 124],
                 "position": "BR",
-                "neighbors": "LLL"
+                "neighbors": "LL?"
             },
             {
                 "coord": [244, 92],
@@ -316,12 +297,12 @@
             {
                 "coord": [244, 108],
                 "position": "BR",
-                "neighbors": "LWW"
+                "neighbors": "LW?"
             },
             {
                 "coord": [260, 92],
                 "position": "BR",
-                "neighbors": "WLW"
+                "neighbors": "WL?"
             }
         ]
     },

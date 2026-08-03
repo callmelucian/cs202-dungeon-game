@@ -1,72 +1,94 @@
 #include "tile-manager.hpp"
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 TileManager& TileManager::getInstance() {
     static TileManager instance;
     return instance;
 }
 
-bool TileManager::loadTileMap(const std::string& filepath) {
-    std::ifstream file(filepath);
+bool TileManager::loadAtlasConfig(const std::string& configPath) {
+    std::string path = configPath;
+    if (!std::filesystem::exists(path) && std::filesystem::exists("../" + path)) {
+        path = "../" + path;
+    }
+    std::ifstream file(path);
     if (!file.is_open()) {
-        std::cerr << "Failed to open tile map: " << filepath << std::endl;
+        std::cerr << "TileManager: Failed to open tile-map.json at " << path << std::endl;
         return false;
     }
 
-    nlohmann::json j;
     try {
+        json j;
         file >> j;
-    } catch (const nlohmann::json::parse_error& e) {
-        std::cerr << "JSON parse error in " << filepath << ": " << e.what() << std::endl;
+
+        if (j.contains("tile-textures")) {
+            const auto& tt = j["tile-textures"];
+            if (tt.contains("LAND") && tt["LAND"].is_array()) {
+                for (const auto& item : tt["LAND"]) {
+                    TileAssetEntry entry;
+                    entry.coord = item.value("coord", std::vector<int>{0, 0});
+                    entry.position = item.value("position", "FILLED");
+                    entry.neighbors = item.value("neighbors", "");
+                    entry.textureVariant = item.value("texture", 0);
+                    landAssets.push_back(entry);
+                }
+            }
+
+            if (tt.contains("WATER") && tt["WATER"].is_array()) {
+                for (const auto& item : tt["WATER"]) {
+                    TileAssetEntry entry;
+                    entry.coord = item.value("coord", std::vector<int>{0, 0});
+                    entry.position = item.value("position", "ANY");
+                    entry.neighbors = item.value("neighbors", "");
+                    entry.textureVariant = item.value("texture", 0);
+                    waterAssets.push_back(entry);
+                }
+            }
+
+            auto loadOverlay = [](const json& src, OverlayAssetEntry& dst) {
+                if (src.contains("coord")) dst.coord = src["coord"].get<std::vector<int>>();
+                if (src.contains("size")) dst.size = src["size"].get<std::vector<int>>();
+                else dst.size = {16, 16};
+            };
+
+            if (tt.contains("LAND-SHADOWED-TOP")) loadOverlay(tt["LAND-SHADOWED-TOP"], landShadowTop);
+            if (tt.contains("LAND-SHADOWED-MIDDLE")) loadOverlay(tt["LAND-SHADOWED-MIDDLE"], landShadowMiddle);
+            if (tt.contains("LAND-SHADOWED-BOTTOM")) loadOverlay(tt["LAND-SHADOWED-BOTTOM"], landShadowBottom);
+        }
+
+        if (j.contains("cliffs")) {
+            const auto& cliffs = j["cliffs"];
+            auto loadCliff = [](const json& src, CliffAssetEntry& dst) {
+                if (src.contains("coord")) dst.coord = src["coord"].get<std::vector<int>>();
+                dst.position = src.value("position", "FILLED");
+            };
+            if (cliffs.contains("hard-cliff")) loadCliff(cliffs["hard-cliff"], hardCliff);
+            if (cliffs.contains("semi-hard-cliff")) loadCliff(cliffs["semi-hard-cliff"], semiHardCliff);
+            if (cliffs.contains("soft-cliff")) loadCliff(cliffs["soft-cliff"], softCliff);
+            if (cliffs.contains("water-cliff")) loadCliff(cliffs["water-cliff"], waterCliff);
+        }
+
+        if (j.contains("overlays")) {
+            const auto& overlays = j["overlays"];
+            if (overlays.contains("vertical-bridge")) {
+                verticalBridge.coord = overlays["vertical-bridge"].value("coord", std::vector<int>{165, 130});
+                verticalBridge.size = overlays["vertical-bridge"].value("size", std::vector<int>{16, 20});
+            }
+            if (overlays.contains("horizontal-bridge")) {
+                horizontalBridge.coord = overlays["horizontal-bridge"].value("coord", std::vector<int>{140, 132});
+                horizontalBridge.size = overlays["horizontal-bridge"].value("size", std::vector<int>{20, 16});
+            }
+        }
+
+        atlasLoaded = true;
+        return true;
+    } catch (const json::exception& e) {
+        std::cerr << "TileManager: Error parsing JSON: " << e.what() << std::endl;
         return false;
     }
-
-    tileSize.x = j.value("tile-width", 16);
-    tileSize.y = j.value("tile-height", 16);
-
-    if (j.contains("tiles") && j["tiles"].is_array()) {
-        for (const auto& tileJson : j["tiles"]) {
-            int id = tileJson.value("id", -1);
-            if (id == -1) continue;
-
-            std::string name = tileJson.value("name", "");
-            int x = tileJson.value("x", 0);
-            int y = tileJson.value("y", 0);
-
-            TileData data;
-            data.name = name;
-            data.rect = sf::IntRect({x, y}, tileSize);
-
-            tilesById[id] = data;
-            nameToId[name] = id;
-        }
-    }
-
-    return true;
-}
-
-sf::IntRect TileManager::getTileRect(int id) const {
-    auto it = tilesById.find(id);
-    if (it != tilesById.end()) {
-        return it->second.rect;
-    }
-    return sf::IntRect({0, 0}, tileSize); // Fallback
-}
-
-sf::IntRect TileManager::getTileRect(const std::string& name) const {
-    auto idIt = nameToId.find(name);
-    if (idIt != nameToId.end()) {
-        return getTileRect(idIt->second);
-    }
-    return sf::IntRect({0, 0}, tileSize);
-}
-
-int TileManager::getTileId(const std::string& name) const {
-    auto idIt = nameToId.find(name);
-    if (idIt != nameToId.end()) {
-        return idIt->second;
-    }
-    return -1;
 }

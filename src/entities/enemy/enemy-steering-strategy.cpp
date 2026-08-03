@@ -15,7 +15,7 @@ static sf::Vector2f normalize(const sf::Vector2f& source) {
 
 sf::Vector2f SeekStrategy::calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) {
     // Simple A* pathfinding towards player
-    std::vector<sf::Vector2f> path = Pathfinder::findPath(enemy.getPosition(), player.getPosition(), chamber.getGrid());
+    std::vector<sf::Vector2f> path = Pathfinder::findPath(enemy.getPosition(), player.getPosition(), chamber.getTypeGrid());
     
     if (!path.empty()) {
         sf::Vector2f targetWaypoint = path.front();

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-bool Pathfinder::isWalkable(sf::Vector2f position, const std::vector<std::vector<int>>& grid) {
+bool Pathfinder::isWalkable(sf::Vector2f position, const std::vector<std::vector<std::string>>& grid) {
     if (grid.empty() || grid[0].empty()) return false;
     
     float size = SettingManager::getInstance().getCellSize();
@@ -15,13 +15,13 @@ bool Pathfinder::isWalkable(sf::Vector2f position, const std::vector<std::vector
     int y = static_cast<int>(std::floor((position.y - oy) / size));
     
     if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
-        int cell = grid[y][x];
-        return (cell == 0 || cell == 3); // 0 is floor, 3 is bridge
+        std::string cell = grid[y][x];
+        return (cell == "L" || cell == "V" || cell == "H");
     }
     return false;
 }
 
-std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f target, const std::vector<std::vector<int>>& grid) {
+std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f target, const std::vector<std::vector<std::string>>& grid) {
     if (grid.empty() || grid[0].empty()) return {};
 
     float size = SettingManager::getInstance().getCellSize();
@@ -35,7 +35,7 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
     
     if (startY < 0 || startY >= grid.size() || startX < 0 || startX >= grid[0].size()) return {};
     if (targetY < 0 || targetY >= grid.size() || targetX < 0 || targetX >= grid[0].size()) return {};
-    if (grid[targetY][targetX] != 0 && grid[targetY][targetX] != 3) {
+    if (grid[targetY][targetX] != "L" && grid[targetY][targetX] != "V" && grid[targetY][targetX] != "H") {
         return {}; // target is unreachable/unwalkable
     }
 
@@ -68,8 +68,8 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
             int ny = curr.y + dy[i];
             
             if (ny >= 0 && ny < grid.size() && nx >= 0 && nx < grid[0].size()) {
-                int cell = grid[ny][nx];
-                if (!visited[ny][nx] && (cell == 0 || cell == 3)) {
+                std::string cell = grid[ny][nx];
+                if (!visited[ny][nx] && (cell == "L" || cell == "V" || cell == "H")) {
                     visited[ny][nx] = true;
                     parent[ny][nx] = curr;
                     q.push({nx, ny});

@@ -48,8 +48,7 @@ add_executable(game
     src/global-settings/save-load-manager.cpp
     src/global-settings/animation-manager.cpp
     src/global-settings/tile-manager.cpp
-    src/global-settings/tilemap-loader.cpp
-    src/global-settings/map-loader.cpp
+
 
     # ui
     src/ui/base/component.cpp
@@ -120,7 +119,9 @@ add_executable(game
     src/chambers/gauntlet-chamber.cpp
     src/chambers/boss-chamber.cpp
     src/chambers/wave-spawner.cpp
-    src/chambers/tile-map-generator.cpp
+    src/chambers/map-loader.cpp
+    src/chambers/tilemap-loader.cpp
+    src/chambers/renderable-tilemap.cpp
 )
 
 # Link SFML and JSON libraries

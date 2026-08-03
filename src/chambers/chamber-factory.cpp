@@ -1,6 +1,6 @@
 #include "chamber-factory.hpp"
 #include "test-chamber.hpp"
-#include "../global-settings/map-loader.hpp"
+#include "map-loader.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include <iostream>
 
@@ -56,11 +56,6 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
 
     if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
         chamber->setGrids2D5(config.typeGrid, config.levelGrid);
-    } else if (!config.grid.empty()) {
-        chamber->setGrid(config.grid);
-    } else {
-        std::vector<std::vector<int>> defaultGrid = MapLoader::loadChamberGrid(level, chamberIndex);
-        chamber->setGrid(defaultGrid);
     }
 
     if (chamber && !config.waves.empty()) {
@@ -72,23 +67,17 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     if (config.chamberType == "MidChamber") {
         auto* midChamber = dynamic_cast<MidChamber*>(chamber.get());
         if (midChamber) {
-            const auto& grid = chamber->getGrid();
-            float cellSize = SettingManager::getInstance().getCellSize();
-            float ox = SettingManager::getInstance().getGridOffsetX();
-            float oy = SettingManager::getInstance().getGridOffsetY();
-            if (!grid.empty() && !grid[0].empty()) {
-                int rows = static_cast<int>(grid.size());
-                int cols = static_cast<int>(grid[0].size());
-                // Find the bottom-most walkable row, center column
-                int exitRow = rows - 2;
-                for (int r = rows - 1; r >= 1; --r) {
-                    for (int c = 0; c < cols; ++c) {
-                        if (grid[r][c] == 0) { exitRow = r; break; }
-                    }
-                    if (exitRow != rows - 2) break;
-                }
-                float exitX = ox + (cols / 2.f) * cellSize;
-                float exitY = oy + (exitRow + 0.5f) * cellSize;
+            const auto& typeGrid = chamber->getTypeGrid();
+            if (!typeGrid.empty() && !typeGrid[0].empty()) {
+                int rows = typeGrid.size();
+                int cols = typeGrid[0].size();
+                float size = SettingManager::getInstance().getCellSize();
+                float ox = SettingManager::getInstance().getGridOffsetX();
+                float oy = SettingManager::getInstance().getGridOffsetY();
+                
+                // Position exit at bottom center of the playable area
+                float exitX = ox + (cols / 2.0f) * size;
+                float exitY = oy + (rows - 2) * size;
                 midChamber->setExitPosition({exitX, exitY});
             }
         }
@@ -128,11 +117,6 @@ std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType
 
     if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
         chamber->setGrids2D5(config.typeGrid, config.levelGrid);
-    } else if (!config.grid.empty()) {
-        chamber->setGrid(config.grid);
-    } else {
-        std::vector<std::vector<int>> grid = MapLoader::loadChamberGrid(1, 1);
-        chamber->setGrid(grid);
     }
 
     return chamber;

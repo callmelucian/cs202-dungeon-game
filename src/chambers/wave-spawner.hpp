@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 #include <SFML/System/Vector2.hpp>
-#include "../global-settings/map-loader.hpp"
+#include "map-loader.hpp"
 
 class Chamber;
 class Player;

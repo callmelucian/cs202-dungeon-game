@@ -21,7 +21,6 @@ struct ChamberConfig {
     std::pair<int, int> playerSpawnCell = {-1, -1};
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
-    std::vector<std::vector<int>> grid;
     std::vector<WaveConfig> waves;
 };
 
@@ -39,7 +38,6 @@ class MapLoader {
 public:
     static std::string getChamberFilepath(int level, int chamberIndex);
     static CampaignConfig loadCampaign(const std::string& filepath);
-    static std::vector<std::vector<int>> loadChamberGrid(int level, int chamberIndex);
     static ChamberConfig loadChamber(const std::string& filepath);
     static std::vector<WaveConfig> loadWaves(const std::string& filepath);
 

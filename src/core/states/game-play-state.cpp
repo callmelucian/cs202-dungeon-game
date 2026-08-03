@@ -3,7 +3,7 @@
 #include "game-over-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
-#include "../../global-settings/map-loader.hpp"
+#include "../../chambers/map-loader.hpp"
 #include "../../global-settings/setting-manager.hpp"
 #include "../../graphics/particle-system.hpp"
 #include "choose-chamber-state.hpp"
@@ -163,7 +163,7 @@ void GameplayState::startChamberIntro(const std::string& titleStr) {
     float gridHeight = settings.getGridRows() * settings.getCellSize();
 
     if (activeChamber) {
-        const auto& grid = activeChamber->getGrid();
+        const auto& grid = activeChamber->getTypeGrid();
         if (!grid.empty() && !grid[0].empty()) {
             gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
             gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
@@ -205,7 +205,7 @@ void GameplayState::update(float deltaTime) {
     float gridHeight = settings.getGridRows() * settings.getCellSize();
 
     if (activeChamber) {
-        const auto& grid = activeChamber->getGrid();
+        const auto& grid = activeChamber->getTypeGrid();
         if (!grid.empty() && !grid[0].empty()) {
             gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
             gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
@@ -315,7 +315,7 @@ void GameplayState::update(float deltaTime) {
         float gridHeight = settings.getGridRows() * settings.getCellSize();
 
         if (activeChamber) {
-            const auto& grid = activeChamber->getGrid();
+            const auto& grid = activeChamber->getTypeGrid();
             if (!grid.empty() && !grid[0].empty()) {
                 gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
                 gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
@@ -394,7 +394,7 @@ void GameplayState::handleEvents(sf::Event& event) {
             float gridWidth = settings.getGridCols() * settings.getCellSize();
             float gridHeight = settings.getGridRows() * settings.getCellSize();
             if (activeChamber) {
-                const auto& grid = activeChamber->getGrid();
+                const auto& grid = activeChamber->getTypeGrid();
                 if (!grid.empty() && !grid[0].empty()) {
                     gridWidth = static_cast<float>(grid[0].size()) * settings.getCellSize();
                     gridHeight = static_cast<float>(grid.size()) * settings.getCellSize();
@@ -462,12 +462,12 @@ void GameplayState::initPlayerPosition() {
             spawnX = cfgSpawn.x;
             spawnY = cfgSpawn.y;
         } else {
-            const auto& grid = activeChamber->getGrid();
+            const auto& grid = activeChamber->getTypeGrid();
             bool found = false;
             // Search for the first walkable ground tile (type 0)
             for (size_t y = 1; y < grid.size() && !found; ++y) {
                 for (size_t x = 1; x < grid[y].size() && !found; ++x) {
-                    if (grid[y][x] == 0) {
+                    if (grid[y][x] == "L") {
                         spawnX = static_cast<float>(x) + 0.5f;
                         spawnY = static_cast<float>(y) + 0.5f;
                         found = true;

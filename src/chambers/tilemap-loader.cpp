@@ -5,6 +5,7 @@
 #include <queue>
 #include <random>
 #include <nlohmann/json.hpp>
+#include "../global-settings/asset-manager.hpp"
 
 using json = nlohmann::json;
 
@@ -14,7 +15,10 @@ TilemapLoader& TilemapLoader::getInstance() {
 }
 
 TilemapLoader::TilemapLoader() {
-    loadAtlasConfig("assets/animations/tile-map.json");
+    auto& tm = TileManager::getInstance();
+    if (!tm.atlasLoaded) {
+        tm.loadAtlasConfig("assets/animations/tile-map.json");
+    }
 }
 
 TileType TilemapLoader::parseTileType(const std::string& typeStr) const {
@@ -25,85 +29,7 @@ TileType TilemapLoader::parseTileType(const std::string& typeStr) const {
     return TileType::Void;
 }
 
-void TilemapLoader::loadAtlasConfig(const std::string& configPath) {
-    std::string path = configPath;
-    if (!std::filesystem::exists(path) && std::filesystem::exists("../" + path)) {
-        path = "../" + path;
-    }
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        std::cerr << "TilemapLoader: Failed to open tile-map.json at " << path << std::endl;
-        return;
-    }
 
-    try {
-        json j;
-        file >> j;
-
-        if (j.contains("tile-textures")) {
-            const auto& tt = j["tile-textures"];
-            if (tt.contains("LAND") && tt["LAND"].is_array()) {
-                for (const auto& item : tt["LAND"]) {
-                    TileAssetEntry entry;
-                    entry.coord = item.value("coord", std::vector<int>{0, 0});
-                    entry.position = item.value("position", "FILLED");
-                    entry.neighbors = item.value("neighbors", "");
-                    entry.textureVariant = item.value("texture", 0);
-                    landAssets.push_back(entry);
-                }
-            }
-
-            if (tt.contains("WATER") && tt["WATER"].is_array()) {
-                for (const auto& item : tt["WATER"]) {
-                    TileAssetEntry entry;
-                    entry.coord = item.value("coord", std::vector<int>{0, 0});
-                    entry.position = item.value("position", "ANY");
-                    entry.neighbors = item.value("neighbors", "");
-                    entry.textureVariant = item.value("texture", 0);
-                    waterAssets.push_back(entry);
-                }
-            }
-
-            auto loadOverlay = [](const json& src, OverlayAssetEntry& dst) {
-                if (src.contains("coord")) dst.coord = src["coord"].get<std::vector<int>>();
-                if (src.contains("size")) dst.size = src["size"].get<std::vector<int>>();
-                else dst.size = {16, 16};
-            };
-
-            if (tt.contains("LAND-SHADOWED-TOP")) loadOverlay(tt["LAND-SHADOWED-TOP"], landShadowTop);
-            if (tt.contains("LAND-SHADOWED-MIDDLE")) loadOverlay(tt["LAND-SHADOWED-MIDDLE"], landShadowMiddle);
-            if (tt.contains("LAND-SHADOWED-BOTTOM")) loadOverlay(tt["LAND-SHADOWED-BOTTOM"], landShadowBottom);
-        }
-
-        if (j.contains("cliffs")) {
-            const auto& cliffs = j["cliffs"];
-            auto loadCliff = [](const json& src, CliffAssetEntry& dst) {
-                if (src.contains("coord")) dst.coord = src["coord"].get<std::vector<int>>();
-                dst.position = src.value("position", "FILLED");
-            };
-            if (cliffs.contains("hard-cliff")) loadCliff(cliffs["hard-cliff"], hardCliff);
-            if (cliffs.contains("semi-hard-cliff")) loadCliff(cliffs["semi-hard-cliff"], semiHardCliff);
-            if (cliffs.contains("soft-cliff")) loadCliff(cliffs["soft-cliff"], softCliff);
-            if (cliffs.contains("water-cliff")) loadCliff(cliffs["water-cliff"], waterCliff);
-        }
-
-        if (j.contains("overlays")) {
-            const auto& overlays = j["overlays"];
-            if (overlays.contains("vertical-bridge")) {
-                verticalBridge.coord = overlays["vertical-bridge"].value("coord", std::vector<int>{165, 130});
-                verticalBridge.size = overlays["vertical-bridge"].value("size", std::vector<int>{16, 20});
-            }
-            if (overlays.contains("horizontal-bridge")) {
-                horizontalBridge.coord = overlays["horizontal-bridge"].value("coord", std::vector<int>{140, 132});
-                horizontalBridge.size = overlays["horizontal-bridge"].value("size", std::vector<int>{20, 16});
-            }
-        }
-
-        atlasLoaded = true;
-    } catch (const json::exception& e) {
-        std::cerr << "TilemapLoader: Error parsing JSON: " << e.what() << std::endl;
-    }
-}
 
 int TilemapLoader::tilePicker(TileType currentType, const std::vector<TileType>& neighbors) {
     // Stub implementation of tilePicker interface specified in Section 3
@@ -113,13 +39,6 @@ int TilemapLoader::tilePicker(TileType currentType, const std::vector<TileType>&
     return 0;
 }
 
-std::vector<std::vector<int>> TilemapLoader::loadMap(
-    const std::vector<std::vector<std::string>>& typeGrid,
-    const std::vector<std::vector<int>>& levelGrid
-) {
-    TilemapRenderData data = synthesizeMap(typeGrid, levelGrid);
-    return data.legacyGrid;
-}
 
 TilemapRenderData TilemapLoader::synthesizeMap(
     const std::vector<std::vector<std::string>>& typeGrid,
@@ -133,7 +52,6 @@ TilemapRenderData TilemapLoader::synthesizeMap(
     data.width = cols;
     data.height = rows;
 
-    data.legacyGrid = std::vector<std::vector<int>>(rows, std::vector<int>(cols, 0));
     data.walkableGrid = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, false));
 
     // Determine elevation level range
@@ -147,9 +65,11 @@ TilemapRenderData TilemapLoader::synthesizeMap(
 
     static std::mt19937 rng(42);
 
-    auto selectVariant = [&](const std::vector<TileAssetEntry>& matches) -> const TileAssetEntry* {
+    auto& tm = TileManager::getInstance();
+
+    auto selectVariant = [](const std::vector<TileManager::TileAssetEntry>& matches) -> const TileManager::TileAssetEntry* {
         if (matches.empty()) return nullptr;
-        std::map<int, std::vector<const TileAssetEntry*>> byVariant;
+        std::map<int, std::vector<const TileManager::TileAssetEntry*>> byVariant;
         for (const auto& item : matches) {
             byVariant[item.textureVariant].push_back(&item);
         }
@@ -166,7 +86,7 @@ TilemapRenderData TilemapLoader::synthesizeMap(
             std::uniform_int_distribution<size_t> idxDist(0, byVariant[0].size() - 1);
             return byVariant[0][idxDist(rng)];
         } else if (numNonZero > 0) {
-            std::vector<const TileAssetEntry*> nonZeroList;
+            std::vector<const TileManager::TileAssetEntry*> nonZeroList;
             for (const auto& kv : byVariant) {
                 if (kv.first > 0) {
                     nonZeroList.insert(nonZeroList.end(), kv.second.begin(), kv.second.end());
@@ -177,8 +97,9 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                 return nonZeroList[idxDist(rng)];
             }
         }
-        std::uniform_int_distribution<size_t> idxDist(0, matches.size() - 1);
-        return &matches[idxDist(rng)];
+        
+        std::uniform_int_distribution<size_t> fbDist(0, matches.size() - 1);
+        return &matches[fbDist(rng)];
     };
 
     // Helper: Find 4-connected components for level >= L
@@ -258,12 +179,12 @@ TilemapRenderData TilemapLoader::synthesizeMap(
 
                 if (cellType == TileType::Land || cellType == TileType::VerticalBridge || cellType == TileType::HorizontalBridge) {
                     data.walkableGrid[r][c] = true;
-                    data.legacyGrid[r][c] = (cellType == TileType::Land) ? 0 : 3;
 
-                    // Match neighbor strings: 'L' for Land/same comp, 'V' for Void/different
+
+                    // Match neighbor strings: 'L' for Land/water, 'V' for Void
                     std::string neighborStr = "";
                     for (int i = 0; i < 8; ++i) {
-                        if (nTypes[i] == TileType::Land || nTypes[i] == TileType::VerticalBridge || nTypes[i] == TileType::HorizontalBridge) {
+                        if (nTypes[i] == TileType::Land || nTypes[i] == TileType::VerticalBridge || nTypes[i] == TileType::HorizontalBridge || nTypes[i] == TileType::Water) {
                             neighborStr += 'L';
                         } else {
                             neighborStr += 'V';
@@ -271,15 +192,25 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     }
 
                     // Check FILLED match ("LLLLLLLL")
-                    std::vector<TileAssetEntry> filledMatches;
-                    for (const auto& item : landAssets) {
-                        if (item.position == "FILLED" && item.neighbors == "LLLLLLLL") {
-                            filledMatches.push_back(item);
+                    std::vector<TileManager::TileAssetEntry> filledMatches;
+                    for (const auto& item : tm.landAssets) {
+                        if (item.position == "FILLED") {
+                            bool match = true;
+                            if (item.neighbors.length() != 8) match = false;
+                            else {
+                                for (size_t k = 0; k < 8; ++k) {
+                                    if (item.neighbors[k] != '?' && item.neighbors[k] != neighborStr[k]) {
+                                        match = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (match) filledMatches.push_back(item);
                         }
                     }
 
                     if (neighborStr == "LLLLLLLL" && !filledMatches.empty()) {
-                        const TileAssetEntry* chosen = selectVariant(filledMatches);
+                        const TileManager::TileAssetEntry* chosen = selectVariant(filledMatches);
                         if (chosen) {
                             TileQuadInfo quad;
                             quad.texRect = {chosen->coord[0], chosen->coord[1], 16, 16};
@@ -312,22 +243,25 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                         };
 
                         for (int q = 0; q < 4; ++q) {
-                            std::vector<TileAssetEntry> qMatches;
-                            for (const auto& item : landAssets) {
-                                if ((item.position == quadConfigs[q].pos || item.position == "ANY") &&
-                                    item.neighbors == quadConfigs[q].reqPattern) {
-                                    qMatches.push_back(item);
+                            std::vector<TileManager::TileAssetEntry> qMatches;
+                            for (const auto& item : tm.landAssets) {
+                                if (item.position == quadConfigs[q].pos || item.position == "ANY") {
+                                    bool match = true;
+                                    if (item.neighbors.length() != quadConfigs[q].reqPattern.length()) match = false;
+                                    else {
+                                        for (size_t k = 0; k < item.neighbors.length(); ++k) {
+                                            if (item.neighbors[k] != '?' && item.neighbors[k] != quadConfigs[q].reqPattern[k]) {
+                                                match = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (match) qMatches.push_back(item);
                                 }
                             }
-                            const TileAssetEntry* chosen = selectVariant(qMatches);
+                            const TileManager::TileAssetEntry* chosen = selectVariant(qMatches);
                             if (!chosen) {
-                                // Fallback to ANY LLL
-                                for (const auto& item : landAssets) {
-                                    if (item.position == "ANY" && item.neighbors == "LLL") {
-                                        qMatches.push_back(item);
-                                    }
-                                }
-                                chosen = selectVariant(qMatches);
+                                throw std::runtime_error("Land asset not found for position " + quadConfigs[q].pos + " with pattern " + quadConfigs[q].reqPattern);
                             }
                             if (chosen) {
                                 TileQuadInfo quad;
@@ -340,7 +274,7 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     }
                     data.baseTiles.push_back(baseTile);
                 } else if (cellType == TileType::Water) {
-                    data.legacyGrid[r][c] = 2; // Water lake
+
                     std::string neighborStr = "";
                     for (int i = 0; i < 8; ++i) {
                         if (nTypes[i] == TileType::Water) neighborStr += 'W';
@@ -364,21 +298,29 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     };
 
                     for (int q = 0; q < 4; ++q) {
-                        std::vector<TileAssetEntry> qMatches;
-                        for (const auto& item : waterAssets) {
-                            if ((item.position == quadConfigs[q].pos || item.position == "ANY") &&
-                                item.neighbors == quadConfigs[q].reqPattern) {
-                                qMatches.push_back(item);
-                            }
-                        }
-                        const TileAssetEntry* chosen = selectVariant(qMatches);
-                        if (!chosen) {
-                            for (const auto& item : waterAssets) {
-                                if (item.position == "ANY" && item.neighbors == "WWW") {
-                                    qMatches.push_back(item);
+                        std::vector<TileManager::TileAssetEntry> qMatches;
+                        auto findMatches = [&](const std::string& pattern) {
+                            qMatches.clear();
+                            for (const auto& item : tm.waterAssets) {
+                                if (item.position == quadConfigs[q].pos || item.position == "ANY") {
+                                    bool match = true;
+                                    if (item.neighbors.length() != pattern.length()) match = false;
+                                    else {
+                                        for (size_t k = 0; k < item.neighbors.length(); ++k) {
+                                            if (item.neighbors[k] != '?' && item.neighbors[k] != pattern[k]) {
+                                                match = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (match) qMatches.push_back(item);
                                 }
                             }
-                            chosen = selectVariant(qMatches);
+                        };
+                        findMatches(quadConfigs[q].reqPattern);
+                        const TileManager::TileAssetEntry* chosen = selectVariant(qMatches);
+                        if (!chosen) {
+                            throw std::runtime_error("Water asset not found for position " + quadConfigs[q].pos + " with pattern " + quadConfigs[q].reqPattern);
                         }
                         if (chosen) {
                             TileQuadInfo quad;
@@ -415,18 +357,18 @@ TilemapRenderData TilemapLoader::synthesizeMap(
 
                     if (typeBelow == TileType::Void || levBelow == 0) {
                         if (step == delta) {
-                            quad.texRect = {softCliff.coord[0], softCliff.coord[1], 16, 16};
-                        } else {
-                            quad.texRect = {semiHardCliff.coord[0], semiHardCliff.coord[1], 16, 16};
+                            quad.texRect = {tm.softCliff.coord[0], tm.softCliff.coord[1], 16, 16};
+                        } else if (step < delta) {
+                            quad.texRect = {tm.semiHardCliff.coord[0], tm.semiHardCliff.coord[1], 16, 16};
                         }
                     } else if (typeBelow == TileType::Water) {
-                        if (step == delta) {
-                            quad.texRect = {waterCliff.coord[0], waterCliff.coord[1], 16, 16};
+                        if (step == 1) {
+                            quad.texRect = {tm.waterCliff.coord[0], tm.waterCliff.coord[1], 16, 16};
                         } else {
-                            quad.texRect = {hardCliff.coord[0], hardCliff.coord[1], 16, 16};
+                            quad.texRect = {tm.hardCliff.coord[0], tm.hardCliff.coord[1], 16, 16};
                         }
                     } else { // Land
-                        quad.texRect = {hardCliff.coord[0], hardCliff.coord[1], 16, 16};
+                        quad.texRect = {tm.hardCliff.coord[0], tm.hardCliff.coord[1], 16, 16};
                     }
 
                     cliffTile.quads.push_back(quad);
@@ -452,10 +394,10 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     r++;
                 }
                 int endR = r - 1;
-                int len = endR - startR + 1;
+                int shadowLen = endR - startR + 1;
 
-                for (int i = 0; i < len; ++i) {
-                    int currR = startR + i;
+                for (int dc = 0; dc < shadowLen; ++dc) {
+                    int currR = startR + dc;
                     RenderTile shadowTile;
                     shadowTile.layer = levelGrid[currR][c] + 1;
                     shadowTile.gridRow = currR;
@@ -465,12 +407,12 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     quad.renderOffset = {0.f, 0.f};
                     quad.renderSize = {16.f, 16.f};
 
-                    if (len == 1 || i == 0) {
-                        quad.texRect = {landShadowTop.coord[0], landShadowTop.coord[1], 16, 16};
-                    } else if (i == len - 1) {
-                        quad.texRect = {landShadowBottom.coord[0], landShadowBottom.coord[1], 16, 16};
+                    if (dc == 0) {
+                        quad.texRect = {tm.landShadowTop.coord[0], tm.landShadowTop.coord[1], 16, 16};
+                    } else if (dc == shadowLen - 1) {
+                        quad.texRect = {tm.landShadowBottom.coord[0], tm.landShadowBottom.coord[1], 16, 16};
                     } else {
-                        quad.texRect = {landShadowMiddle.coord[0], landShadowMiddle.coord[1], 16, 16};
+                        quad.texRect = {tm.landShadowMiddle.coord[0], tm.landShadowMiddle.coord[1], 16, 16};
                     }
                     shadowTile.quads.push_back(quad);
                     data.shadowTiles.push_back(shadowTile);
@@ -484,24 +426,26 @@ TilemapRenderData TilemapLoader::synthesizeMap(
     // Section 5.4: Bridge Overlays
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            TileType t = parseTileType(typeGrid[r][c]);
-            if (t == TileType::VerticalBridge || t == TileType::HorizontalBridge) {
+            TileType tType = parseTileType(typeGrid[r][c]);
+            if (tType == TileType::VerticalBridge || tType == TileType::HorizontalBridge) {
                 RenderTile bridgeTile;
                 bridgeTile.layer = levelGrid[r][c] + 2;
                 bridgeTile.gridRow = r;
                 bridgeTile.gridCol = c;
 
-                TileQuadInfo quad;
-                if (t == TileType::VerticalBridge) {
-                    quad.texRect = {verticalBridge.coord[0], verticalBridge.coord[1], verticalBridge.size[0], verticalBridge.size[1]};
-                    quad.renderOffset = {0.f, -2.f};
-                    quad.renderSize = {static_cast<float>(verticalBridge.size[0]), static_cast<float>(verticalBridge.size[1])};
-                } else {
-                    quad.texRect = {horizontalBridge.coord[0], horizontalBridge.coord[1], horizontalBridge.size[0], horizontalBridge.size[1]};
-                    quad.renderOffset = {-2.f, 0.f};
-                    quad.renderSize = {static_cast<float>(horizontalBridge.size[0]), static_cast<float>(horizontalBridge.size[1])};
+                if (tType == TileType::VerticalBridge) {
+                    TileQuadInfo quad;
+                    quad.texRect = {tm.verticalBridge.coord[0], tm.verticalBridge.coord[1], tm.verticalBridge.size[0], tm.verticalBridge.size[1]};
+                    quad.renderOffset = sf::Vector2f(0.f, 0.f);
+                    quad.renderSize = sf::Vector2f(static_cast<float>(tm.verticalBridge.size[0]), static_cast<float>(tm.verticalBridge.size[1]));
+                    bridgeTile.quads.push_back(quad);
+                } else if (tType == TileType::HorizontalBridge) {
+                    TileQuadInfo quad;
+                    quad.texRect = {tm.horizontalBridge.coord[0], tm.horizontalBridge.coord[1], tm.horizontalBridge.size[0], tm.horizontalBridge.size[1]};
+                    quad.renderOffset = sf::Vector2f(0.f, 0.f);
+                    quad.renderSize = sf::Vector2f(static_cast<float>(tm.horizontalBridge.size[0]), static_cast<float>(tm.horizontalBridge.size[1]));
+                    bridgeTile.quads.push_back(quad);
                 }
-                bridgeTile.quads.push_back(quad);
                 data.bridgeTiles.push_back(bridgeTile);
             }
         }
@@ -509,3 +453,24 @@ TilemapRenderData TilemapLoader::synthesizeMap(
 
     return data;
 }
+
+
+
+RenderableTileMap TilemapLoader::createRenderableMap(const std::vector<std::vector<std::string>>& typeGrid, const std::vector<std::vector<int>>& levelGrid, float cellSize, float offsetX, float offsetY) {
+    TilemapRenderData renderData = synthesizeMap(typeGrid, levelGrid);
+    RenderableTileMap map;
+    try {
+        const sf::Texture& tex = AssetManager::getInstance().getTexture("tile-map");
+        map.loadFromRenderData(&tex, renderData, cellSize, offsetX, offsetY);
+    } catch (...) {
+        try {
+            const sf::Texture& tex = AssetManager::getInstance().getTexture("dungeon-tiles");
+            map.loadFromRenderData(&tex, renderData, cellSize, offsetX, offsetY);
+        } catch (...) {
+            std::cerr << "Failed to get tile-map texture from AssetManager!" << std::endl;
+        }
+    }
+    map.setPosition(sf::Vector2f(offsetX, offsetY));
+    return map;
+}
+

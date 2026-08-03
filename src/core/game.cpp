@@ -68,7 +68,7 @@ Game::Game() : running(false) {
     
     assets.loadTexture("dungeon-tiles", resolvePath("assets/textures/dungeon-tiles.png"));
     assets.loadTexture("tile-map", resolvePath("assets/textures/dungeon-tiles.png"));
-    TileManager::getInstance().loadTileMap(resolvePath("assets/animations/tile-map.json"));
+    TileManager::getInstance().loadAtlasConfig(resolvePath("assets/animations/tile-map.json"));
 
     // setup render window
     renderWindow.create(

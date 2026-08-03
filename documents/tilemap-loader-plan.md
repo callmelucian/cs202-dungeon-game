@@ -82,11 +82,28 @@ A $16 \times 16$ grid tile is constructed either from a single `FILLED` $16 \tim
 The `neighbors` string in the asset JSON uses a tile-type specific alphabet:
 
 - **`LAND` tiles**:
-  - `L`: Land (same type)
-  - `V`: Void / non-land (different type)
+  - `L`: Land / water
+  - `V`: Void
 - **`WATER` tiles**:
   - `W`: Water (same type)
   - `L`: Land / non-water (different type)
+  - `?`: Can match with anything
+
+For example, if a water pond is load like this
+
+```
+LLLL
+LWWL
+LLLL
+```
+
+Then for the first `W` tile, you must look for the following combination:
+- Top-left quadrant: `LLL`
+- Top-right quadrant: `LLW`
+- Bottom-left quadrant: `LLL`
+- Bottom-right quadrant: `WLL`
+
+A similar idea is used to determine the tile for the second `W`, this will draw the edges of the lake correctly and for the land tiles, all of the quadrants that is adjencent to the lake is simply `LLL`.
 
 ---
 

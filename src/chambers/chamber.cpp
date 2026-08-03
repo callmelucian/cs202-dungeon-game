@@ -10,6 +10,7 @@
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
+#include "tilemap-loader.hpp"
 
 Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
     player.setChamber(this);
@@ -65,28 +66,23 @@ void Chamber::draw(sf::RenderWindow& window) {
     debugHitboxes.clear();
 }
 
-const std::vector<std::vector<int>>& Chamber::getGrid() const {
-    return grid;
-}
 
 void Chamber::setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid) {
     typeGrid = newTypeGrid;
     levelGrid = newLevelGrid;
     
-    grid = TilemapLoader::getInstance().loadMap(typeGrid, levelGrid);
-    
     float cellSize = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
     
-    tileMap = TileMapGenerator::generate2D5(typeGrid, levelGrid, cellSize, ox, oy);
+    tileMap = TilemapLoader::getInstance().createRenderableMap(typeGrid, levelGrid, cellSize, ox, oy);
     buildObstaclesFromGrid();
 }
 
 std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) const {
     std::vector<sf::FloatRect> obs = baseObstacles;
     
-    if (!character || grid.empty() || grid[0].empty()) return obs;
+    if (!character || typeGrid.empty() || typeGrid[0].empty()) return obs;
 
     sf::FloatRect bounds = character->getBounds();
     sf::Vector2f trueCenter = {bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f}; // True center
@@ -102,14 +98,6 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
     if (!levelGrid.empty() && ty >= 0 && ty < levelGrid.size() && tx >= 0 && tx < levelGrid[0].size()) {
         charLevel = levelGrid[ty][tx] - 1;
         if (charLevel < 0) charLevel = 0;
-    } else if (ty >= 0 && ty < grid.size() && tx >= 0 && tx < grid[0].size()) {
-        int tileType = grid[ty][tx];
-        // 4 = Elevated Floor, 5 = Stairs
-        // We removed 6 (Cliff face) from charLevel=1 because we want to completely
-        // prevent walking onto the cliff face. It should be a wall for both levels.
-        if (tileType == 4 || tileType == 5) {
-            charLevel = 1;
-        }
     }
 
     if (charLevel == 0) {
@@ -161,29 +149,20 @@ std::vector<Enemy*> Chamber::getEnemiesRaw() const {
     return raw;
 }
 
-void Chamber::setGrid(const std::vector<std::vector<int>>& newGrid) {
-    grid = newGrid;
-    buildObstaclesFromGrid();
-    
-    float size = SettingManager::getInstance().getCellSize();
-    float ox = SettingManager::getInstance().getGridOffsetX();
-    float oy = SettingManager::getInstance().getGridOffsetY();
-    tileMap = TileMapGenerator::generate(grid, size, ox, oy);
-}
 
 void Chamber::buildObstaclesFromGrid() {
     baseObstacles.clear();
     elevationObstacles.clear();
     inverseElevationObstacles.clear();
 
-    if (grid.empty() || grid[0].empty()) return;
+    if (typeGrid.empty() || typeGrid[0].empty()) return;
 
     float size = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
 
-    int rows = grid.size();
-    int cols = grid[0].size();
+    int rows = typeGrid.size();
+    int cols = typeGrid[0].size();
     
     // Implicit Map Boundaries
     float mapWidth = cols * size;
@@ -195,7 +174,7 @@ void Chamber::buildObstaclesFromGrid() {
     baseObstacles.push_back(sf::FloatRect({ox - thickness, oy}, {thickness, mapHeight})); // Left
     baseObstacles.push_back(sf::FloatRect({ox + mapWidth, oy}, {thickness, mapHeight})); // Right
 
-    // Row 0 is always rendered as a wall-front decorative strip (see TileMapGenerator).
+    // Row 0 is always rendered as a wall-front decorative strip (see TilemapLoader).
     // Block movement into it so characters never walk behind that visual wall.
     baseObstacles.push_back(sf::FloatRect({ox, oy}, {mapWidth, size})); // Top wall-front row
 
@@ -219,51 +198,6 @@ void Chamber::buildObstaclesFromGrid() {
                         inverseElevationObstacles.push_back(rect);
                     }
                 }
-            }
-        }
-    } else {
-        for (size_t y = 0; y < rows; ++y) {
-            for (size_t x = 0; x < cols; ++x) {
-                int tileType = grid[y][x];
-                sf::FloatRect rect({ox + x * size, oy + y * size}, {size, size});
-                
-                // 2 = Lake (Impassable for all)
-                if (tileType == 2) {
-                    baseObstacles.push_back(rect);
-                }
-                // 0 = Ground (Impassable for Level 1 characters)
-                else if (tileType == 0) {
-                    // To allow characters to walk off stairs, the ground directly below
-                    // stairs should NOT be a barrier for Level 1 characters.
-                    bool belowStair = false;
-                    if (y > 0 && grid[y-1][x] == 5) {
-                        belowStair = true;
-                    }
-                    if (!belowStair) {
-                        inverseElevationObstacles.push_back(rect);
-                    }
-                } 
-                // 6 = Cliff Face (wall-front) — always an elevation obstacle (Level 0 barrier)
-                // It is ALSO an inverse obstacle (Level 1 barrier) so you can't walk off the ledge.
-                else if (tileType == 6) {
-                    elevationObstacles.push_back(rect);
-                    inverseElevationObstacles.push_back(rect);
-                }
-                // 4 = Elevated Floor — obstacle for ground-level characters.
-                // The ONLY exemption is the single tile directly above a stair (type 5).
-                // This keeps the stair approach clear for the character's hitbox
-                // (which extends half a cell upward from center, i.e. characterSize/2)
-                // while sealing the rest of the island from all other directions.
-                else if (tileType == 4) {
-                    bool directlyAboveStair = false;
-                    if (y + 1 < rows && grid[y + 1][x] == 5) {
-                        directlyAboveStair = true;
-                    }
-                    if (!directlyAboveStair) {
-                        elevationObstacles.push_back(rect);
-                    }
-                }
-                // 5 = Stairs (Walkable ramp, no obstacle)
             }
         }
     }

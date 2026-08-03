@@ -6,7 +6,7 @@
 #include <memory>
 #include "../entities/character.hpp"
 #include "../utils/collision-solver.hpp"
-#include "tile-map-generator.hpp"
+#include "tilemap-loader.hpp"
 #include "wave-spawner.hpp"
 
 #include "../entities/enemy/enemy.hpp"
@@ -37,10 +37,9 @@ public:
     virtual void processPlayerAttack(const Hitbox& hitbox);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
-
-    void setGrid (const std::vector<std::vector<int>>& newGrid);
-    const std::vector<std::vector<int>>& getGrid() const;
     void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
+    const std::vector<std::vector<std::string>>& getTypeGrid() const { return typeGrid; }
+    const std::vector<std::vector<int>>& getLevelGrid() const { return levelGrid; }
     
     void setPlayerSpawn(const sf::Vector2f& spawn) { playerSpawn = spawn; }
     sf::Vector2f getPlayerSpawn() const { return playerSpawn; }
@@ -65,7 +64,6 @@ protected:
     std::vector<DebugHitbox> debugHitboxes;
     
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};
-    std::vector<std::vector<int>> grid;
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
     TilemapRenderData renderData2D5;
