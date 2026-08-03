@@ -105,26 +105,34 @@ void Player::update(float deltaTime) {
     float ox = settings.getGridOffsetX();
     float oy = settings.getGridOffsetY();
     sf::Vector2f pos = getPosition();
-    int col = static_cast<int>(std::round((pos.x - ox) / cellSize - 0.5f));
-    int row = static_cast<int>(std::round((pos.y - oy) / cellSize - 0.5f));
-    sf::Vector2f targetPos(ox + (col + 0.5f) * cellSize, oy + (row + 0.5f) * cellSize);
 
     if (dir.x == 0.f && dir.y == 0.f) {
+        int col = static_cast<int>(std::floor((pos.x - ox) / cellSize));
+        int row = static_cast<int>(std::floor((pos.y - oy) / cellSize));
+        sf::Vector2f targetPos(ox + (col + 0.5f) * cellSize, oy + (row + 0.5f) * cellSize);
         sf::Vector2f diff = targetPos - pos;
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
         if (dist > 0.01f && dist < cellSize * 0.5f) {
             setPosition(pos + diff * std::min(1.0f, deltaTime * 15.0f));
         }
     } else {
-        // Active movement axis alignment to easily slide into 1-cell corridors
+        // Active movement axis alignment in movement direction
         if (dir.x != 0.f && dir.y == 0.f) {
-            float diffY = targetPos.y - pos.y;
+            // Moving horizontally: look ahead along X and align Y center
+            float lookX = pos.x + dir.x * (cellSize * 0.4f);
+            int targetRow = static_cast<int>(std::floor((pos.y - oy) / cellSize));
+            float targetY = oy + (targetRow + 0.5f) * cellSize;
+            float diffY = targetY - pos.y;
             if (std::abs(diffY) > 0.01f && std::abs(diffY) < cellSize * 0.45f) {
                 pos.y += diffY * std::min(1.0f, deltaTime * 20.0f);
                 setPosition(pos);
             }
         } else if (dir.y != 0.f && dir.x == 0.f) {
-            float diffX = targetPos.x - pos.x;
+            // Moving vertically: look ahead along Y and align X center
+            float lookY = pos.y + dir.y * (cellSize * 0.4f);
+            int targetCol = static_cast<int>(std::floor((pos.x - ox) / cellSize));
+            float targetX = ox + (targetCol + 0.5f) * cellSize;
+            float diffX = targetX - pos.x;
             if (std::abs(diffX) > 0.01f && std::abs(diffX) < cellSize * 0.45f) {
                 pos.x += diffX * std::min(1.0f, deltaTime * 20.0f);
                 setPosition(pos);

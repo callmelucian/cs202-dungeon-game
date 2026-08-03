@@ -34,6 +34,7 @@ public:
     float getCellSize() const;
     float getSpriteMultiplier() const;
     float getCharacterSize() const;
+    float getCharacterHitboxSize() const;
     float getGridOffsetX() const;
     float getGridOffsetY() const;
     float getSpeedMultiplier() const;
@@ -60,6 +61,7 @@ private:
     float cellSize;
     float spriteSizeMultiplier;
     float characterSize;
+    float characterHitboxSize;
     float gridOffsetX;
     float gridOffsetY;
     float speedMultiplier;

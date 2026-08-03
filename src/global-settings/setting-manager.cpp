@@ -22,7 +22,8 @@ void SettingManager::loadDefaults() {
     gridCols = 40;
     gridRows = 40;
     cellSize = 40.0f;
-    characterSize = cellSize * 0.7f;
+    characterSize = cellSize;
+    characterHitboxSize = cellSize * 0.7f;
     gridOffsetX = (windowWidth - gridCols * cellSize) / 2.0f;
     gridOffsetY = (windowHeight - gridRows * cellSize) / 2.0f;
     spriteSizeMultiplier = 1.2f;
@@ -175,6 +176,10 @@ float SettingManager::getSpriteMultiplier() const {
 
 float SettingManager::getCharacterSize() const {
     return characterSize;
+}
+
+float SettingManager::getCharacterHitboxSize() const {
+    return characterHitboxSize;
 }
 
 float SettingManager::getEnemyAttackTime() const {

@@ -265,7 +265,7 @@ void Character::setSpeed(float speed) {
 
 sf::FloatRect Character::getBounds() const {
     // A standard bounding box centered on the character's position
-    float size = SettingManager::getInstance().getCharacterSize();
+    float size = SettingManager::getInstance().getCharacterHitboxSize();
     return sf::FloatRect({position.x - size / 2, position.y - size / 2}, {size, size});
 }
 

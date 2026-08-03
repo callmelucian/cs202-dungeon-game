@@ -95,8 +95,11 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
     int ty = static_cast<int>((trueCenter.y - oy) / cellSize);
 
     int charLevel = 0; // Default Level 0
+    bool isOnStairs = false;
     if (!levelGrid.empty() && ty >= 0 && ty < levelGrid.size() && tx >= 0 && tx < levelGrid[0].size()) {
-        if (typeGrid[ty][tx] == "V") {
+        if (typeGrid[ty][tx] == "S") {
+            isOnStairs = true;
+        } else if (typeGrid[ty][tx] == "V") {
             if (ty > 0 && typeGrid[ty-1][tx] != "0" && typeGrid[ty-1][tx] != "W") charLevel = levelGrid[ty-1][tx] - 1;
             else if (ty < levelGrid.size() - 1 && typeGrid[ty+1][tx] != "0" && typeGrid[ty+1][tx] != "W") charLevel = levelGrid[ty+1][tx] - 1;
         } else if (typeGrid[ty][tx] == "H") {
@@ -108,7 +111,9 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
         if (charLevel < 0) charLevel = 0;
     }
 
-    if (charLevel == 0) {
+    if (isOnStairs) {
+        // On stairs: transitioning between height levels, neither level ground blocks movement
+    } else if (charLevel == 0) {
         // On ground level: elevated tiles and cliff faces are solid walls.
         obs.insert(obs.end(), elevationObstacles.begin(), elevationObstacles.end());
     } else {
@@ -196,7 +201,7 @@ void Chamber::buildObstaclesFromGrid() {
                 // Water and Void are base obstacles
                 if (type == "W" || type == "0") {
                     baseObstacles.push_back(rect);
-                } else {
+                } else if (type != "S") { // Stairs are ramps connecting levels
                     // Level 2+ is an obstacle for Level 0 chars (level 1 in grid).
                     if (level > 1) {
                         elevationObstacles.push_back(rect);

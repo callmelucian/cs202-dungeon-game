@@ -40,6 +40,8 @@ public:
     void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
     const std::vector<std::vector<std::string>>& getTypeGrid() const { return typeGrid; }
     const std::vector<std::vector<int>>& getLevelGrid() const { return levelGrid; }
+    const std::vector<std::vector<uint8_t>>& getWalkableGrid() const { return renderData2D5.walkableGrid; }
+    const TilemapRenderData& getRenderData2D5() const { return renderData2D5; }
     
     void setPlayerSpawn(const sf::Vector2f& spawn) { playerSpawn = spawn; }
     sf::Vector2f getPlayerSpawn() const { return playerSpawn; }

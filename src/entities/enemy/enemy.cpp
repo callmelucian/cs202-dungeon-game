@@ -3,9 +3,11 @@
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../global-settings/setting-manager.hpp"
 #include "../../graphics/particle-system.hpp"
 #include "../../utils/math-utility.hpp"
 #include <iostream>
+#include <cmath>
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -28,6 +30,31 @@ void Enemy::update(float deltaTime) {
     
     if (vel.x < 0) isFacingRight = false;
     else if (vel.x > 0) isFacingRight = true;
+
+    // Grid snatching / alignment for enemy movement through tight corridors
+    const auto& settings = SettingManager::getInstance();
+    float cellSize = settings.getCellSize();
+    float ox = settings.getGridOffsetX();
+    float oy = settings.getGridOffsetY();
+    sf::Vector2f pos = getPosition();
+
+    if (std::abs(vel.x) > 0.1f && std::abs(vel.y) < 0.1f) {
+        int targetRow = static_cast<int>(std::floor((pos.y - oy) / cellSize));
+        float targetY = oy + (targetRow + 0.5f) * cellSize;
+        float diffY = targetY - pos.y;
+        if (std::abs(diffY) > 0.01f && std::abs(diffY) < cellSize * 0.45f) {
+            pos.y += diffY * std::min(1.0f, deltaTime * 20.0f);
+            setPosition(pos);
+        }
+    } else if (std::abs(vel.y) > 0.1f && std::abs(vel.x) < 0.1f) {
+        int targetCol = static_cast<int>(std::floor((pos.x - ox) / cellSize));
+        float targetX = ox + (targetCol + 0.5f) * cellSize;
+        float diffX = targetX - pos.x;
+        if (std::abs(diffX) > 0.01f && std::abs(diffX) < cellSize * 0.45f) {
+            pos.x += diffX * std::min(1.0f, deltaTime * 20.0f);
+            setPosition(pos);
+        }
+    }
     
     std::string direction = isFacingRight ? "right" : "left";
     if (vel.x != 0.f || vel.y != 0.f) {
