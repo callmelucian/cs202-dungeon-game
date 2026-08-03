@@ -35,10 +35,10 @@ public:
     CliffAssetEntry hardCliff;
     CliffAssetEntry semiHardCliff;
     CliffAssetEntry softCliff;
+    CliffAssetEntry semiSoftCliff;
     CliffAssetEntry waterCliff;
-    OverlayAssetEntry landShadowTop;
-    OverlayAssetEntry landShadowMiddle;
-    OverlayAssetEntry landShadowBottom;
+    CliffAssetEntry stairs;
+    CliffAssetEntry shadowedStairs;
     OverlayAssetEntry verticalBridge;
     OverlayAssetEntry horizontalBridge;
 

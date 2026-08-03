@@ -8,6 +8,7 @@
 enum class TileType {
     Void,
     Land,
+    Stairs,
     Water,
     VerticalBridge,
     HorizontalBridge
@@ -24,6 +25,8 @@ struct TileQuadInfo {
     TextureSubRect texRect;
     sf::Vector2f renderOffset;
     sf::Vector2f renderSize;
+    bool isTextured = true;
+    sf::Color color = sf::Color::White;
 };
 
 struct RenderTile {
@@ -40,7 +43,7 @@ struct TilemapRenderData {
     std::vector<RenderTile> cliffTiles;
     std::vector<RenderTile> shadowTiles;
     std::vector<RenderTile> bridgeTiles;
-    std::vector<std::vector<bool>> walkableGrid;
+    std::vector<std::vector<uint8_t>> walkableGrid;
 };
 
 class RenderableTileMap : public sf::Drawable, public sf::Transformable {
@@ -51,8 +54,8 @@ public:
     
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    
     sf::VertexArray vertices;
+    sf::VertexArray untexturedVertices;
     const sf::Texture* texture;
 };
 

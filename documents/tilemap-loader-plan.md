@@ -4,6 +4,13 @@ This document details the architectural design and implementation plan for the *
 
 ---
 
+## 0. Global rules
+
+- If no matching assets can be found, throw an exception instead of finding for a fallback.
+- If the provided grid in the chamber configuration file is invalid, also throw an exception instead of trying to fix it.
+
+---
+
 ## 1. Overview & Architectural Goals
 
 The dungeon game represents chambers using a **2.5D top-down elevated perspective**. The loader takes a 2D logical representation of a chamber (containing cell types and height levels) and synthesizes a fully rendered multi-level 2.5D map layout using texture assets defined in `assets/animations/tile-map.json`.
@@ -17,6 +24,7 @@ Each chamber file provides two aligned 2D matrices of identical dimensions:
 1. **`type-grid`**: Encodes the logical cell terrain type:
    - `"0"`: Void (empty space / bottomless pit)
    - `"L"`: Land (walkable ground)
+   - `"S"`: Stairs (on the land below an elevated ground, when rendering, treat this cell as land).
    - `"W"`: Water (liquid hazard / body of water)
    - `"V"`: Vertical Bridge (connects two same-level Land cells vertically)
    - `"H"`: Horizontal Bridge (connects two same-level Land cells horizontally)
@@ -31,29 +39,7 @@ Each chamber file provides two aligned 2D matrices of identical dimensions:
 
 ## 3. Class API Prototype
 
-The module is implemented as a singleton factory class:
-
-```cpp
-class TilemapLoader {
-public:
-    static TilemapLoader& getInstance();
-
-    // Transforms a 2D raw chamber description into a 2.5D rendered tile matrix
-    std::vector<std::vector<int>> loadMap(
-        const std::vector<std::vector<std::string>>& typeGrid,
-        const std::vector<std::vector<int>>& levelGrid
-    );
-
-private:
-    TilemapLoader() = default;
-
-    // Evaluates a cell and its 8 surrounding neighbors to pick the corresponding tile ID
-    int tilePicker(
-        TileType currentType,
-        const std::vector<TileType>& neighbors
-    );
-};
-```
+The module is implemented as a singleton factory class.
 
 ---
 
@@ -82,6 +68,8 @@ A $16 \times 16$ grid tile is constructed either from a single `FILLED` $16 \tim
 The `neighbors` string in the asset JSON uses a tile-type specific alphabet:
 
 - **`LAND` tiles**:
+  - `E`: Elevated land, this is prioritized higher than normal land, if we cannot match `E`, try to match `L`.
+  - `-`: Anything other than elevated land.
   - `L`: Land / water
   - `V`: Void
 - **`WATER` tiles**:
@@ -117,15 +105,73 @@ A similar idea is used to determine the tile for the second `W`, this will draw 
 ### 5.2 Cliff Generation Logic
 When a cell at $(r, c)$ has a higher elevation level than the adjacent cell directly below it at $(r+1, c)$, calculate the elevation drop $\Delta = \text{level}(r, c) - \text{level}(r+1, c)$:
 
-- **Below cell is Void**: Assemble a vertical column of $(\Delta - 1)$ `semi-hard-cliff` tiles followed by $1$ `soft-cliff` tile.
+- **Below cell is Void**: Assemble a vertical column of $(\Delta - 1)$ `semi-hard-cliff` tiles followed by $1$ `soft-cliff` tile. If $\Delta = 1$, place a single `semi-soft-cliff` tile.
 - **Below cell is Water**: Assemble a vertical column of $(\Delta - 1)$ `hard-cliff` tiles followed by $1$ `water-cliff` tile.
-- **Below cell is Land**: Assemble a vertical column of $\Delta$ `hard-cliff` tiles.
+- **Below cell is Land but not stairs-type**: Assemble a vertical column of $\Delta$ `hard-cliff` tiles.
+- **Below cell is Land and is stairs-type**: Assemble a vertical column of $\Delta$ `stairs` tiles, or `shadowed-stairs` tiles if there is  column of hard cliffs to the left of it.
 
 ### 5.3 Shadowing
-For each contiguous vertical column of land cells whose immediate left neighbor is elevated land (plus an optional single land cell directly above the column):
-- Apply `LAND-SHADOWED-TOP` at the top of the shadow column.
-- Apply `LAND-SHADOWED-MIDDLE` for middle cells.
-- Apply `LAND-SHADOWED-BOTTOM` at the bottom of the shadow column.
+
+For each contiguous vertical column of land cells whose immediate left neighbor is elevated land on the 2.5D map (plus an optional single land cell directly above the column):
+- For the bottom cell, create overlaying transparent dark pixels at the following cells:
+```
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xx..............
+x...............
+................
+................
+................
+................
+```
+
+- For the middle cells (if there is no optional single land cell directly above the column, this should also include the top cell), create overlaying transparent dark pixels at the following cells:
+```
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+xxx.............
+```
+
+- For the top optional single land cell directly above the column, create overlaying transparent dark pixels at the following cells
+```
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+xxx.............
+xxx.............
+xxx.............
+```
 
 ### 5.4 Overlays & Bridges
 Bridge tiles (`vertical-bridge` of size $16 \times 20$ and `horizontal-bridge` of size $20 \times 16$) and obstacle overlays are placed on top of the assembled base tiles.
@@ -144,25 +190,33 @@ Each entry contains:
   - Positive variant indices $1\dots x$ share uniform selection weight $\frac{1}{10x}$.
 
 ### 6.2 Cliff Assets (`cliffs`)
-Contains explicit coordinates for:
-- `hard-cliff` `[88, 208]`
-- `semi-hard-cliff` `[88, 308]`
-- `soft-cliff` `[88, 324]`
-- `water-cliff` `[272, 140]`
+
+Contains explicit coordinates for cliffs and stairs.
 
 ### 6.3 Overlay Assets (`overlays`)
-Contains coordinates and dimensions for:
-- `vertical-bridge`: `coord` `[165, 130]`, `size` `[16, 20]`
-- `horizontal-bridge`: `coord` `[140, 132]`, `size` `[20, 16]`
+
+Contains coordinates and dimensions for bridges.
 
 ---
 
-## 7. Gameplay Integration
+# 7. Navigating in 2.5D map
 
-### 7.1 Player Coordinate Alignment
+With the new map rendering logic, we have to adjust the logic for determining obstacles on the 2.5D walkable terrain:
+
+- Tiles of the same level are considered connected, we cannot walk from a lower tile to a higher tile without stairs, we cannot also step on cliffs.
+- We cannot step on lakes.
+- Bridges only allow movement along their orientation (e.g., Vertical bridges only allow Up/Down traversals, blocking side-to-side paths).
+
+A possible way to do this is simply construct a grid matching the 2.5D map and determine for each side (shared between 1 cells), is it a walkable side, enemy steering logic should follow this grid. Thus, this information is fixed and the logic for navigating in the 2.5D map should **not** change depending on the character's position.
+
+---
+
+## 8. Gameplay Integration
+
+### 8.1 Player Coordinate Alignment
 When movement input is released, the character position automatically snaps to the nearest integer grid coordinate to ensure smooth navigation through narrow 1-cell corridors.
 
-### 7.2 Enemy Pathfinding & Steering
+### 8.2 Enemy Pathfinding & Steering
 Enemy navigation utilizes a grid graph constructed from the 2.5D walkable terrain:
 1. Build an adjacency graph of all walkable cells considering height elevation transitions and bridges.
 2. Execute Breadth-First Search (BFS) to calculate the shortest path to the player's current cell position.

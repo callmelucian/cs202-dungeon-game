@@ -2,12 +2,18 @@
 #include <algorithm>
 
 RenderableTileMap::RenderableTileMap() 
-    : vertices(sf::PrimitiveType::Triangles), texture(nullptr) {}
+    : vertices(sf::PrimitiveType::Triangles), untexturedVertices(sf::PrimitiveType::Triangles), texture(nullptr) {}
 
 void RenderableTileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
-    states.texture = texture;
-    target.draw(vertices, states);
+    
+    sf::RenderStates texStates = states;
+    texStates.texture = texture;
+    target.draw(vertices, texStates);
+    
+    sf::RenderStates untexStates = states;
+    untexStates.texture = nullptr;
+    target.draw(untexturedVertices, untexStates);
 }
 
 void RenderableTileMap::loadFromRenderData(const sf::Texture* tex, const TilemapRenderData& renderData, float cellSize, float offsetX, float offsetY) {
@@ -25,13 +31,19 @@ void RenderableTileMap::loadFromRenderData(const sf::Texture* tex, const Tilemap
         return a->gridCol < b->gridCol;
     });
 
-    size_t totalQuads = 0;
+    size_t totalTexturedQuads = 0;
+    size_t totalUntexturedQuads = 0;
     for (const auto* rt : allTileLists) {
-        totalQuads += rt->quads.size();
+        for (const auto& q : rt->quads) {
+            if (q.isTextured) totalTexturedQuads++;
+            else totalUntexturedQuads++;
+        }
     }
 
-    vertices.resize(totalQuads * 6);
-    size_t quadIndex = 0;
+    vertices.resize(totalTexturedQuads * 6);
+    untexturedVertices.resize(totalUntexturedQuads * 6);
+    size_t texQuadIndex = 0;
+    size_t untexQuadIndex = 0;
 
     float scale = cellSize / 16.0f;
 
@@ -42,7 +54,14 @@ void RenderableTileMap::loadFromRenderData(const sf::Texture* tex, const Tilemap
             float w = q.renderSize.x * scale;
             float h = q.renderSize.y * scale;
 
-            sf::Vertex* v = &vertices[quadIndex * 6];
+            sf::Vertex* v;
+            if (q.isTextured) {
+                v = &vertices[texQuadIndex * 6];
+                texQuadIndex++;
+            } else {
+                v = &untexturedVertices[untexQuadIndex * 6];
+                untexQuadIndex++;
+            }
 
             v[0].position = sf::Vector2f(x, y);
             v[1].position = sf::Vector2f(x + w, y);
@@ -52,20 +71,24 @@ void RenderableTileMap::loadFromRenderData(const sf::Texture* tex, const Tilemap
             v[4].position = sf::Vector2f(x + w, y);
             v[5].position = sf::Vector2f(x + w, y + h);
 
-            float tu = static_cast<float>(q.texRect.x);
-            float tv = static_cast<float>(q.texRect.y);
-            float tw = static_cast<float>(q.texRect.width);
-            float th = static_cast<float>(q.texRect.height);
+            for (int i = 0; i < 6; ++i) {
+                v[i].color = q.color;
+            }
 
-            v[0].texCoords = sf::Vector2f(tu, tv);
-            v[1].texCoords = sf::Vector2f(tu + tw, tv);
-            v[2].texCoords = sf::Vector2f(tu, tv + th);
+            if (q.isTextured) {
+                float tu = static_cast<float>(q.texRect.x);
+                float tv = static_cast<float>(q.texRect.y);
+                float tw = static_cast<float>(q.texRect.width);
+                float th = static_cast<float>(q.texRect.height);
 
-            v[3].texCoords = sf::Vector2f(tu, tv + th);
-            v[4].texCoords = sf::Vector2f(tu + tw, tv);
-            v[5].texCoords = sf::Vector2f(tu + tw, tv + th);
+                v[0].texCoords = sf::Vector2f(tu, tv);
+                v[1].texCoords = sf::Vector2f(tu + tw, tv);
+                v[2].texCoords = sf::Vector2f(tu, tv + th);
 
-            quadIndex++;
+                v[3].texCoords = sf::Vector2f(tu, tv + th);
+                v[4].texCoords = sf::Vector2f(tu + tw, tv);
+                v[5].texCoords = sf::Vector2f(tu + tw, tv + th);
+            }
         }
     }
 }

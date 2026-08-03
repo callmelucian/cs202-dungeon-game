@@ -197,18 +197,6 @@
                 "neighbors": "LLV"
             }
         ],
-        "LAND-SHADOWED-TOP": {
-            "coord": [168, 32],
-            "position": "FILLED"
-        },
-        "LAND-SHADOWED-MIDDLE": {
-            "coord": [168, 48],
-            "position": "FILLED"
-        },
-        "LAND-SHADOWED-BOTTOM": {
-            "coord": [168, 64],
-            "position": "FILLED"
-        },
 
         "WATER": [
             {
@@ -316,12 +304,24 @@
             "coord": [88, 308],
             "position": "FILLED"
         },
+        "semi-soft-cliff": {
+            "coord": [32, 144],
+            "position": "FILLED"
+        },
         "soft-cliff": {
             "coord": [88, 324],
             "position": "FILLED"
         },
         "water-cliff": {
             "coord": [272, 140],
+            "position": "FILLED"
+        },
+        "stairs": {
+            "coord": [216, 48],
+            "position": "FILLED"
+        },
+        "shadowed-stairs": {
+            "coord": [216, 64],
             "position": "FILLED"
         }
     },

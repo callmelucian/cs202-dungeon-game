@@ -96,7 +96,15 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
 
     int charLevel = 0; // Default Level 0
     if (!levelGrid.empty() && ty >= 0 && ty < levelGrid.size() && tx >= 0 && tx < levelGrid[0].size()) {
-        charLevel = levelGrid[ty][tx] - 1;
+        if (typeGrid[ty][tx] == "V") {
+            if (ty > 0 && typeGrid[ty-1][tx] != "0" && typeGrid[ty-1][tx] != "W") charLevel = levelGrid[ty-1][tx] - 1;
+            else if (ty < levelGrid.size() - 1 && typeGrid[ty+1][tx] != "0" && typeGrid[ty+1][tx] != "W") charLevel = levelGrid[ty+1][tx] - 1;
+        } else if (typeGrid[ty][tx] == "H") {
+            if (tx > 0 && typeGrid[ty][tx-1] != "0" && typeGrid[ty][tx-1] != "W") charLevel = levelGrid[ty][tx-1] - 1;
+            else if (tx < levelGrid[0].size() - 1 && typeGrid[ty][tx+1] != "0" && typeGrid[ty][tx+1] != "W") charLevel = levelGrid[ty][tx+1] - 1;
+        } else {
+            charLevel = levelGrid[ty][tx] - 1;
+        }
         if (charLevel < 0) charLevel = 0;
     }
 

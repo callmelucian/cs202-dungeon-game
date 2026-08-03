@@ -22,7 +22,7 @@ void SettingManager::loadDefaults() {
     gridCols = 40;
     gridRows = 40;
     cellSize = 40.0f;
-    characterSize = cellSize;
+    characterSize = cellSize * 0.7f;
     gridOffsetX = (windowWidth - gridCols * cellSize) / 2.0f;
     gridOffsetY = (windowHeight - gridRows * cellSize) / 2.0f;
     spriteSizeMultiplier = 1.2f;

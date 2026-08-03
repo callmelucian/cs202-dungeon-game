@@ -56,9 +56,7 @@ bool TileManager::loadAtlasConfig(const std::string& configPath) {
                 else dst.size = {16, 16};
             };
 
-            if (tt.contains("LAND-SHADOWED-TOP")) loadOverlay(tt["LAND-SHADOWED-TOP"], landShadowTop);
-            if (tt.contains("LAND-SHADOWED-MIDDLE")) loadOverlay(tt["LAND-SHADOWED-MIDDLE"], landShadowMiddle);
-            if (tt.contains("LAND-SHADOWED-BOTTOM")) loadOverlay(tt["LAND-SHADOWED-BOTTOM"], landShadowBottom);
+            // Shadow overlays are handled pixel-by-pixel, no tile assets needed.
         }
 
         if (j.contains("cliffs")) {
@@ -70,7 +68,10 @@ bool TileManager::loadAtlasConfig(const std::string& configPath) {
             if (cliffs.contains("hard-cliff")) loadCliff(cliffs["hard-cliff"], hardCliff);
             if (cliffs.contains("semi-hard-cliff")) loadCliff(cliffs["semi-hard-cliff"], semiHardCliff);
             if (cliffs.contains("soft-cliff")) loadCliff(cliffs["soft-cliff"], softCliff);
+            if (cliffs.contains("semi-soft-cliff")) loadCliff(cliffs["semi-soft-cliff"], semiSoftCliff);
             if (cliffs.contains("water-cliff")) loadCliff(cliffs["water-cliff"], waterCliff);
+            if (cliffs.contains("stairs")) loadCliff(cliffs["stairs"], stairs);
+            if (cliffs.contains("shadowed-stairs")) loadCliff(cliffs["shadowed-stairs"], shadowedStairs);
         }
 
         if (j.contains("overlays")) {
