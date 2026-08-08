@@ -27,7 +27,7 @@ void SettingManager::loadDefaults() {
     gridOffsetX = (windowWidth - gridCols * cellSize) / 2.0f;
     gridOffsetY = (windowHeight - gridRows * cellSize) / 2.0f;
     spriteSizeMultiplier = 1.2f;
-    speedMultiplier = 1.f;
+    speedMultiplier = 0.35f;
     enemyAttackTime = 1.5f;
 
     fullscreen = false;

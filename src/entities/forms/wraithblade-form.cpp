@@ -7,7 +7,7 @@
 
 WraithbladeForm::WraithbladeForm()
     : PlayerForm(FormType::WRAITHBLADE, "Wraithblade",
-                 Stats{100.0f, 100.0f, 12.0f, 7.0f, 15.0f},
+                 Stats{100.0f, 100.0f, 12.0f, 9.0f, 15.0f},
                  1.5f, 2.0f) {}
 
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
@@ -41,6 +41,15 @@ std::unique_ptr<SpecialAbilityState> WraithbladeForm::createSpecialState(int abi
     }
     return nullptr;
 }
+
+float WraithbladeForm::getMomentumGainOnHit(float hpLost) const {
+    return hpLost * 0.4f;
+}
+
+std::string WraithbladeForm::getAttackAnimKey() const {
+    return "backslash-facing-";
+}
+
 
 
 // ---- WraithbladeRiftcrushState ----

@@ -6,7 +6,7 @@
 
 VoidcasterForm::VoidcasterForm()
     : PlayerForm(FormType::VOIDCASTER, "Voidcaster",
-                 Stats{100.0f, 100.0f, 22.0f, 5.0f, 5.0f},
+                 Stats{100.0f, 100.0f, 22.0f, 6.5f, 5.0f},
                  12.0f, 1.0f) {}
 
 void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
@@ -37,6 +37,15 @@ std::unique_ptr<SpecialAbilityState> VoidcasterForm::createSpecialState(int abil
     }
     return nullptr;
 }
+
+float VoidcasterForm::getMomentumGainOnHit(float hpLost) const {
+    return hpLost * 0.4f;
+}
+
+std::string VoidcasterForm::getAttackAnimKey() const {
+    return "shoot-facing-";
+}
+
 
 
 // ---- VoidcasterLanceState ----

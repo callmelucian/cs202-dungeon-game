@@ -3,11 +3,10 @@
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
-#include "../../global-settings/setting-manager.hpp"
+// NOTE: setting-manager.hpp, math-utility.hpp, cmath removed with old movement system
 #include "../../graphics/particle-system.hpp"
-#include "../../utils/math-utility.hpp"
 #include <iostream>
-#include <cmath>
+
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -15,7 +14,6 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
       currentState(nullptr), 
       attackCooldown(0.0f),
       fragmentDropCount(1),
-      isFacingRight(true),
       isRealCarrier(false),
       hitWall(false) {
     setHealthBar(std::make_unique<UI::EnemyHealthBar>());
@@ -26,34 +24,11 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
 
 void Enemy::update(float deltaTime) {
     sf::Vector2f vel = getVelocity();
-    // Position integration is handled by CollisionSolver in Chamber::checkCollisions()
     
-    if (vel.x < 0) isFacingRight = false;
-    else if (vel.x > 0) isFacingRight = true;
-
-    // Grid snatching / alignment for enemy movement through tight corridors
-    const auto& settings = SettingManager::getInstance();
-    float cellSize = settings.getCellSize();
-    float ox = settings.getGridOffsetX();
-    float oy = settings.getGridOffsetY();
-    sf::Vector2f pos = getPosition();
-
-    if (std::abs(vel.x) > 0.1f && std::abs(vel.y) < 0.1f) {
-        int targetRow = static_cast<int>(std::floor((pos.y - oy) / cellSize));
-        float targetY = oy + (targetRow + 0.5f) * cellSize;
-        float diffY = targetY - pos.y;
-        if (std::abs(diffY) > 0.01f && std::abs(diffY) < cellSize * 0.45f) {
-            pos.y += diffY * std::min(1.0f, deltaTime * 20.0f);
-            setPosition(pos);
-        }
-    } else if (std::abs(vel.y) > 0.1f && std::abs(vel.x) < 0.1f) {
-        int targetCol = static_cast<int>(std::floor((pos.x - ox) / cellSize));
-        float targetX = ox + (targetCol + 0.5f) * cellSize;
-        float diffX = targetX - pos.x;
-        if (std::abs(diffX) > 0.01f && std::abs(diffX) < cellSize * 0.45f) {
-            pos.x += diffX * std::min(1.0f, deltaTime * 20.0f);
-            setPosition(pos);
-        }
+    if (vel.x < 0.f) {
+        isFacingRight = false;
+    } else if (vel.x > 0.f) {
+        isFacingRight = true;
     }
     
     std::string direction = isFacingRight ? "right" : "left";
@@ -62,9 +37,10 @@ void Enemy::update(float deltaTime) {
     } else {
         notifyStateChanged("idle-facing-" + direction);
     }
-    
+
     Character::update(deltaTime);
 }
+
 
 void Enemy::takeDamage(float rawAmount) {
     if (!isAlive()) return;
@@ -77,8 +53,12 @@ void Enemy::takeDamage(float rawAmount) {
 }
 
 void Enemy::onWallCollision() {
-    // If knocked back heavily and hit a wall
-    if (Math::length(getKnockbackVelocity()) > 100.0f) {
+    // Stateless movement: no persistent moving state needs to be cleared.
+
+    // If knocked back heavily and hit a wall, award a bonus fragment.
+    sf::Vector2f kv = getKnockbackVelocity();
+    float kLen = kv.x * kv.x + kv.y * kv.y; // using squared length to avoid sqrt
+    if (kLen > 100.0f * 100.0f) {
         if (!hitWall) {
             addBonusFragments(1);
             setHitWall(true);

@@ -100,7 +100,19 @@ void Character::tickStatusEffects(float dt) {
 
 void Character::draw(sf::RenderWindow &window) const {
     if (animator && animator->hasSprite()) {
-        animator->draw(window, getPosition(), getBounds().size);
+        float spriteSize = SettingManager::getInstance().getCellSize() * 0.8f;
+        // Offset the sprite so the bounding box acts more like the character's feet/lower body
+        sf::Vector2f spritePos = getPosition();
+        spritePos.y -= spriteSize * 0.15f; 
+        animator->draw(window, spritePos, sf::Vector2f(spriteSize, spriteSize));
+        
+        // Debug bounding box
+        sf::RectangleShape debugBox(getBounds().size);
+        debugBox.setPosition(getBounds().position);
+        debugBox.setFillColor(sf::Color::Transparent);
+        debugBox.setOutlineColor(sf::Color::Red);
+        debugBox.setOutlineThickness(1.0f);
+        window.draw(debugBox);
     } else {
         // Fallback shape
         sf::RectangleShape rect(getBounds().size);
@@ -264,9 +276,11 @@ void Character::setSpeed(float speed) {
 }
 
 sf::FloatRect Character::getBounds() const {
-    // A standard bounding box centered on the character's position
-    float size = SettingManager::getInstance().getCharacterHitboxSize();
-    return sf::FloatRect({position.x - size / 2, position.y - size / 2}, {size, size});
+    float cellSize = SettingManager::getInstance().getCellSize();
+    // Tighter rectangle: less width, slightly shorter height (focused on lower body)
+    float width = cellSize * 0.45f;
+    float height = cellSize * 0.5f;
+    return sf::FloatRect({position.x - width / 2.0f, position.y - height / 2.0f}, {width, height});
 }
 
 bool Character::canAct() const {

@@ -29,6 +29,8 @@ TileType TilemapLoader::parseTileType(const std::string& typeStr) const {
     if (typeStr == "H") return TileType::HorizontalBridge;
     if (typeStr == "S") return TileType::Stairs;
     if (typeStr == "0") return TileType::Void;
+    if (typeStr == "E") return TileType::Land; // Echo visually sits on Land
+    if (typeStr == "X") return TileType::Land; // Exit visually sits on Land
     throw std::invalid_argument("Invalid tile type string: " + typeStr);
 }
 

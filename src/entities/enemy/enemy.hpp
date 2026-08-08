@@ -17,7 +17,7 @@ protected:
     std::unique_ptr<EnemySteeringStrategy> steeringStrategy;
     float attackCooldown;
     int fragmentDropCount;
-    bool isFacingRight;
+    bool isFacingRight = true;
     bool isRealCarrier;
     bool hitWall;
 

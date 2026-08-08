@@ -46,6 +46,11 @@ public:
     virtual void attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) = 0;
     virtual std::unique_ptr<SpecialAbilityState> createSpecialState(int abilityIndex) = 0;
 
+    // Returns momentum gained when the player takes `hpLost` HP of post-mitigation damage.
+    virtual float getMomentumGainOnHit(float hpLost) const = 0;
+    // Returns the animation key prefix for this form's attack (e.g. "backslash-facing-").
+    virtual std::string getAttackAnimKey() const = 0;
+
     FormType getFormType() const;
     const std::string& getFormName() const;
     float getAttackRange() const;

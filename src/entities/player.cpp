@@ -15,9 +15,7 @@ Player::Player(PlayableCharacter& character)
       character(&character),
       activeForm(nullptr),
       switchCooldownTimer(0.0f),
-      isSwitchCooldownEnabled(true),
-      isFacingRight(true),
-      isAttacking(false)
+      isSwitchCooldownEnabled(true)
 {
     // Create forms using the abstract factory
     forms[FormType::WRAITHBLADE] = character.createForm1();
@@ -63,86 +61,16 @@ void Player::handleInput(const sf::Event& event) {
     }
 }
 
+void Player::triggerAnimation(const std::string& key) {
+    notifyStateChanged(key);
+}
+
 void Player::update(float deltaTime) {
-    // 1. Handle real-time movement input
-    SettingManager& settings = SettingManager::getInstance();
-    sf::Vector2f dir(0.f, 0.f);
+    animController.tickAttackFinished(*this);
+    sf::Vector2f dir = movementController.update(*this, deltaTime);
+    animController.updateMovementAnim(*this, dir, movementController.getIsFacingRight());
 
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveUp"))) dir.y -= 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveDown"))) dir.y += 1.f;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveLeft"))) dir.x -= 1.f, isFacingRight = false;
-    if (sf::Keyboard::isKeyPressed(settings.getKeyBinding("MoveRight"))) dir.x += 1.f, isFacingRight = true;
-
-    if (isAttacking) {
-        if (animator && animator->isCurrentAnimationFinished()) {
-            isAttacking = false;
-        }
-    }
-
-    // Normalize diagonal movement speed
-    std::string direction = (isFacingRight ? "right" : "left");
-    if (!isAttacking) {
-        if (dir.x != 0.f || dir.y != 0.f) {
-            float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-            dir.x /= length;
-            dir.y /= length;
-            notifyStateChanged(std::string("run-facing-") + direction);
-        }
-        else notifyStateChanged(std::string("idle-facing-") + direction);
-    } else {
-        if (dir.x != 0.f || dir.y != 0.f) {
-            float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-            dir.x /= length;
-            dir.y /= length;
-        }
-    }
-
-    // Scale movement based on cell size (originally 60.f for a 100.f cell size)
-    const float SPEED_TO_PIXELS = SettingManager::getInstance().getCellSize() * SettingManager::getInstance().getSpeedMultiplier();
-    
-    // Section 7.1: Grid coordinate alignment
-    float cellSize = settings.getCellSize();
-    float ox = settings.getGridOffsetX();
-    float oy = settings.getGridOffsetY();
-    sf::Vector2f pos = getPosition();
-
-    if (dir.x == 0.f && dir.y == 0.f) {
-        int col = static_cast<int>(std::floor((pos.x - ox) / cellSize));
-        int row = static_cast<int>(std::floor((pos.y - oy) / cellSize));
-        sf::Vector2f targetPos(ox + (col + 0.5f) * cellSize, oy + (row + 0.5f) * cellSize);
-        sf::Vector2f diff = targetPos - pos;
-        float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-        if (dist > 0.01f && dist < cellSize * 0.5f) {
-            setPosition(pos + diff * std::min(1.0f, deltaTime * 15.0f));
-        }
-    } else {
-        // Active movement axis alignment in movement direction
-        if (dir.x != 0.f && dir.y == 0.f) {
-            // Moving horizontally: look ahead along X and align Y center
-            float lookX = pos.x + dir.x * (cellSize * 0.4f);
-            int targetRow = static_cast<int>(std::floor((pos.y - oy) / cellSize));
-            float targetY = oy + (targetRow + 0.5f) * cellSize;
-            float diffY = targetY - pos.y;
-            if (std::abs(diffY) > 0.01f && std::abs(diffY) < cellSize * 0.45f) {
-                pos.y += diffY * std::min(1.0f, deltaTime * 20.0f);
-                setPosition(pos);
-            }
-        } else if (dir.y != 0.f && dir.x == 0.f) {
-            // Moving vertically: look ahead along Y and align X center
-            float lookY = pos.y + dir.y * (cellSize * 0.4f);
-            int targetCol = static_cast<int>(std::floor((pos.x - ox) / cellSize));
-            float targetX = ox + (targetCol + 0.5f) * cellSize;
-            float diffX = targetX - pos.x;
-            if (std::abs(diffX) > 0.01f && std::abs(diffX) < cellSize * 0.45f) {
-                pos.x += diffX * std::min(1.0f, deltaTime * 20.0f);
-                setPosition(pos);
-            }
-        }
-    }
-
-    setVelocity(dir * getSpeed() * SPEED_TO_PIXELS);
-
-    // 2. Update cooldown
+    // 4. Update switch cooldown
     if (switchCooldownTimer > 0.0f) {
         switchCooldownTimer -= deltaTime;
         if (switchCooldownTimer < 0.0f) {
@@ -150,23 +78,24 @@ void Player::update(float deltaTime) {
         }
     }
 
-    // 3. State machine update (updates active state)
+    // 5. State machine update (updates active combat state)
     stateMachine.update(*this, deltaTime);
 
-    // 4. Character base update (updates status effects)
+    // 6. Character base update (ticks status effects, knockback, health bar)
     Character::update(deltaTime);
 
-    // 5. Apply SlowAura if Ironshell
+    // 7. Apply SlowAura if Ironshell
     if (getActiveFormType() == FormType::IRONSHELL && currentChamber) {
         auto enemies = currentChamber->getEnemiesRaw();
         applySlowAura(enemies);
     }
 
-    // 6. Update player momentum on healthBar (health update & drawing handled by Character)
+    // 8. Sync momentum onto health bar
     if (healthBar) {
         healthBar->setMomentum(getMomentum(getActiveFormType()), special1Threshold);
     }
 }
+
 
 void Player::setChamber(Chamber* chamber) {
     this->currentChamber = chamber;
@@ -198,18 +127,12 @@ void Player::takeDamage(float rawAmount) {
     Character::takeDamage(modifiedAmount);
     float actualHpLost = oldHp - baseStats.hp;
 
-    // 3. Gain momentum based on actual (post-mitigation) HP lost
-    if (actualHpLost > 0.0f) {
-        FormType currentForm = getActiveFormType();
-        if (currentForm == FormType::WRAITHBLADE) {
-            gainMomentum(actualHpLost * 0.4f, FormType::WRAITHBLADE);
-        } else if (currentForm == FormType::VOIDCASTER) {
-            gainMomentum(actualHpLost * 0.4f, FormType::VOIDCASTER);
-        } else if (currentForm == FormType::IRONSHELL) {
-            gainMomentum(actualHpLost * 1.2f, FormType::IRONSHELL);
-        }
+    // 3. Gain momentum — rate is defined by the active form (no FormType switch needed)
+    if (actualHpLost > 0.0f && activeForm) {
+        gainMomentum(activeForm->getMomentumGainOnHit(actualHpLost), getActiveFormType());
     }
 }
+
 
 bool Player::switchForm(FormType newForm) {
     if (activeForm && activeForm->getFormType() == newForm) return false;
@@ -267,32 +190,15 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
 }
 
 void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
-    // check if it's ready to attack
-    if (!canAct()) {
-        // possibly render a paralyzing animation
-        return;
-    }
+    if (!canAct()) return;
 
-    // We only use left and right sprite directions in this game
-    std::string attackDir = isFacingRight ? "right" : "left";
+    animController.triggerAttackAnim(*this, movementController.getIsFacingRight());
 
-    std::string animName;
-    FormType type = getActiveFormType();
-    if (type == FormType::VOIDCASTER) {
-        animName = "shoot-facing-";
-    } else if (type == FormType::WRAITHBLADE) {
-        animName = "backslash-facing-";
-    } else {
-        animName = "slash-facing-";
-    }
-    
-    isAttacking = true;
-    notifyStateChanged(animName + attackDir);
-
-    // attack
+    // Dispatch attack logic via the state machine (combat, not animation)
     if (stateMachine.getActiveState())
         stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
 }
+
 
 float Player::getMomentum(FormType form) const {
     auto it = formMomentum.find(form);
@@ -353,8 +259,9 @@ Stats Player::getEffectiveStats() const {
 }
 
 bool Player::getIsFacingRight() const {
-    return isFacingRight;
+    return movementController.getIsFacingRight();
 }
+
 
 UI::PlayerHealthBar* Player::getPlayerHealthBar() {
     return dynamic_cast<UI::PlayerHealthBar*>(healthBar.get());
@@ -363,3 +270,18 @@ UI::PlayerHealthBar* Player::getPlayerHealthBar() {
 const UI::PlayerHealthBar* Player::getPlayerHealthBar() const {
     return dynamic_cast<const UI::PlayerHealthBar*>(healthBar.get());
 }
+
+void Player::onWallCollision() {
+    Character::onWallCollision();
+    // Delegate to movement controller so auto-glide stops at the wall
+    movementController.onWallCollision();
+}
+
+PlayerForm* Player::getActiveForm() const {
+    return activeForm;
+}
+
+bool Player::isAnimationFinished() const {
+    return animator && animator->isCurrentAnimationFinished();
+}
+

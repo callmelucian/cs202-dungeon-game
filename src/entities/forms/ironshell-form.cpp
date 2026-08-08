@@ -5,7 +5,7 @@
 
 IronshellForm::IronshellForm()
     : PlayerForm(FormType::IRONSHELL, "Ironshell",
-                 Stats{100.0f, 100.0f, 6.0f, 2.5f, 35.0f},
+                 Stats{100.0f, 100.0f, 6.0f, 3.25f, 35.0f},
                  1.0f, 1.0f) {}
 
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
@@ -32,6 +32,15 @@ std::unique_ptr<SpecialAbilityState> IronshellForm::createSpecialState(int abili
     }
     return nullptr;
 }
+
+float IronshellForm::getMomentumGainOnHit(float hpLost) const {
+    return hpLost * 1.2f;
+}
+
+std::string IronshellForm::getAttackAnimKey() const {
+    return "slash-facing-";
+}
+
 
 
 // ---- IronshellAegisPulseState ----

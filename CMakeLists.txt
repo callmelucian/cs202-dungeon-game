@@ -70,6 +70,8 @@ add_executable(game
     src/entities/animation/animation.cpp
     src/entities/animation/character-animator.cpp
     src/entities/player.cpp
+    src/entities/player-movement-controller.cpp
+    src/entities/player-animation-controller.cpp
     src/entities/player-form.cpp
     src/entities/stats.cpp
     src/entities/effects/status-effect.cpp

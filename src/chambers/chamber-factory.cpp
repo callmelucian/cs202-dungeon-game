@@ -26,7 +26,7 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     
     if (config.chamberType == "ProtectChamber") {
         auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", 10.0f);
-        protectChamber->setEchoPosition({300.f, 300.f}); // Can be extracted from config later
+        // Position will be set from grid later
         chamber = std::move(protectChamber);
     } else if (config.chamberType == "PreventChamber") {
         auto preventChamber = std::make_unique<PreventChamber>(player, EchoType::CLARITY_SHARD);
@@ -62,7 +62,6 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         chamber->setWaves(config.waves);
     }
 
-    // Set exit position on MidChamber after the grid is known.
     // Place it at the bottom-center of the walkable map area.
     if (config.chamberType == "MidChamber") {
         auto* midChamber = dynamic_cast<MidChamber*>(chamber.get());
@@ -79,6 +78,31 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
                 float exitX = ox + (cols / 2.0f) * size;
                 float exitY = oy + (rows - 2) * size;
                 midChamber->setExitPosition({exitX, exitY});
+            }
+        }
+    } else if (config.chamberType == "ProtectChamber") {
+        auto* protectChamber = dynamic_cast<ProtectChamber*>(chamber.get());
+        if (protectChamber) {
+            const auto& typeGrid = chamber->getTypeGrid();
+            bool foundEcho = false;
+            if (!typeGrid.empty() && !typeGrid[0].empty()) {
+                float size = SettingManager::getInstance().getCellSize();
+                float ox = SettingManager::getInstance().getGridOffsetX();
+                float oy = SettingManager::getInstance().getGridOffsetY();
+                
+                for (size_t y = 0; y < typeGrid.size(); ++y) {
+                    for (size_t x = 0; x < typeGrid[y].size(); ++x) {
+                        if (typeGrid[y][x] == "E") {
+                            protectChamber->setEchoPosition({ox + (x + 0.5f) * size, oy + (y + 0.5f) * size});
+                            foundEcho = true;
+                            break;
+                        }
+                    }
+                    if (foundEcho) break;
+                }
+            }
+            if (!foundEcho) {
+                protectChamber->setEchoPosition({300.f, 300.f}); // Fallback
             }
         }
     }

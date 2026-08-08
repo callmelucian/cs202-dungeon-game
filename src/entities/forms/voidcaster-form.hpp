@@ -9,6 +9,8 @@ public:
 
     void attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     std::unique_ptr<SpecialAbilityState> createSpecialState(int abilityIndex) override;
+    float getMomentumGainOnHit(float hpLost) const override;
+    std::string getAttackAnimKey() const override;
 };
 
 class VoidcasterLanceState : public SpecialAbilityState {

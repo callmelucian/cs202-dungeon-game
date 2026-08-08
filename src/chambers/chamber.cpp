@@ -206,9 +206,41 @@ void Chamber::buildObstaclesFromGrid() {
                     if (level > 1) {
                         elevationObstacles.push_back(rect);
                     }
+                    // A cell below a higher elevation level (y > 0 && levelGrid[y-1][x] > level) is a cliff face!
+                    // Ground-level characters cannot walk onto cliff faces; only stairs ("S") allow elevation changes.
+                    if (y > 0 && levelGrid[y - 1][x] > level) {
+                        elevationObstacles.push_back(rect);
+                    }
                     // Level 1 is a drop (obstacle) for Level 1 chars (level 2 in grid).
                     if (level == 1) {
                         inverseElevationObstacles.push_back(rect);
+                    }
+                } else if (type == "S") {
+                    // Prevent players from walking off the side of the stairs
+                    bool isVertical = true; // Assume vertical stairs
+                    if (x > 0 && x < cols - 1 && levelGrid[y][x-1] != levelGrid[y][x+1]) {
+                        isVertical = false;
+                    }
+                    
+                    float sideThick = 2.0f; // Thin wall
+                    if (isVertical) {
+                        // Left wall (only if the tile to the left is not also stairs)
+                        if (x == 0 || typeGrid[y][x-1] != "S") {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size}, {sideThick, size}));
+                        }
+                        // Right wall
+                        if (x == cols - 1 || typeGrid[y][x+1] != "S") {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size + size - sideThick, oy + y * size}, {sideThick, size}));
+                        }
+                    } else {
+                        // Top wall
+                        if (y == 0 || typeGrid[y-1][x] != "S") {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size}, {size, sideThick}));
+                        }
+                        // Bottom wall
+                        if (y == rows - 1 || typeGrid[y+1][x] != "S") {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size + size - sideThick}, {size, sideThick}));
+                        }
                     }
                 }
             }
