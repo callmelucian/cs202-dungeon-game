@@ -5,6 +5,7 @@
 #include "../ui/containers/flex-box.hpp"
 #include "../ui/base/component.hpp"
 #include <memory>
+#include <optional>
 
 class StateManager;
 
@@ -20,6 +21,8 @@ public:
 protected:
     StateManager& stateManager;
     std::unique_ptr<UI::Container> root;
+    std::optional<sf::Sprite> backgroundSprite;
+    bool drawBackground;
 };
 
 #endif // GAME_STATE

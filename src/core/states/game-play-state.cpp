@@ -11,6 +11,7 @@
 #include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebugMode(false) {
+    drawBackground = false;
     setupUI();
     
     RunState& runState = Game::getInstance().getRunState();
@@ -38,6 +39,7 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
 }
 
 GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager), isDebugMode(true) {
+    drawBackground = false;
     setupUI();
     
     activeChamber = ChamberFactory::createDebugChamber(type, *player);
