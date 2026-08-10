@@ -49,14 +49,19 @@
   ],
   "waves": [
     {
-      "enemyType": "MIRROR_BEARER",
-      "count": 3,
-      "spawnDelay": 1.0
+      "enemyType": "MIRROR_BEARER_CARRIER",
+      "count": 1,
+      "spawnDelay": 0.5
     },
     {
       "enemyType": "MIRROR_BEARER",
       "count": 2,
-      "spawnDelay": 4.0
+      "spawnDelay": 0.5
+    },
+    {
+      "enemyType": "MIRROR_BEARER",
+      "count": 2,
+      "spawnDelay": 3.0
     }
   ]
 }

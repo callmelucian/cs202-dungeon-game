@@ -56,5 +56,14 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, Player& player)
 }
 
 std::unique_ptr<Enemy> EnemyFactory::createEnemy(const std::string& typeName, Player& player) {
+    if (typeName == "BONE_SPRINTER_CARRIER") {
+        return std::make_unique<BoneSprinter>(player, true);
+    } else if (typeName == "CHOIR_HUSK_CARRIER") {
+        return std::make_unique<ChoirHusk>(player, HuskVariant::CARRIER);
+    } else if (typeName == "CHOIR_HUSK_GUARD") {
+        return std::make_unique<ChoirHusk>(player, HuskVariant::GUARD);
+    } else if (typeName == "MIRROR_BEARER_CARRIER") {
+        return std::make_unique<MirrorBearer>(player, MirrorVariant::CARRIER);
+    }
     return createEnemy(stringToEnemyType(typeName), player);
 }

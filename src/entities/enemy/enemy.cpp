@@ -3,7 +3,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
-// NOTE: setting-manager.hpp, math-utility.hpp, cmath removed with old movement system
+#include "../../global-settings/setting-manager.hpp"
 #include "../../graphics/particle-system.hpp"
 #include <iostream>
 
@@ -41,6 +41,21 @@ void Enemy::update(float deltaTime) {
     Character::update(deltaTime);
 }
 
+void Enemy::draw(sf::RenderWindow& window) const {
+    if (isRealCarrier && isAlive()) {
+        float radius = SettingManager::getInstance().getCellSize() * 0.45f;
+        sf::CircleShape carrierAura(radius);
+        carrierAura.setOrigin({radius, radius});
+        carrierAura.setPosition(getPosition());
+        // Faint luminous yellow/gold glow aura (baseline tell for real carrier per spec §7.2)
+        carrierAura.setFillColor(sf::Color(255, 220, 80, 80));
+        carrierAura.setOutlineColor(sf::Color(255, 240, 150, 220));
+        carrierAura.setOutlineThickness(3.0f);
+        window.draw(carrierAura);
+    }
+    Character::draw(window);
+}
+
 
 void Enemy::takeDamage(float rawAmount) {
     if (!isAlive()) return;
@@ -53,7 +68,12 @@ void Enemy::takeDamage(float rawAmount) {
 }
 
 void Enemy::onWallCollision() {
-    // Stateless movement: no persistent moving state needs to be cleared.
+    // Notify the steering strategy so it can invalidate its cached path and
+    // replan around the obstacle on the next frame (fixes Bug 2: stale BFS path
+    // repeatedly pressing the enemy into the same wall).
+    if (steeringStrategy) {
+        steeringStrategy->onWallHit();
+    }
 
     // If knocked back heavily and hit a wall, award a bonus fragment.
     sf::Vector2f kv = getKnockbackVelocity();

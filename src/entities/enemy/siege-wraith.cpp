@@ -3,6 +3,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "../../chambers/chamber.hpp"  // Fixed path (up two levels)
 #include "../player.hpp"             // Added Player header
+#include "../../global-settings/setting-manager.hpp"
 #include <iostream>
 
 SiegeWraith::SiegeWraith(Player& player) : Enemy("siege_wraith", player) {
@@ -24,7 +25,8 @@ void SiegeWraith::onDeath(Chamber* chamber) {
 
 void SiegeWraith::explode(Chamber& chamber) {
     sf::Vector2f myPos = getPosition();
-    float explosionRadius = 3.0f;
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float explosionRadius = 3.0f * cellSize;
     float explosionDamage = 15.0f;
 
     Player& player = getPlayer();

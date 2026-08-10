@@ -1,8 +1,11 @@
 #include "prevent-chamber.hpp"
 #include "../entities/player.hpp"
 #include "../global-settings/setting-manager.hpp"
+#include "../global-settings/sound-manager.hpp"
+#include "../graphics/particle-system.hpp"
 #include "../utils/math-utility.hpp"
 #include "../entities/enemy/enemy-state.hpp"
+#include "../core/game.hpp"
 #include <iostream>
 
 PreventChamber::PreventChamber(Player& player, EchoType echoType)
@@ -27,12 +30,18 @@ void PreventChamber::update(float dt) {
     float cellSize = SettingManager::getInstance().getCellSize();
     for (auto& enemy : enemies) {
         // Check if carrier reached exit
-        if (enemy->getIsRealCarrier()) {
+        if (enemy->getIsRealCarrier() && enemy->isAlive()) {
             if (Math::distance(enemy->getPosition(), exitPosition) <= 0.5f * cellSize) {
                 std::cout << "Carrier reached the exit! Echo STOLEN.\n";
-                Game::getInstance().getRunState().echoOutcomes[associatedEcho] = EchoOutcome::STOLEN;
-                enemy->takeDamage(9999.0f); // Kill the carrier so it stops triggering
-                failChamber();
+                SoundManager::getInstance().playSound("enemy-hit");
+                ParticleSystem::getInstance().emitBurst(exitPosition, 30, sf::Color(255, 50, 50, 200), 40.0f, 120.0f, 0.3f, 0.8f, 5.0f);
+                RunState& runState = Game::getInstance().getRunState();
+                runState.echoOutcomes[associatedEcho] = EchoOutcome::STOLEN;
+                runState.echoesStolen++;
+                
+                // Carrier escapes with the Echo — drops 0 fragments on exit gate
+                enemy->addBonusFragments(-enemy->getFragmentDropCount());
+                enemy->setHp(0.0f); // Escaped carrier removed, chamber continues!
             }
         }
     }

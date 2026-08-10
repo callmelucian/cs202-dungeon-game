@@ -26,6 +26,7 @@ public:
     virtual ~Enemy();
 
     void update(float deltaTime) override;
+    void draw(sf::RenderWindow& window) const override;
     void takeDamage(float rawAmount) override;
     void onWallCollision() override;
 
@@ -50,6 +51,9 @@ public:
     UI::EnemyHealthBar* getEnemyHealthBar();
     const UI::EnemyHealthBar* getEnemyHealthBar() const;
     
+    float getAttackCooldown() const { return attackCooldown; }
+    void setAttackCooldown(float cd) { attackCooldown = cd; }
+
     virtual bool canBeKnockedBack() const { return true; }
 };
 

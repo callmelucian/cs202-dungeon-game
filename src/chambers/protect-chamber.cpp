@@ -52,6 +52,18 @@ void ProtectChamber::update(float dt) {
             }
         }
 
+        // 3. Check enemy attacks on Echo
+        for (Enemy* enemy : getEnemiesRaw()) {
+            if (!enemy || !enemy->isAlive()) continue;
+            float distToEcho = Math::distance(enemy->getPosition(), echoPosition);
+            if (distToEcho <= 1.5f * cellSize) {
+                if (enemy->getAttackCooldown() <= 0.0f) {
+                    onEchoHit(enemy->getEffectiveStats().damage);
+                    enemy->setAttackCooldown(2.0f);
+                }
+            }
+        }
+
         // Update Echo collection timer bar (EnemyHealthBar UI)
         collectorTimerBar.setHealth(collectionTimer, requiredCollectionTime);
         collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -35.0f));
@@ -77,9 +89,15 @@ void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
 }
 
 void ProtectChamber::onEchoHit(float rawDamage) {
-    // 8% penalty per hit on Echo
-    echo->takeDamage(8.0f);
-    std::cout << "Echo hit! Power reduced to " << echo->getPower() << "%\n";
+    if (!echo || isCollected) return;
+    if (checkIronshellRedirect()) {
+        player.takeDamage(rawDamage);
+        std::cout << "Ironshell absorbed Echo hit! Damage redirected to Serin.\n";
+    } else {
+        // 8% penalty per hit on Echo
+        echo->takeDamage(8.0f);
+        std::cout << "Echo hit! Power reduced to " << echo->getPower() << "%\n";
+    }
 }
 
 void ProtectChamber::onFragmentCollected(float value) {

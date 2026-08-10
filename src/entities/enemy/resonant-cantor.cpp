@@ -3,6 +3,7 @@
 #include "../effects/slowed-effect.hpp"
 #include "../player.hpp"
 #include "../../chambers/chamber.hpp"
+#include "../../global-settings/setting-manager.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -37,8 +38,9 @@ void ResonantCantor::emitPulse() {
     sf::Vector2f myPos = getPosition();
     sf::Vector2f playerPos = player.getPosition();
     
+    float cellSize = SettingManager::getInstance().getCellSize();
     float dist = std::hypot(myPos.x - playerPos.x, myPos.y - playerPos.y);
-    if (dist <= 6.0f) {
+    if (dist <= 6.0f * cellSize) {
         // Applies SlowedEffect. If already slowed, the Character class handles refreshing/stacking it
         player.applyStatusEffect(std::make_unique<SlowedEffect>());
     }

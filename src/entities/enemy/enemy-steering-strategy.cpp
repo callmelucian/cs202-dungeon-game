@@ -3,32 +3,89 @@
 #include "../player.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../utils/pathfinder.hpp"
+#include "../../utils/math-utility.hpp"
+#include "../../global-settings/setting-manager.hpp"
 #include <cmath>
 
-static sf::Vector2f normalize(const sf::Vector2f& source) {
-    float length = std::sqrt(source.x * source.x + source.y * source.y);
-    if (length != 0)
-        return sf::Vector2f(source.x / length, source.y / length);
-    else
-        return source;
-}
+// ---------------------------------------------------------------------------
+// SeekStrategy
+// ---------------------------------------------------------------------------
 
 sf::Vector2f SeekStrategy::calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) {
-    // Pathfinding towards player using chamber walkableGrid bitmask graph
-    std::vector<sf::Vector2f> path = Pathfinder::findPath(enemy.getPosition(), player.getPosition(), chamber);
-    
-    if (!path.empty()) {
-        sf::Vector2f targetWaypoint = path.front();
-        sf::Vector2f direction = targetWaypoint - enemy.getPosition();
-        return normalize(direction);
+    float cellSize = SettingManager::getInstance().getCellSize();
+
+    // -----------------------------------------------------------------------
+    // Replan decision
+    // -----------------------------------------------------------------------
+    // Force a replan if the player has drifted more than REPLAN_DISTANCE_THRESHOLD
+    // cells since the path was last computed.  This keeps the path fresh even
+    // when the enemy is following a long route while the player moves away.
+    if (!needsReplan) {
+        float playerDrift = Math::distance(player.getPosition(), lastTargetPos);
+        if (playerDrift > cellSize * REPLAN_DISTANCE_THRESHOLD) {
+            needsReplan = true;
+        }
     }
-    
-    // Fallback if no path is found
-    sf::Vector2f direction = player.getPosition() - enemy.getPosition();
-    return normalize(direction);
+
+    // Recompute via BFS whenever flagged (wall hit, path exhausted, first call,
+    // or player drifted).
+    if (needsReplan || cachedPath.empty()) {
+        cachedPath = Pathfinder::findPath(enemy.getPosition(), player.getPosition(), chamber);
+        lastTargetPos = player.getPosition();
+        needsReplan = false;
+    }
+
+    // -----------------------------------------------------------------------
+    // Waypoint advancement
+    // -----------------------------------------------------------------------
+    // Pop waypoints the enemy has already reached.  Using a threshold of half a
+    // cell size prevents the steering direction from flipping when the enemy's
+    // float position straddles a cell-centre boundary (Bug 4).
+    float arrivalRadius = cellSize * ARRIVE_RADIUS_FACTOR;
+    while (!cachedPath.empty() &&
+           Math::distance(enemy.getPosition(), cachedPath.front()) < arrivalRadius) {
+        cachedPath.erase(cachedPath.begin());
+    }
+
+    // -----------------------------------------------------------------------
+    // Direction output
+    // -----------------------------------------------------------------------
+    if (!cachedPath.empty()) {
+        sf::Vector2f toWaypoint = cachedPath.front() - enemy.getPosition();
+        float len = Math::length(toWaypoint);
+        if (len > 0.0001f) {
+            return toWaypoint / len;
+        }
+    }
+
+    // Fallback: direct line to player when path is empty (open line-of-sight or
+    // pathfinder returned nothing).
+    sf::Vector2f toPlayer = player.getPosition() - enemy.getPosition();
+    float len = Math::length(toPlayer);
+    if (len > 0.0001f) {
+        return toPlayer / len;
+    }
+    return {0.f, 0.f};
 }
+
+void SeekStrategy::onWallHit() {
+    // Mark the cached path stale so calculateSteering replans on the very next
+    // frame, finding a route that goes around the obstacle rather than pressing
+    // into it (fixes Bug 2: velocity zeroed by collision solver → stale path
+    // repeats the collision indefinitely).
+    needsReplan = true;
+}
+
+// ---------------------------------------------------------------------------
+// EvadeStrategy
+// ---------------------------------------------------------------------------
+
 sf::Vector2f EvadeStrategy::calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) {
-    // Evade: Desired direction is from the Player towards the Enemy (moving away)
-    sf::Vector2f direction = enemy.getPosition() - player.getPosition();
-    return normalize(direction);
+    // Evade: desired direction is from the Player towards the Enemy (moving away).
+    sf::Vector2f toEnemy = enemy.getPosition() - player.getPosition();
+    float len = Math::length(toEnemy);
+    if (len > 0.0001f) {
+        return toEnemy / len;
+    }
+    return {0.f, 0.f};
 }

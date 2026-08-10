@@ -39,9 +39,14 @@
   ],
   "waves": [
     {
+      "enemyType": "BONE_SPRINTER_CARRIER",
+      "count": 4,
+      "spawnDelay": 0.5
+    },
+    {
       "enemyType": "BONE_SPRINTER",
-      "count": 5,
-      "spawnDelay": 1.0
+      "count": 3,
+      "spawnDelay": 2.0
     }
   ]
 }

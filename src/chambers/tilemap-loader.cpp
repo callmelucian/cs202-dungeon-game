@@ -514,51 +514,72 @@ TilemapRenderData TilemapLoader::synthesizeMap(
         }
     }
 
+    // Helper: returns true when tile (tr, tc) is a cliff face — a ground-level tile
+    // whose northern neighbour sits at a higher elevation.  These tiles are added to
+    // elevationObstacles by buildObstaclesFromGrid() and are physically impassable for
+    // ground-level characters, so the BFS must agree.
+    auto isCliffFace = [&](int tr, int tc) -> bool {
+        if (tr <= 0 || tr >= rows || tc < 0 || tc >= cols) return false;
+        return levelGrid[tr - 1][tc] > levelGrid[tr][tc];
+    };
+
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
             TileType ct = parseTileType(typeGrid[r][c]);
+
+            // Void/Water tiles: no connections (mask stays 0).
             if (ct == TileType::Void || ct == TileType::Water) continue;
-            
+
+            // Cliff face tiles are physically blocked for ground-level characters
+            // (mirrors the elevationObstacles rule in buildObstaclesFromGrid).
+            // Leave their mask as 0 so no BFS edge points into or out of them.
+            if (isCliffFace(r, c)) continue;
+
             uint8_t mask = 0;
 
             auto canConnect = [&](TileType current, TileType neighbor, int dirIdx) {
                 // dirIdx: 0=Up, 1=Right, 2=Down, 3=Left
                 if (neighbor == TileType::Void || neighbor == TileType::Water) return false;
-                
+
                 // Bridge constraints
-                if (current == TileType::VerticalBridge && (dirIdx == 1 || dirIdx == 3)) return false;
+                if (current == TileType::VerticalBridge   && (dirIdx == 1 || dirIdx == 3)) return false;
                 if (current == TileType::HorizontalBridge && (dirIdx == 0 || dirIdx == 2)) return false;
-                
-                if (neighbor == TileType::VerticalBridge && (dirIdx == 1 || dirIdx == 3)) return false;
+
+                if (neighbor == TileType::VerticalBridge   && (dirIdx == 1 || dirIdx == 3)) return false;
                 if (neighbor == TileType::HorizontalBridge && (dirIdx == 0 || dirIdx == 2)) return false;
 
                 return true;
             };
 
-            if (r > 0) {
+            // Up (dy = -1)
+            if (r > 0 && !isCliffFace(r - 1, c)) {
                 TileType nt = parseTileType(typeGrid[r-1][c]);
                 if (canConnect(ct, nt, 0)) {
                     if (levelGrid[r][c] == levelGrid[r-1][c] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 1;
                 }
             }
-            if (c < cols - 1) {
+            // Right (dx = +1)
+            if (c < cols - 1 && !isCliffFace(r, c + 1)) {
                 TileType nt = parseTileType(typeGrid[r][c+1]);
                 if (canConnect(ct, nt, 1)) {
                     if (levelGrid[r][c] == levelGrid[r][c+1] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 2;
                 }
             }
-            if (r < rows - 1) {
+            // Down (dy = +1)
+            if (r < rows - 1 && !isCliffFace(r + 1, c)) {
                 TileType nt = parseTileType(typeGrid[r+1][c]);
                 if (canConnect(ct, nt, 2)) {
                     if (levelGrid[r][c] == levelGrid[r+1][c] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 4;
                 }
             }
-            if (c > 0) {
+            // Left (dx = -1)
+            if (c > 0 && !isCliffFace(r, c - 1)) {
                 TileType nt = parseTileType(typeGrid[r][c-1]);
                 if (canConnect(ct, nt, 3)) {
                     if (levelGrid[r][c] == levelGrid[r][c-1] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 8;
                 }
             }
+
             data.walkableGrid[r][c] = mask;
         }
     }

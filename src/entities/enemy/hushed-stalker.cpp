@@ -4,6 +4,7 @@
 #include "../../chambers/chamber.hpp"
 #include "../player.hpp"
 #include "../animation/character-animator.hpp"
+#include "../../global-settings/setting-manager.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -39,8 +40,9 @@ void HushedStalker::updateState(float dt, Chamber& chamber) {
     sf::Vector2f myPos = getPosition();
     sf::Vector2f playerPos = getPlayer().getPosition();
     float distToPlayer = std::hypot(myPos.x - playerPos.x, myPos.y - playerPos.y);
+    float cellSize = SettingManager::getInstance().getCellSize();
 
-    if (distToPlayer < 2.5f && attackCooldown <= 0.0f) {
+    if (distToPlayer < 2.5f * cellSize && attackCooldown <= 0.0f) {
         windingUp = true;
         windupTimer = 0.4f;
         setVelocity(sf::Vector2f(0.0f, 0.0f));

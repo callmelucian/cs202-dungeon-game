@@ -3,6 +3,7 @@
 #include "enemy-steering-strategy.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../player.hpp"
+#include "../../global-settings/setting-manager.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -42,6 +43,7 @@ bool ChoirHusk::isWindingUp() const {
 void ChoirHusk::triggerCallResponse(Chamber& chamber) {
     int syncedCount = 0;
     sf::Vector2f myPos = getPosition();
+    float cellSize = SettingManager::getInstance().getCellSize();
 
     // Find up to 2 nearby Husks to join the call
     for (Enemy* e : chamber.getEnemiesRaw()) {
@@ -51,7 +53,7 @@ void ChoirHusk::triggerCallResponse(Chamber& chamber) {
                 sf::Vector2f otherPos = husk->getPosition();
                 float dist = std::sqrt(std::pow(myPos.x - otherPos.x, 2) + std::pow(myPos.y - otherPos.y, 2));
                 
-                if (dist < 8.0f) { // Synced attack radius
+                if (dist < 8.0f * cellSize) { // Synced attack radius (8 units)
                     husk->startWindup();
                     syncedCount++;
                     if (syncedCount >= 2) break;
@@ -83,9 +85,10 @@ void ChoirHusk::updateState(float dt, Chamber& chamber) {
     sf::Vector2f myPos = getPosition();
     sf::Vector2f playerPos = getPlayer().getPosition();
     float distToPlayer = std::sqrt(std::pow(myPos.x - playerPos.x, 2) + std::pow(myPos.y - playerPos.y, 2));
+    float cellSize = SettingManager::getInstance().getCellSize();
 
-    // If close enough to hit the player and cooldown is ready, make the call!
-    if (distToPlayer < 2.5f && callCooldown <= 0.0f && attackCooldown <= 0.0f) {
+    // If close enough to hit the player (2.5 units) and cooldown is ready, make the call!
+    if (distToPlayer < 2.5f * cellSize && callCooldown <= 0.0f && attackCooldown <= 0.0f) {
         triggerCallResponse(chamber);
         return;
     }

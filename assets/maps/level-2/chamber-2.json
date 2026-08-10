@@ -49,14 +49,14 @@
   ],
   "waves": [
     {
-      "enemyType": "CHOIR_HUSK",
+      "enemyType": "CHOIR_HUSK_CARRIER",
       "count": 5,
-      "spawnDelay": 1.0
+      "spawnDelay": 0.5
     },
     {
-      "enemyType": "CHOIR_HUSK",
+      "enemyType": "CHOIR_HUSK_GUARD",
       "count": 2,
-      "spawnDelay": 4.0
+      "spawnDelay": 2.0
     }
   ]
 }

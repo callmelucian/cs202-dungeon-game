@@ -153,6 +153,16 @@ void GameplayState::setupUI() {
     playableChar = std::make_unique<Serin>();
     player = std::make_unique<Player>(*playableChar);
 
+    if (!isDebugMode) {
+        RunState& runState = Game::getInstance().getRunState();
+        player->setHp(runState.playerHP);
+        player->switchForm(runState.activeForm);
+        player->gainMomentum(runState.wraithbladeMomentum, FormType::WRAITHBLADE);
+        player->gainMomentum(runState.voidcasterMomentum, FormType::VOIDCASTER);
+        player->gainMomentum(runState.ironshellMomentum, FormType::IRONSHELL);
+        player->setSpecial1Threshold(runState.special1MomentumThreshold);
+    }
+
     camera.init({static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())}, 0.5f);
 }
 
@@ -420,6 +430,14 @@ void GameplayState::onEchoPowerChanged(float power) {
 
 void GameplayState::onChamberCompleted() {
     std::cout << "GameplayState: Chamber Completed!\n";
+    if (player) {
+        RunState& runState = Game::getInstance().getRunState();
+        runState.playerHP = player->getHp();
+        runState.activeForm = player->getActiveFormType();
+        runState.wraithbladeMomentum = player->getMomentum(FormType::WRAITHBLADE);
+        runState.voidcasterMomentum = player->getMomentum(FormType::VOIDCASTER);
+        runState.ironshellMomentum = player->getMomentum(FormType::IRONSHELL);
+    }
     if (isDebugMode) {
         stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
     } else {

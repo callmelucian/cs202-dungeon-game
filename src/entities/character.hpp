@@ -36,6 +36,7 @@ public:
     void applyKnockback(const sf::Vector2f& direction, float magnitude);
     virtual void onWallCollision();
     float getHp() const;
+    void setHp(float hp);
     float getSpeed() const;
     void setSpeed(float speed);
     bool canAct() const;

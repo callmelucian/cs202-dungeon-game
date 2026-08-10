@@ -267,6 +267,10 @@ float Character::getHp() const {
     return baseStats.hp;
 }
 
+void Character::setHp(float hp) {
+    baseStats.hp = std::clamp(hp, 0.0f, baseStats.maxHp);
+}
+
 float Character::getSpeed() const {
     return getEffectiveStats().speed;
 }

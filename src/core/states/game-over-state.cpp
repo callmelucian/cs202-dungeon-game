@@ -2,6 +2,7 @@
 #include "main-menu-state.hpp"
 #include <string>
 #include "game-play-state.hpp"
+#include "../game.hpp"
 
 GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> endingType)
     : GameState(manager), endingType(endingType) {
@@ -32,6 +33,7 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
             ->setFixedWidth(220.f)
             ->setFixedHeight(50.f)
             ->setOnClick([this]() {
+                Game::getInstance().getRunState().playerHP = 100.0f;
                 stateManager.changeState(std::make_unique<GameplayState>(stateManager));
             });
 
