@@ -12,8 +12,6 @@ void GauntletChamber::setWaves(const std::vector<WaveConfig>& configs) {
 
 void GauntletChamber::update(float dt) {
     Chamber::update(dt);
-    
-    waveSpawner.update(dt, *this, player);
 
     if (waveSpawner.isFinished() && enemies.empty() && !isCompleted) {
         float healAmount = player.getEffectiveStats().maxHp * 0.25f;

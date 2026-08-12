@@ -3,7 +3,7 @@
 #include "../entities/enemy/enemy-factory.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include <iostream>
-#include <cstdlib>
+#include <random>
 
 void WaveSpawner::setWaves(const std::vector<WaveConfig>& waveConfigs) {
     waves.clear();
@@ -49,13 +49,17 @@ void WaveSpawner::update(float dt, Chamber& chamber, Player& player) {
                     }
                 }
 
+                static std::mt19937 rng(std::random_device{}());
+
                 if (!walkablePositions.empty()) {
-                    sf::Vector2f spawnPos = walkablePositions[std::rand() % walkablePositions.size()];
+                    std::uniform_int_distribution<size_t> dist(0, walkablePositions.size() - 1);
+                    sf::Vector2f spawnPos = walkablePositions[dist(rng)];
                     enemy->setPosition(spawnPos);
                 } else {
                     // Fallback
-                    float spawnX = ox + (3.0f + static_cast<float>(std::rand() % 14)) * cell;
-                    float spawnY = oy + (3.0f + static_cast<float>(std::rand() % 14)) * cell;
+                    std::uniform_int_distribution<int> posDist(0, 13);
+                    float spawnX = ox + (3.0f + static_cast<float>(posDist(rng))) * cell;
+                    float spawnY = oy + (3.0f + static_cast<float>(posDist(rng))) * cell;
                     enemy->setPosition({spawnX, spawnY});
                 }
 

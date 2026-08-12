@@ -50,22 +50,23 @@ void PreventChamber::update(float dt) {
         completeChamber();
     }
 
-    itemManager.update(dt, player, *this);
-    checkCollisions(dt);
+    // Tick debug hitbox timers (moved from drawBackground to avoid mutating state in draw)
+    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
+        it->timer -= dt;
+        if (it->timer <= 0) {
+            it = debugHitboxes.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void PreventChamber::drawBackground(sf::RenderWindow& window) {
     // Draw exit zone
     window.draw(exitShape);
     
-    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
-        CollisionSolver::drawDebug(window, it->shape);
-        it->timer -= 0.016f;
-        if (it->timer <= 0) {
-            it = debugHitboxes.erase(it);
-        } else {
-            ++it;
-        }
+    for (const auto& hb : debugHitboxes) {
+        CollisionSolver::drawDebug(window, hb.shape);
     }
 }
 

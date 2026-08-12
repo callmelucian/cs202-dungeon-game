@@ -26,7 +26,10 @@ void Echo::attach(EchoObserver* observer) {
 }
 
 void Echo::notify() {
-    for (auto* observer : observers) {
-        observer->onEchoPowerChanged(echoPower);
+    auto observersCopy = observers;
+    for (auto* observer : observersCopy) {
+        if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
+            observer->onEchoPowerChanged(echoPower);
+        }
     }
 }

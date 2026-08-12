@@ -39,9 +39,18 @@ void Chamber::update(float dt) {
             it = enemies.erase(it);
         } else {
             (*it)->update(dt);
-            (*it)->updateState(dt, *this);
+            if ((*it)->isAlive()) {
+                (*it)->updateState(dt, *this);
+            }
             ++it;
         }
+    }
+    
+    if (!pendingEnemies.empty()) {
+        for (auto& pending : pendingEnemies) {
+            enemies.push_back(std::move(pending));
+        }
+        pendingEnemies.clear();
     }
     
     itemManager.update(dt, player, *this);
@@ -130,7 +139,7 @@ void Chamber::onFragmentCollected(float value) {
 
 void Chamber::onEnemyHit(Enemy* enemy, bool lethal) {
     // Apply Wraithblade knockback if active form is Wraithblade
-    if (player.getActiveFormType() == FormType::WRAITHBLADE) {
+    if (!lethal && player.getActiveFormType() == FormType::WRAITHBLADE) {
         if (enemy->canBeKnockedBack()) {
             sf::Vector2f dir = Math::normalize(enemy->getPosition() - player.getPosition());
             enemy->applyKnockback(dir, 1600.0f);
@@ -249,7 +258,7 @@ void Chamber::buildObstaclesFromGrid() {
 }
 
 void Chamber::spawnEnemy(std::unique_ptr<Enemy> enemy) {
-    enemies.push_back(std::move(enemy));
+    pendingEnemies.push_back(std::move(enemy));
 }
 
 void Chamber::checkCollisions(float dt) {
@@ -264,22 +273,26 @@ void Chamber::checkCollisions(float dt) {
 }
 
 
-void Chamber::processPlayerAttack(const Hitbox& hitbox) {
+int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
     int killsThisAttack = 0;
+    int totalHits = 0;
     std::vector<Enemy*> killedEnemies;
 
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
         if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
-            float hpBefore = enemy->getHp();
+            totalHits++;
             float damage = player.getEffectiveStats().damage;
-            bool lethal = (hpBefore - damage) <= 0;
+            if (player.getStateMachine().getActiveState()) {
+                damage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(damage);
+            }
             
             enemy->takeDamage(damage);
             
-            if (hpBefore > 0 && enemy->getHp() <= 0) {
+            bool lethal = !enemy->isAlive();
+            if (lethal) {
                 killsThisAttack++;
                 killedEnemies.push_back(enemy.get());
             }
@@ -295,4 +308,6 @@ void Chamber::processPlayerAttack(const Hitbox& hitbox) {
             std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
+
+    return totalHits;
 }

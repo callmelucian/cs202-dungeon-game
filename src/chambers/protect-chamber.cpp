@@ -50,6 +50,9 @@ void ProtectChamber::update(float dt) {
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
                 completeChamber();
             }
+        } else {
+            // Decay progress if player leaves the circle
+            collectionTimer = std::max(0.0f, collectionTimer - dt * 0.5f);
         }
 
         // 3. Check enemy attacks on Echo

@@ -12,9 +12,6 @@ WraithbladeForm::WraithbladeForm()
 
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     SoundManager::getInstance().playSound("swing");
-    
-    // Gain +5 momentum on hit
-    player.gainMomentum(5.0f, FormType::WRAITHBLADE);
 
     // Wraithblade: Melee (1.5 units) - Cone shape in target direction
     float rangePixels = getAttackRange() * 60.0f; // 1.5 * 60 = 90
@@ -30,7 +27,11 @@ void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& ch
     cone.length = rangePixels;
     cone.angleDegrees = 90.0f; // 90 degree arc
 
-    chamber.processPlayerAttack(cone);
+    int hits = chamber.processPlayerAttack(cone);
+    if (hits > 0) {
+        // Gain +5 momentum per hit
+        player.gainMomentum(5.0f * hits, FormType::WRAITHBLADE);
+    }
 }
 
 std::unique_ptr<SpecialAbilityState> WraithbladeForm::createSpecialState(int abilityIndex) {

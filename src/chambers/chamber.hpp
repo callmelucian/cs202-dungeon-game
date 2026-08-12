@@ -34,7 +34,7 @@ public:
     virtual void update(float dt);
     virtual void draw(sf::RenderWindow& window);
     
-    virtual void processPlayerAttack(const Hitbox& hitbox);
+    virtual int processPlayerAttack(const Hitbox& hitbox);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
     void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
@@ -61,6 +61,7 @@ public:
 protected:
     Player& player;
     std::vector<std::unique_ptr<Enemy>> enemies;
+    std::vector<std::unique_ptr<Enemy>> pendingEnemies;
     ItemManager itemManager;
     WaveSpawner waveSpawner;
     std::vector<DebugHitbox> debugHitboxes;

@@ -2,7 +2,7 @@
 #include "../entities/player.hpp"
 #include "../chambers/chamber.hpp"
 #include <cmath>
-#include <cstdlib>
+#include <random>
 #include <iostream>
 #include "../global-settings/sound-manager.hpp"
 #include "../graphics/particle-system.hpp"
@@ -13,8 +13,12 @@ Item::Item(sf::Vector2f startPos)
     setPosition(startPos);
     
     // Random scatter velocity
-    float angle = (std::rand() % 360) * 3.14159f / 180.0f;
-    float speed = 100.0f + (std::rand() % 150);
+    static std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<float> angleDist(0.0f, 360.0f);
+    std::uniform_real_distribution<float> speedDist(100.0f, 250.0f);
+    
+    float angle = angleDist(rng) * 3.14159f / 180.0f;
+    float speed = speedDist(rng);
     velocity = sf::Vector2f(std::cos(angle) * speed, std::sin(angle) * speed);
     
     // Default visual
@@ -53,10 +57,8 @@ bool Item::isCollected() const {
 }
 
 sf::FloatRect Item::getBounds() const {
-    sf::FloatRect bounds = shape.getGlobalBounds();
-    bounds.position.x += getPosition().x;
-    bounds.position.y += getPosition().y;
-    return bounds;
+    // getGlobalBounds() already includes the object's transform/position
+    return shape.getGlobalBounds();
 }
 
 void Item::draw(sf::RenderTarget& target, sf::RenderStates states) const {

@@ -1,6 +1,7 @@
 #include "game-play-state.hpp"
 #include "pause-state.hpp"
 #include "game-over-state.hpp"
+#include "main-menu-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
 #include "../../chambers/map-loader.hpp"
@@ -8,6 +9,7 @@
 #include "../../graphics/particle-system.hpp"
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
+#include "../../global-settings/save-load-manager.hpp"
 #include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebugMode(false) {
@@ -98,7 +100,7 @@ void GameplayState::setupUI() {
         });
     quitButton = buttonBox->createChild<UI::Button>("Quit Game", "regular", 25)
         ->setOnClick([this]() {
-            stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
+            stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
         });
 
     // Create centered overlay for Chamber Intro title container
@@ -437,6 +439,9 @@ void GameplayState::onChamberCompleted() {
         runState.wraithbladeMomentum = player->getMomentum(FormType::WRAITHBLADE);
         runState.voidcasterMomentum = player->getMomentum(FormType::VOIDCASTER);
         runState.ironshellMomentum = player->getMomentum(FormType::IRONSHELL);
+        
+        // BUG-20: Auto-save game progress on chamber completion
+        SaveLoadManager::getInstance().saveGame(runState);
     }
     if (isDebugMode) {
         stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
@@ -455,7 +460,7 @@ void GameplayState::onChamberCompleted() {
                 runState.currentChamber = 1;
             } else {
                 // Game completely over! (Win)
-                stateManager.changeState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
+                stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
                 return;
             }
         }
@@ -465,7 +470,7 @@ void GameplayState::onChamberCompleted() {
 
 void GameplayState::onChamberFailed() {
     std::cout << "GameplayState: Chamber Failed! Transitioning to GameOverState (Retry)...\n";
-    stateManager.changeState(std::make_unique<GameOverState>(stateManager, std::nullopt));
+    stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, std::nullopt));
 }
 
 void GameplayState::initPlayerPosition() {

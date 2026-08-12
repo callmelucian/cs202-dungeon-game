@@ -6,9 +6,12 @@ void StateManager::draw() const {
     Game &game = Game::getInstance();
     sf::RenderWindow &window = game.getWindow();
 
-    // draw current state
-    const GameState* curr = currentState();
-    if (curr) curr->draw(window);
+    // draw all stacked states from bottom to top so overlays render over game scene
+    for (const auto& state : states) {
+        if (state) {
+            state->draw(window);
+        }
+    }
 }
 
 void StateManager::update (float deltaTime) {

@@ -57,6 +57,10 @@ void Player::handleInput(const sf::Event& event) {
             switchForm(FormType::VOIDCASTER);
         } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
             switchForm(FormType::IRONSHELL);
+        } else if (keyEvent->scancode == settings.getKeyBinding("Special1")) {
+            if (currentChamber) triggerSpecial(1, *currentChamber);
+        } else if (keyEvent->scancode == settings.getKeyBinding("Special2")) {
+            if (currentChamber) triggerSpecial(2, *currentChamber);
         }
     }
 }
@@ -145,19 +149,21 @@ bool Player::switchForm(FormType newForm) {
     if (it != forms.end()) {
         activeForm = it->second.get();
         stateMachine.setBaseState(activeForm, *this);
+
+        baseStats.damage = activeForm->getStats().damage;
+        baseStats.speed = activeForm->getStats().speed;
+        baseStats.defense = activeForm->getStats().defense;
+
+        if (animator) {
+            animator->setCharacterKey(getCharacter().getName() + "_" + activeForm->getVisualKey());
+        }
+
+        SoundManager::getInstance().playSound("switch");
+        switchCooldownTimer = SWITCH_COOLDOWN_DURATION;
+        return true;
     }
 
-    baseStats.damage = activeForm->getStats().damage;
-    baseStats.speed = activeForm->getStats().speed;
-    baseStats.defense = activeForm->getStats().defense;
-
-    if (animator) {
-        animator->setCharacterKey(getCharacter().getName() + "_" + activeForm->getVisualKey());
-    }
-
-    SoundManager::getInstance().playSound("switch");
-    switchCooldownTimer = SWITCH_COOLDOWN_DURATION;
-    return true;
+    return false;
 }
 
 void Player::gainMomentum(float amount, FormType form) {

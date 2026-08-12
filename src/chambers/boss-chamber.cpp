@@ -60,6 +60,10 @@ void BossChamber::update(float dt) {
     if (boss && boss->isAlive()) {
         boss->update(dt);
         boss->updateState(dt, *this);
+
+        // Resolve boss collision against obstacles so it can't clip through walls
+        CollisionSolver::resolveX(*boss, getObstaclesFor(boss.get()), dt);
+        CollisionSolver::resolveY(*boss, getObstaclesFor(boss.get()), dt);
     }
 
     // Update platform state ( shrinking in Phase 4, sunder timers )
@@ -183,6 +187,31 @@ BossMalachar* BossChamber::getBoss() const {
 void BossChamber::onBossDefeated() {
     std::cout << "[BossChamber] Boss defeated! Chamber completed.\n";
     completeChamber();
+}
+
+int BossChamber::processPlayerAttack(const Hitbox& hitbox) {
+    // Process attacks on regular enemies first
+    int hits = Chamber::processPlayerAttack(hitbox);
+
+    // Also check collision against the boss
+    if (boss && boss->isAlive()) {
+        if (CollisionSolver::checkCollision(hitbox, boss->getBounds())) {
+            hits++;
+            float damage = player.getEffectiveStats().damage;
+            if (player.getStateMachine().getActiveState()) {
+                damage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(damage);
+            }
+            boss->takeDamage(damage);
+
+            bool lethal = !boss->isAlive();
+            onEnemyHit(boss.get(), lethal);
+
+            if (lethal) {
+                onBossDefeated();
+            }
+        }
+    }
+    return hits;
 }
 
 void BossChamber::draw(sf::RenderWindow& window) {

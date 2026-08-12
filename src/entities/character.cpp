@@ -83,6 +83,13 @@ void Character::update(float deltaTime) {
         Stats effStats = getEffectiveStats();
         healthBar->setHealth(getHp(), effStats.maxHp);
         healthBar->update(deltaTime);
+
+        // Position health bar above the character's head
+        sf::Vector2f boundsSize = getBounds().size;
+        float headTopY = getPosition().y - boundsSize.y / 2.0f;
+        float barX = getPosition().x - healthBar->getSize().x / 2.0f;
+        float barY = headTopY - healthBar->getSize().y - 1.0f;
+        healthBar->setPosition(sf::Vector2f(barX, barY));
     }
 }
 
@@ -105,14 +112,6 @@ void Character::draw(sf::RenderWindow &window) const {
         sf::Vector2f spritePos = getPosition();
         spritePos.y -= spriteSize * 0.15f; 
         animator->draw(window, spritePos, sf::Vector2f(spriteSize, spriteSize));
-        
-        // Debug bounding box
-        sf::RectangleShape debugBox(getBounds().size);
-        debugBox.setPosition(getBounds().position);
-        debugBox.setFillColor(sf::Color::Transparent);
-        debugBox.setOutlineColor(sf::Color::Red);
-        debugBox.setOutlineThickness(1.0f);
-        window.draw(debugBox);
     } else {
         // Fallback shape
         sf::RectangleShape rect(getBounds().size);
@@ -121,39 +120,8 @@ void Character::draw(sf::RenderWindow &window) const {
         window.draw(rect);
     }
 
-    float textBaseY = getPosition().y - getBounds().size.y / 2.0f - 14.0f;
-
     if (isAlive() && healthBar) {
-        sf::Vector2f boundsSize = getBounds().size;
-        float headTopY = getPosition().y - boundsSize.y / 2.0f;
-        float barX = getPosition().x - healthBar->getSize().x / 2.0f;
-        float barY = headTopY - healthBar->getSize().y - 1.0f;
-        const_cast<UI::HealthBar*>(healthBar.get())->setPosition(sf::Vector2f(barX, barY));
         healthBar->draw(window);
-
-        textBaseY = barY - 2.0f;
-    }
-
-    // Draw Name and Status above health bar
-    try {
-        const sf::Font& font = AssetManager::getInstance().getFont("regular");
-        
-        std::string titleStr = getDisplayName();
-        for (const auto& effect : statusEffects) {
-            if (dynamic_cast<SlowedEffect*>(effect.get())) {
-                titleStr += " [Slowed]";
-            }
-        }
-        
-        if (!titleStr.empty()) {
-            sf::Text text(font, titleStr, 10);
-            text.setFillColor(sf::Color::White);
-            sf::FloatRect bounds = text.getLocalBounds();
-            text.setPosition({getPosition().x - bounds.size.x / 2.0f, textBaseY - bounds.size.y});
-            // window.draw(text);
-        }
-    } catch (...) {
-        // Font not loaded, skip drawing text
     }
 }
 
@@ -183,10 +151,13 @@ void Character::takeDamage(float rawAmount) {
     baseStats.hp -= finalDmg;
     std::cout << "Character took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
     
-    for (auto observer : observers) {
-        observer->onDamaged(*this, finalDmg);
-        if (!isAlive()) {
-            observer->onDefeated(*this);
+    auto observersCopy = observers;
+    for (auto observer : observersCopy) {
+        if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
+            observer->onDamaged(*this, finalDmg);
+            if (!isAlive()) {
+                observer->onDefeated(*this);
+            }
         }
     }
 }
@@ -220,8 +191,11 @@ void Character::removeObserver(CharacterObserver* observer) {
 
 void Character::notifyStateChanged(std::string visualKey) {
     // std::cerr << "NOTIFY " << visualKey << std::endl;
-    for (auto observer : observers) {
-        observer->onStateChanged(*this, visualKey);
+    auto observersCopy = observers;
+    for (auto observer : observersCopy) {
+        if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
+            observer->onStateChanged(*this, visualKey);
+        }
     }
 }
 

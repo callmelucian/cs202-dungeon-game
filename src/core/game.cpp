@@ -5,10 +5,15 @@
 #include "../global-settings/animation-manager.hpp"
 #include "../global-settings/tile-manager.hpp"
 #include <filesystem>
+#include <cstdlib>
+#include <ctime>
 
 #include "states/main-menu-state.hpp"
 
 Game::Game() : running(false) {
+    // Seed RNG for Item scatter and WaveSpawner spawn positions
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     // setup context settings
     contextSettings.antiAliasingLevel = 8;
 
@@ -40,6 +45,7 @@ Game::Game() : running(false) {
     assets.loadTexture("wraithblade-final", resolvePath("assets/textures/wraithblade-final.png"));
     assets.loadTexture("voidcaster-final", resolvePath("assets/textures/voidcaster-final.png"));
     assets.loadTexture("iron-shell", resolvePath("assets/textures/iron-shell.png"));
+    assets.loadTexture("main-bg", resolvePath("assets/backgrounds/main-background.png"));
     
     // Load enemy textures
     assets.loadTexture("waterlogged-scribe", resolvePath("assets/textures/waterlogged-scribe.png"));
@@ -95,8 +101,8 @@ RunState& Game::getRunState() {
     return runState;
 }
 
-sf::RenderWindow& Game::getWindow() const {
-    return const_cast<sf::RenderWindow&>(renderWindow);
+sf::RenderWindow& Game::getWindow() {
+    return renderWindow;
 }
 
 void Game::runMainLoop() {

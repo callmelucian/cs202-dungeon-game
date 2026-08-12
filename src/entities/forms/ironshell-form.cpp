@@ -11,9 +11,6 @@ IronshellForm::IronshellForm()
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     SoundManager::getInstance().playSound("swing");
     
-    // Gain +3 momentum on hit
-    player.gainMomentum(3.0f, FormType::IRONSHELL);
-    
     // Ironshell: Melee (1.0 units, cleave) - Circle shape around player
     float rangePixels = getAttackRange() * 60.0f; // 1.0 * 60 = 60
     
@@ -21,7 +18,11 @@ void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& cham
     circle.center = player.getPosition();
     circle.radius = rangePixels;
 
-    chamber.processPlayerAttack(circle);
+    int hits = chamber.processPlayerAttack(circle);
+    if (hits > 0) {
+        // Gain +3 momentum per hit
+        player.gainMomentum(3.0f * hits, FormType::IRONSHELL);
+    }
 }
 
 std::unique_ptr<SpecialAbilityState> IronshellForm::createSpecialState(int abilityIndex) {

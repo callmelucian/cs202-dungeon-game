@@ -1,10 +1,10 @@
 #include "burned-effect.hpp"
 
 BurnedEffect::BurnedEffect (float damagePerTick) :
-    StatusEffect(10.f), damagePerTick(damagePerTick), countDown(1.0) {}
+    StatusEffect(10.f), damagePerTick(damagePerTick), countDown(1.0f) {}
 
-BurnedEffect::BurnedEffect (float damagerPerTick, float duration) :
-    StatusEffect(duration), damagePerTick(damagePerTick), countDown(1.0) {}
+BurnedEffect::BurnedEffect (float damagePerTick, float duration) :
+    StatusEffect(duration), damagePerTick(damagePerTick), countDown(1.0f) {}
 
 void BurnedEffect::apply (Character &character) {
     // register visual effects for burning

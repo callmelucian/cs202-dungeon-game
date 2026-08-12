@@ -62,8 +62,9 @@ void ColorPaletteManager::removeObserver(ColorPaletteObserver* observer) {
 }
 
 void ColorPaletteManager::notifyObservers() {
-    for (auto* observer : observers) {
-        if (observer) {
+    auto observersCopy = observers;
+    for (auto* observer : observersCopy) {
+        if (observer && std::find(observers.begin(), observers.end(), observer) != observers.end()) {
             observer->onColorPaletteChanged(currentPalette);
         }
     }

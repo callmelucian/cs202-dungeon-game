@@ -20,10 +20,9 @@ GameState::GameState (StateManager& manager)
     try {
         backgroundSprite.emplace(assets.getTexture("main-bg"));
     } catch (...) {
-        assets.loadTexture("main-bg", "assets/backgrounds/main-background.png");
-        backgroundSprite.emplace(assets.getTexture("main-bg"));
+        drawBackground = false;
     }
-    if (backgroundSprite.has_value()) {
+    if (drawBackground && backgroundSprite.has_value()) {
         backgroundSprite->setColor(sf::Color(255, 255, 255, 230)); // 10% transparent
     }
 }

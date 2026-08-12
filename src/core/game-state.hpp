@@ -1,5 +1,5 @@
-#ifndef GAME_STATE
-#define GAME_STATE
+#ifndef GAME_STATE_HPP
+#define GAME_STATE_HPP
 
 #include "../ui/containers/container.hpp"
 #include "../ui/containers/flex-box.hpp"
@@ -25,4 +25,4 @@ protected:
     bool drawBackground;
 };
 
-#endif // GAME_STATE
+#endif // GAME_STATE_HPP

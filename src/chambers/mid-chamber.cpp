@@ -30,7 +30,6 @@ void MidChamber::setExitPosition(sf::Vector2f pos) {
 }
 
 void MidChamber::completeChamber() {
-    std::cout << "GOT HERE" << std::endl;
     if (!isCompleted && !isFailed) {
         player.setInMidChamber(false);
         player.gainMomentum(15.0f, player.getActiveFormType());
@@ -40,7 +39,6 @@ void MidChamber::completeChamber() {
 
 void MidChamber::update(float dt) {
     Chamber::update(dt);
-    std::cout << "Updating" << std::endl;
 
     // MidChamber is a free-switch zone (§6.4): no enemies, no waves.
     // Completion is triggered when the player walks into the exit zone.

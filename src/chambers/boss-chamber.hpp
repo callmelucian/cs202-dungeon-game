@@ -41,6 +41,7 @@ public:
 
     void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
+    int processPlayerAttack(const Hitbox& hitbox) override;
 
     int getCurrentPhase() const;
     void setCurrentPhase(int phase);

@@ -1,5 +1,5 @@
-#ifndef STATE_MANAGER
-#define STATE_MANAGER
+#ifndef STATE_MANAGER_HPP
+#define STATE_MANAGER_HPP
 
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -38,4 +38,4 @@ private:
     void applyPendingChanges();
 };
 
-#endif // STATE_MANAGER
+#endif // STATE_MANAGER_HPP

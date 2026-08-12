@@ -12,9 +12,6 @@ VoidcasterForm::VoidcasterForm()
 void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     SoundManager::getInstance().playSound("shoot");
     
-    // Gain +8 momentum on hit (+4 bonus per additional enemy pierced)
-    player.gainMomentum(8.0f, FormType::VOIDCASTER);
-    
     // Voidcaster: Ranged (12 units, piercing) - Line shape
     float rangePixels = getAttackRange() * 60.0f; // 12.0 * 60 = 720
     
@@ -26,7 +23,11 @@ void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& cha
     line.start = player.getPosition();
     line.end = line.start + targetDir * rangePixels;
 
-    chamber.processPlayerAttack(line);
+    int hits = chamber.processPlayerAttack(line);
+    if (hits > 0) {
+        // Gain +8 momentum for the first hit, +4 per additional pierced enemy
+        player.gainMomentum(8.0f + 4.0f * (hits - 1), FormType::VOIDCASTER);
+    }
 }
 
 std::unique_ptr<SpecialAbilityState> VoidcasterForm::createSpecialState(int abilityIndex) {

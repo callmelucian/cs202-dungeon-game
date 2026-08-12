@@ -1,20 +1,20 @@
-#ifndef GAME
-#define GAME
+#ifndef GAME_HPP
+#define GAME_HPP
 
 #include <SFML/Graphics.hpp>
 #include "../global-settings/setting-manager.hpp"
 #include "state-manager.hpp"
 #include "run-state.hpp"
 
-const int screenWidth = 1800;
-const int screenHeight = 900;
+constexpr int screenWidth = 1800;
+constexpr int screenHeight = 900;
 
 class Game {
 public:
     static Game& getInstance();
 
     void runMainLoop();
-    sf::RenderWindow& getWindow() const;
+    sf::RenderWindow& getWindow();
     bool isRunning() const;
     RunState& getRunState();
 
@@ -30,4 +30,4 @@ private:
     Game& operator= (const Game&) = delete;
 };
 
-#endif // GAME
+#endif // GAME_HPP
