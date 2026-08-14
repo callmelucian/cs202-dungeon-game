@@ -1,6 +1,7 @@
 #include "shard-soldier.hpp"
 #include "enemy-state.hpp"
 #include "enemy-steering-strategy.hpp"
+#include "../../core/game.hpp"
 #include <iostream>
 
 ShardSoldier::ShardSoldier(Player& player) 
@@ -27,14 +28,17 @@ void ShardSoldier::onDeath(Chamber* chamber) {
 void ShardSoldier::update(float deltaTime) {
     Enemy::update(deltaTime);
 
-    if (selfHealActive) {
+    // Marrow Echo Stolen Modifier: Non-Siege enemies self-heal 3% Max HP/s
+    RunState& runState = Game::getInstance().getRunState();
+    auto marrowIt = runState.echoOutcomes.find(EchoType::MARROW);
+    if (selfHealActive || (marrowIt != runState.echoOutcomes.end() && marrowIt->second == EchoOutcome::STOLEN)) {
         applySelfHeal(deltaTime);
     }
 }
 
 void ShardSoldier::applySelfHeal(float dt) {
     if (baseStats.hp < baseStats.maxHp) {
-        baseStats.hp += 2.0f * dt;
+        baseStats.hp += (0.03f * baseStats.maxHp) * dt;
         
         if (baseStats.hp > baseStats.maxHp) {
             baseStats.hp = baseStats.maxHp;

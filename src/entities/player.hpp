@@ -20,6 +20,7 @@ public:
     void handleInput(const sf::Event& event);
 
     void update(float deltaTime) override;
+    void draw(sf::RenderWindow& window) const override;
     void takeDamage(float rawAmount) override;
     void onWallCollision() override;
 
@@ -28,17 +29,19 @@ public:
     void triggerAnimation(const std::string& key);
 
     bool switchForm(FormType newForm);
+    float getMomentum(FormType form) const;
     void gainMomentum(float amount, FormType form);
+    void setMomentum(float amount, FormType form);
     void triggerSpecial(int abilityIndex, class Chamber& chamber);
     void attack(sf::Vector2f targetDir, class Chamber& chamber);
 
     void setChamber(class Chamber* chamber);
+    class Chamber* getChamber() const { return currentChamber; }
     void applySlowAura(std::vector<class Enemy*>& enemies);
     
     void setInMidChamber(bool value);
     bool getInMidChamber() const;
 
-    float getMomentum(FormType form) const;
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
     bool getIsFacingRight() const;

@@ -1,5 +1,6 @@
 #include "game-play-state.hpp"
 #include "pause-state.hpp"
+#include "debug-state.hpp"
 #include "game-over-state.hpp"
 #include "main-menu-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
@@ -98,6 +99,12 @@ void GameplayState::setupUI() {
         ->setOnClick([this]() {
             stateManager.pushState(std::make_unique<PauseState>(stateManager));
         });
+    debugButton = buttonBox->createChild<UI::Button>("Debug", "regular", 25)
+        ->setOnClick([this]() {
+            if (player) {
+                stateManager.pushState(std::make_unique<DebugState>(stateManager, *player));
+            }
+        });
     quitButton = buttonBox->createChild<UI::Button>("Quit Game", "regular", 25)
         ->setOnClick([this]() {
             stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
@@ -157,6 +164,7 @@ void GameplayState::setupUI() {
 
     if (!isDebugMode) {
         RunState& runState = Game::getInstance().getRunState();
+        runState.syncEchoModifiers();
         player->setHp(runState.playerHP);
         player->switchForm(runState.activeForm);
         player->gainMomentum(runState.wraithbladeMomentum, FormType::WRAITHBLADE);

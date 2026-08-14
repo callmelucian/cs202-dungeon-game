@@ -2,6 +2,7 @@
 #define PLAYER_FORM_HPP
 
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics.hpp>
 #include <string>
 #include <memory>
 #include "../core/enums.hpp"
@@ -22,6 +23,8 @@ public:
     virtual void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) = 0;
     virtual float modifyOutgoingDamage(float baseAmount) = 0;
     virtual float modifyIncomingDamage(Player& player, float amount) = 0;
+    virtual void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) = 0;
+    virtual void draw(const Player& player, sf::RenderWindow& window) const {}
     virtual Stats getStats() = 0;
     virtual const std::string& getVisualKey() = 0;
     virtual float getRemainingDuration() = 0;
@@ -39,6 +42,7 @@ public:
     void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     float modifyOutgoingDamage(float baseAmount) override;
     float modifyIncomingDamage(Player& player, float amount) override;
+    void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) override;
     Stats getStats() override;
     const std::string& getVisualKey() override;
     float getRemainingDuration() override;
@@ -76,6 +80,8 @@ public:
     void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     float modifyOutgoingDamage(float baseAmount) override;
     float modifyIncomingDamage(Player& player, float amount) override;
+    void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) override;
+    void draw(const Player& player, sf::RenderWindow& window) const override;
     Stats getStats() override;
     float getRemainingDuration() override;
 

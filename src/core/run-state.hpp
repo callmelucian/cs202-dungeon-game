@@ -42,6 +42,26 @@ struct RunState {
     // Foretell flags from Clarity Shard
     bool foretellActive = false;
     bool foretellPhase1 = false;
+
+    void syncEchoModifiers() {
+        auto hollowIt = echoOutcomes.find(EchoType::HOLLOW_BELL);
+        if (hollowIt != echoOutcomes.end()) {
+            if (hollowIt->second == EchoOutcome::COLLECTED) {
+                special1MomentumThreshold = 42.5f;
+            } else {
+                special1MomentumThreshold = 50.0f;
+            }
+        }
+
+        auto clarityIt = echoOutcomes.find(EchoType::CLARITY_SHARD);
+        if (clarityIt != echoOutcomes.end()) {
+            if (clarityIt->second == EchoOutcome::COLLECTED) {
+                collectTimeReduction = 0.9f;
+            } else {
+                collectTimeReduction = 1.0f;
+            }
+        }
+    }
 };
 
 #endif // RUN_STATE_HPP

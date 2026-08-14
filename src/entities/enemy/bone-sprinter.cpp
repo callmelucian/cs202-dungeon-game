@@ -14,7 +14,7 @@ BoneSprinter::BoneSprinter(Player& player, bool isCarrier) : Enemy("bone_sprinte
         baseStats.hp = 20.0f;
         baseStats.maxHp = 20.0f;
         baseStats.speed = 4.0f;
-        fragmentDropCount = 0;
+        fragmentDropCount = 1;
     }
     
     attackCooldown = 0.0f;

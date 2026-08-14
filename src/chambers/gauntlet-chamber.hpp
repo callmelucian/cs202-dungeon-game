@@ -9,11 +9,7 @@ public:
     GauntletChamber(Player& player);
     virtual ~GauntletChamber() = default;
 
-    void setWaves(const std::vector<WaveConfig>& configs);
     void update(float dt) override;
-
-private:
-    WaveSpawner waveSpawner;
 };
 
 #endif // GAUNTLET_CHAMBER_HPP

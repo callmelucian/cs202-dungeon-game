@@ -57,6 +57,7 @@ public:
     bool getIsCompleted() const;
     std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
     std::vector<Enemy*> getEnemiesRaw() const;
+    ItemManager& getItemManager() { return itemManager; }
 
 protected:
     Player& player;

@@ -17,7 +17,7 @@ ChoirHusk::ChoirHusk(Player& player, HuskVariant variant)
         setIsRealCarrier(true);
     } else if (variant == HuskVariant::GUARD) {
         baseStats.hp = baseStats.maxHp = 22.0f;
-        fragmentDropCount = 0;
+        fragmentDropCount = 1;
     } else {
         baseStats.hp = baseStats.maxHp = 20.0f;
         fragmentDropCount = 1;

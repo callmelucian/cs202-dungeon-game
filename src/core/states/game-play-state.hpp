@@ -51,6 +51,7 @@ private:
     UI::Container* buttonBoxWrapper;
     
     UI::Button* pauseButton;
+    UI::Button* debugButton;
     UI::Button* quitButton;
 
     UI::Container* titleContainer = nullptr;

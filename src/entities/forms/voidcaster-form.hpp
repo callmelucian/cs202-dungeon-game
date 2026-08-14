@@ -27,6 +27,11 @@ public:
     VoidcasterDetonationFieldState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
+    void onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) override;
+    void draw(const Player& player, sf::RenderWindow& window) const override;
+
+private:
+    bool isExplosionActive = false;
 };
 
 #endif // VOIDCASTER_FORM_HPP

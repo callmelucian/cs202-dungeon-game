@@ -1,5 +1,6 @@
 #include "wraithblade-form.hpp"
 #include "../player.hpp"
+#include "../effects/burned-effect.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/sound-manager.hpp"
@@ -7,7 +8,7 @@
 
 WraithbladeForm::WraithbladeForm()
     : PlayerForm(FormType::WRAITHBLADE, "Wraithblade",
-                 Stats{100.0f, 100.0f, 12.0f, 9.0f, 15.0f},
+                 Stats{100.0f, 100.0f, 12.0f, 7.0f, 15.0f},
                  1.5f, 2.0f) {}
 
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
@@ -29,8 +30,8 @@ void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& ch
 
     int hits = chamber.processPlayerAttack(cone);
     if (hits > 0) {
-        // Gain +5 momentum per hit
-        player.gainMomentum(5.0f * hits, FormType::WRAITHBLADE);
+        // Gain +6 momentum per hit
+        player.gainMomentum(6.0f * hits, FormType::WRAITHBLADE);
     }
 }
 
@@ -87,18 +88,41 @@ WraithbladeCinderveilState::WraithbladeCinderveilState(PlayerCombatState* inner)
     : SpecialAbilityState(inner, 10.0f) {}
 
 StatModifier WraithbladeCinderveilState::getStatModifier() const {
-    StatModifier modifier;
-    
-    // TODO (Future): When the combat engine supports status effects, 
-    // update this state so that attacks apply the "Burned" status to enemies!
-    
-    // Placeholder buff: Attack 50% faster while Cinderveil is active
-    modifier.speedMultiplier = 1.5f;  
-    
-    return modifier;
+    return StatModifier{};
 }
 
 const std::string& WraithbladeCinderveilState::getVisualKey() {
     static const std::string key = "WraithbladeCinderveil";
     return key;
+}
+
+#include "../../graphics/particle-system.hpp"
+
+void WraithbladeCinderveilState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
+    if (!lethal && enemy) {
+        // Cinderveil: All hits apply Burned (0.25 * base damage = 3.0 dmg/sec for 10 seconds)
+        float burnDmgPerSec = player.getEffectiveStats().damage * 0.25f;
+        enemy->applyStatusEffect(std::make_unique<BurnedEffect>(burnDmgPerSec, 10.0f));
+        ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 20, sf::Color(255, 100, 30, 220), 40.0f, 150.0f, 0.2f, 0.5f, 5.0f);
+    }
+    SpecialAbilityState::onEnemyHit(player, enemy, lethal, chamber);
+}
+
+void WraithbladeCinderveilState::draw(const Player& player, sf::RenderWindow& window) const {
+    SpecialAbilityState::draw(player, window);
+
+    float radius = 1.5f * 60.0f; // 90px
+    sf::CircleShape flameAura(radius);
+    flameAura.setOrigin({radius, radius});
+    flameAura.setPosition(player.getPosition());
+
+    // Glowing fiery orange flame aura ring
+    flameAura.setFillColor(sf::Color(255, 80, 20, 35));
+    flameAura.setOutlineColor(sf::Color(255, 120, 30, 220));
+    flameAura.setOutlineThickness(3.0f);
+
+    window.draw(flameAura);
+
+    // Emit subtle flame sparkles
+    ParticleSystem::getInstance().emitSparkle(player.getPosition(), 2, sf::Color(255, 150, 40, 220), 90.0f);
 }

@@ -12,6 +12,7 @@ public:
     void apply (Character &character) override;
     void remove (Character &character) override;
     bool update (float dt, Character &character) override;
+    std::string getName() const override { return "Burned"; }
 
 private:
     float damagePerTick, countDown;

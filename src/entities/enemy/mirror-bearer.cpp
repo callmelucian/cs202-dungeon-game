@@ -13,7 +13,7 @@ MirrorBearer::MirrorBearer(Player& player, MirrorVariant variant)
         setIsRealCarrier(true);
     } else { // GUARD (Decoy)
         baseStats.hp = baseStats.maxHp = 24.0f;
-        fragmentDropCount = 0;
+        fragmentDropCount = 1;
         setIsRealCarrier(false);
     }
     

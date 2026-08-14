@@ -1,11 +1,14 @@
 #include "ironshell-form.hpp"
 #include "../player.hpp"
+#include "../effects/paralyzed-effect.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../graphics/particle-system.hpp"
+#include <algorithm>
 
 IronshellForm::IronshellForm()
     : PlayerForm(FormType::IRONSHELL, "Ironshell",
-                 Stats{100.0f, 100.0f, 6.0f, 3.25f, 35.0f},
+                 Stats{100.0f, 100.0f, 6.0f, 2.5f, 35.0f},
                  1.0f, 1.0f) {}
 
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
@@ -48,6 +51,14 @@ std::string IronshellForm::getAttackAnimKey() const {
 IronshellAegisPulseState::IronshellAegisPulseState(PlayerCombatState* inner)
     : SpecialAbilityState(inner, 1.0f) {}
 
+void IronshellAegisPulseState::onEnter(Player& player) {
+    SpecialAbilityState::onEnter(player);
+    Chamber* chamber = player.getChamber();
+    if (chamber) {
+        onAttack(player, sf::Vector2f(0.0f, 0.0f), *chamber);
+    }
+}
+
 StatModifier IronshellAegisPulseState::getStatModifier() const {
     return StatModifier{};
 }
@@ -60,29 +71,92 @@ const std::string& IronshellAegisPulseState::getVisualKey() {
 void IronshellAegisPulseState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     CircleHitbox shockwave;
     shockwave.center = player.getPosition();
-    shockwave.radius = 300.0f;
+    shockwave.radius = 5.0f * 60.0f; // 5.0 units = 300 pixels
     
-    // TODO (Future): Update this attack to apply "Paralyzed" and knock out 1 Echo Fragment from enemies!
-    chamber.processPlayerAttack(shockwave);
+    for (auto* enemy : chamber.getEnemiesRaw()) {
+        if (enemy && enemy->isAlive()) {
+            if (CollisionSolver::checkCollision(shockwave, enemy->getBounds())) {
+                float damage = player.getEffectiveStats().damage;
+                enemy->takeDamage(damage);
+                enemy->applyStatusEffect(std::make_unique<ParalyzedEffect>(1.5f));
+                chamber.getItemManager().spawnFragments(enemy->getPosition(), 1);
+                chamber.onEnemyHit(enemy, !enemy->isAlive());
+            }
+        }
+    }
 
-    elapsedTime = duration;
+    // Emit massive golden shockwave particles
+    ParticleSystem::getInstance().emitBurst(player.getPosition(), 45, sf::Color(255, 215, 0, 220), 80.0f, 250.0f, 0.2f, 0.6f, 6.0f);
+}
+
+void IronshellAegisPulseState::draw(const Player& player, sf::RenderWindow& window) const {
+    SpecialAbilityState::draw(player, window);
+
+    float progress = std::clamp(elapsedTime / duration, 0.0f, 1.0f);
+    float maxRadius = 5.0f * 60.0f; // 300px
+    float currentRadius = maxRadius * (0.1f + 0.9f * progress);
+    uint8_t alpha = static_cast<uint8_t>(255.0f * (1.0f - progress));
+
+    sf::CircleShape pulse(currentRadius);
+    pulse.setOrigin({currentRadius, currentRadius});
+    pulse.setPosition(player.getPosition());
+    pulse.setFillColor(sf::Color(255, 215, 0, alpha / 4)); // Translucent golden fill
+    pulse.setOutlineColor(sf::Color(255, 230, 100, alpha)); // Bright gold expanding ring
+    pulse.setOutlineThickness(4.0f);
+
+    window.draw(pulse);
 }
 
 // ---- IronshellVeilOfThornsState ----
 IronshellVeilOfThornsState::IronshellVeilOfThornsState(PlayerCombatState* inner) : SpecialAbilityState(inner, 10.0f) {}
 
 StatModifier IronshellVeilOfThornsState::getStatModifier() const {
-    StatModifier modifier;
-    
-    // TODO (Future): Make the Ironshell Aura apply "Paralyzed" and knock out Echo Fragments!
-    
-    // Placeholder buff: Gain +50 extra defense while active
-    modifier.hpMultiplier = 1.5f;  
-    
-    return modifier;
+    return StatModifier{};
 }
 
 const std::string& IronshellVeilOfThornsState::getVisualKey() {
     static const std::string key = "IronshellVeilOfThorns";
     return key;
+}
+
+void IronshellVeilOfThornsState::update(Player& player, float dt) {
+    SpecialAbilityState::update(player, dt);
+    
+    Chamber* chamber = player.getChamber();
+    if (!chamber) return;
+
+    CircleHitbox aura;
+    aura.center = player.getPosition();
+    aura.radius = 4.0f * 60.0f; // 4.0 units = 240 pixels
+
+    for (auto* enemy : chamber->getEnemiesRaw()) {
+        if (!enemy || !enemy->isAlive()) continue;
+        if (CollisionSolver::checkCollision(aura, enemy->getBounds())) {
+            if (affectedEnemies.find(enemy) == affectedEnemies.end()) {
+                affectedEnemies.insert(enemy);
+                enemy->applyStatusEffect(std::make_unique<ParalyzedEffect>(1.5f));
+                chamber->getItemManager().spawnFragments(enemy->getPosition(), 1);
+                ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 15, sf::Color(255, 200, 50, 200), 40.0f, 100.0f, 0.2f, 0.4f, 4.0f);
+            }
+        }
+    }
+
+    // Emit subtle golden ambient sparkles around the aura
+    ParticleSystem::getInstance().emitSparkle(player.getPosition(), 2, sf::Color(255, 220, 80, 220), 240.0f);
+}
+
+void IronshellVeilOfThornsState::draw(const Player& player, sf::RenderWindow& window) const {
+    SpecialAbilityState::draw(player, window);
+
+    float radius = 4.0f * 60.0f; // 240px
+    sf::CircleShape aura(radius);
+    aura.setOrigin({radius, radius});
+    aura.setPosition(player.getPosition());
+
+    // Glowing golden thorn aura ring
+    aura.setFillColor(sf::Color(255, 180, 40, 35));
+    aura.setOutlineColor(sf::Color(255, 210, 60, 220));
+    aura.setOutlineThickness(3.5f);
+
+    window.draw(aura);
 }

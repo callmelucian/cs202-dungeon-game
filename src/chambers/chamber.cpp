@@ -138,6 +138,10 @@ void Chamber::onFragmentCollected(float value) {
 }
 
 void Chamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    if (player.getStateMachine().getActiveState()) {
+        player.getStateMachine().getActiveState()->onEnemyHit(player, enemy, lethal, *this);
+    }
+
     // Apply Wraithblade knockback if active form is Wraithblade
     if (!lethal && player.getActiveFormType() == FormType::WRAITHBLADE) {
         if (enemy->canBeKnockedBack()) {
@@ -273,6 +277,8 @@ void Chamber::checkCollisions(float dt) {
 }
 
 
+#include "../entities/enemy/choir-husk.hpp"
+
 int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
     int killsThisAttack = 0;
@@ -306,6 +312,21 @@ int Chamber::processPlayerAttack(const Hitbox& hitbox) {
         for (size_t i = 1; i < killedEnemies.size(); ++i) {
             killedEnemies[i]->addBonusFragments(1);
             std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
+        }
+    }
+
+    // Choir Husk dual-kill bonus: +1 fragment per husk when killing 2+ Husks during windup
+    std::vector<ChoirHusk*> killedWindingUpHusks;
+    for (auto* killed : killedEnemies) {
+        ChoirHusk* husk = dynamic_cast<ChoirHusk*>(killed);
+        if (husk && husk->isWindingUp()) {
+            killedWindingUpHusks.push_back(husk);
+        }
+    }
+    if (killedWindingUpHusks.size() >= 2) {
+        for (auto* husk : killedWindingUpHusks) {
+            husk->addBonusFragments(1);
+            std::cout << "Choir Husk dual-windup kill! +1 Bonus Fragment awarded.\n";
         }
     }
 

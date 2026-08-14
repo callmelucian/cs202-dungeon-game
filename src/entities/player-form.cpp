@@ -22,6 +22,8 @@ float PlayerForm::modifyIncomingDamage(Player& player, float amount) {
     return amount;
 }
 
+void PlayerForm::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {}
+
 Stats PlayerForm::getStats() {
     return baseStats;
 }
@@ -80,6 +82,10 @@ float SpecialAbilityState::modifyIncomingDamage(Player& player, float amount) {
     return innerState ? innerState->modifyIncomingDamage(player, amount) : amount;
 }
 
+void SpecialAbilityState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
+    if (innerState) innerState->onEnemyHit(player, enemy, lethal, chamber);
+}
+
 Stats SpecialAbilityState::getStats() {
     Stats innerStats = innerState ? innerState->getStats() : Stats{};
     return getStatModifier().applyTo(innerStats);
@@ -87,6 +93,12 @@ Stats SpecialAbilityState::getStats() {
 
 float SpecialAbilityState::getRemainingDuration() {
     return std::max(0.0f, duration - elapsedTime);
+}
+
+void SpecialAbilityState::draw(const Player& player, sf::RenderWindow& window) const {
+    if (innerState) {
+        innerState->draw(player, window);
+    }
 }
 
 

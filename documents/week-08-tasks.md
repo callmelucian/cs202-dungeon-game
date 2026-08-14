@@ -51,61 +51,61 @@ graph TD
 *Directory Ownership:* `src/entities/player*`, `src/entities/forms/`, `src/entities/effects/`, `src/economy/`
 
 ### Task A1: Implement Wraithblade Special 2 (Cinderveil)
-- **Target File:** [`src/entities/forms/wraithblade-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/wraithblade-form.cpp)
-- **Priority:** P2 — High
-- **Description:** Replace placeholder attack speed buff with Cinderveil mode. For 10 seconds, every hit landed by Wraithblade applies `BurnedEffect` (dealing $0.25 \times \text{base damage} = 3.0$ dmg/sec for 10 seconds).
+- [x] **Target File:** [`src/entities/forms/wraithblade-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/wraithblade-form.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Replace placeholder attack speed buff with Cinderveil mode. For 10 seconds, every hit landed by Wraithblade applies `BurnedEffect` (dealing $0.25 \times \text{base damage} = 3.0$ dmg/sec for 10 seconds).
 
 ### Task A2: Implement Voidcaster Special 1 & 2 (Lance of the Hollow & Detonation Field)
-- **Target Files:** [`src/entities/forms/voidcaster-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/voidcaster-form.cpp), [`src/utils/collision-solver.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/utils/collision-solver.cpp)
-- **Priority:** P2 — High
-- **Description:** 
-  - **Special 1 (Lance of the Hollow):** Modify raycast collision checks to allow Lance to **pierce walls and obstacles** across the chamber for 2.5x base damage.
-  - **Special 2 (Detonation Field):** Replace movement speed placeholder with 10s buff where every Voidcaster projectile landing triggers a 2.5-unit radius explosion dealing 0.75x base damage.
+- [x] **Target Files:** [`src/entities/forms/voidcaster-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/voidcaster-form.cpp), [`src/utils/collision-solver.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/utils/collision-solver.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** 
+  - [x] **Special 1 (Lance of the Hollow):** Modify raycast collision checks to allow Lance to **pierce walls and obstacles** across the chamber for 2.5x base damage.
+  - [x] **Special 2 (Detonation Field):** Replace movement speed placeholder with 10s buff where every Voidcaster projectile landing triggers a 2.5-unit radius explosion dealing 0.75x base damage.
 
 ### Task A3: Implement Ironshell Special 1 & 2 (Aegis Pulse & Veil of Thorns)
-- **Target File:** [`src/entities/forms/ironshell-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/ironshell-form.cpp)
-- **Priority:** P2 — High
-- **Description:**
-  - **Special 1 (Aegis Pulse):** 5.0-unit radius shockwave that staggers nearby enemies (`ParalyzedEffect(1.5f)`) and knocks out 1 Echo Fragment from each enemy hit.
-  - **Special 2 (Veil of Thorns):** Replace +50 defense placeholder with 10s 4.0-unit aura that applies `ParalyzedEffect` to touching enemies and knocks out 1 fragment immediately.
+- [x] **Target File:** [`src/entities/forms/ironshell-form.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/forms/ironshell-form.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:**
+  - [x] **Special 1 (Aegis Pulse):** 5.0-unit radius shockwave that staggers nearby enemies (`ParalyzedEffect(1.5f)`) and knocks out 1 Echo Fragment from each enemy hit.
+  - [x] **Special 2 (Veil of Thorns):** Replace +50 defense placeholder with 10s 4.0-unit aura that applies `ParalyzedEffect` to touching enemies and knocks out 1 fragment immediately.
 
 ### Task A4: Align Player Form Movement Speeds & Base Stats
-- **Target Files:** `src/entities/forms/wraithblade-form.cpp`, `voidcaster-form.cpp`, `ironshell-form.cpp`
-- **Priority:** P3 — Medium
-- **Description:** Adjust base movement speeds to match spec values (§14.1):
-  - Wraithblade: **7.0 units/s** (currently 9.0)
-  - Voidcaster: **5.0 units/s** (currently 6.5)
-  - Ironshell: **2.5 units/s** (currently 3.25)
+- [x] **Target Files:** `src/entities/forms/wraithblade-form.cpp`, `voidcaster-form.cpp`, `ironshell-form.cpp`
+- [x] **Priority:** P3 — Medium
+- [x] **Description:** Adjust base movement speeds to match spec values (§14.1):
+  - [x] Wraithblade: **7.0 units/s** (currently 9.0)
+  - [x] Voidcaster: **5.0 units/s** (currently 6.5)
+  - [x] Ironshell: **2.5 units/s** (currently 3.25)
 
 ### Task A5: Align Momentum Gain Formulas
-- **Target Files:** `src/entities/forms/wraithblade-form.cpp`, `voidcaster-form.cpp`
-- **Priority:** P3 — Medium
-- **Description:**
-  - Wraithblade: Update hit gain to **+6 Momentum / hit** (currently +5).
-  - Voidcaster: Add distance-check requirement for +8 Momentum gain (+4 bonus per extra enemy pierced).
+- [x] **Target Files:** `src/entities/forms/wraithblade-form.cpp`, `voidcaster-form.cpp`
+- [x] **Priority:** P3 — Medium
+- [x] **Description:**
+  - [x] Wraithblade: Update hit gain to **+6 Momentum / hit** (currently +5).
+  - [x] Voidcaster: Add distance-check requirement for +8 Momentum gain (+4 bonus per extra enemy pierced).
 
 ### Task A6: Sync Hollow Bell Momentum Threshold in Player
-- **Target File:** [`src/entities/player.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.cpp)
-- **Priority:** P2 — High
-- **Description:** Implement internal momentum threshold reader in `Player` so Special 1 threshold dynamically unlocks at 42.5 or 35 Momentum when Hollow Bell is collected/intact.
+- [x] **Target File:** [`src/entities/player.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Implement internal momentum threshold reader in `Player` so Special 1 threshold dynamically unlocks at 42.5 or 35 Momentum when Hollow Bell is collected/intact.
 
 ### Task A7: Combat Fragment Bonuses & Guard Drop Tables
-- **Target Files:** [`src/entities/enemy/bone-sprinter.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/enemy/bone-sprinter.cpp), `choir-husk.cpp`, `mirror-bearer.cpp`
-- **Priority:** P3 — Medium
-- **Description:**
-  - Set `fragmentDropCount = 1` for non-carrying blocker/guard variants.
-  - Implement Wraithblade wall knockback kill bonus (+1 extra fragment).
-  - Implement Choir Husk dual-kill bonus (+1 extra fragment when killing 2+ Husks within 0.6s windup).
+- [x] **Target Files:** [`src/entities/enemy/bone-sprinter.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/enemy/bone-sprinter.cpp), `choir-husk.cpp`, `mirror-bearer.cpp`
+- [x] **Priority:** P3 — Medium
+- [x] **Description:**
+  - [x] Set `fragmentDropCount = 1` for non-carrying blocker/guard variants.
+  - [x] Implement Wraithblade wall knockback kill bonus (+1 extra fragment).
+  - [x] Implement Choir Husk dual-kill bonus (+1 extra fragment when killing 2+ Husks within 0.6s windup).
 
 ### Task A8: Link Marrow Echo Gauntlet Enemy Self-Heal
-- **Target File:** [`src/entities/enemy/shard-soldier.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/enemy/shard-soldier.cpp)
-- **Priority:** P3 — Medium
-- **Description:** Check `runState.echoOutcomes[EchoType::MARROW] == EchoOutcome::STOLEN` before enabling 3% Max HP/s self-heal on non-Siege enemies in L1Ch3.
+- [x] **Target File:** [`src/entities/enemy/shard-soldier.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/enemy/shard-soldier.cpp)
+- [x] **Priority:** P3 — Medium
+- [x] **Description:** Check `runState.echoOutcomes[EchoType::MARROW] == EchoOutcome::STOLEN` before enabling 3% Max HP/s self-heal on non-Siege enemies in L1Ch3.
 
 ### Task A9: Multiple Players / Local Co-op Support
-- **Target Files:** [`src/entities/player.hpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.hpp), [`src/entities/player.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.cpp)
-- **Priority:** EXPANSION
-- **Description:** Refactor `Player` class and input mapping to support multiple player instances (Player 1 on Keyboard/Mouse, Player 2 on Gamepad) for local co-op play.
+- [ ] **Target Files:** [`src/entities/player.hpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.hpp), [`src/entities/player.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/entities/player.cpp)
+- [ ] **Priority:** EXPANSION
+- [ ] **Description:** Refactor `Player` class and input mapping to support multiple player instances (Player 1 on Keyboard/Mouse, Player 2 on Gamepad) for local co-op play.
 
 ---
 
@@ -114,59 +114,59 @@ graph TD
 *Directory Ownership:* `src/chambers/`, `src/ui/`, `src/core/states/`, `assets/maps/`
 
 ### Task B1: Apply Clarity Shard Protect Timer Reduction
-- **Target File:** [`src/chambers/chamber-factory.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/chamber-factory.cpp)
-- **Priority:** P2 — High
-- **Description:** Multiply `requiredCollectionTime` in `ProtectChamber` by `runState.collectTimeReduction` (10% or 20% timer reduction when Clarity Shard is collected/intact).
+- [ ] **Target File:** [`src/chambers/chamber-factory.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/chamber-factory.cpp)
+- [ ] **Priority:** P2 — High
+- [ ] **Description:** Multiply `requiredCollectionTime` in `ProtectChamber` by `runState.collectTimeReduction` (10% or 20% timer reduction when Clarity Shard is collected/intact).
 
 ### Task B2: Implement Run Ending Determination Logic
-- **Target File:** [`src/core/states/game-play-state.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/core/states/game-play-state.cpp)
-- **Priority:** P2 — High
-- **Description:** Replace hardcoded `ENDING_A_SHATTER` with dynamic calculation based on total stolen Echoes:
-  - 0 Stolen $\rightarrow$ Ending A (The Shatter)
-  - 1–2 Stolen $\rightarrow$ Ending B (The Retreat)
-  - 3–5 Stolen $\rightarrow$ Ending C (The Warning)
+- [ ] **Target File:** [`src/core/states/game-play-state.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/core/states/game-play-state.cpp)
+- [ ] **Priority:** P2 — High
+- [ ] **Description:** Replace hardcoded `ENDING_A_SHATTER` with dynamic calculation based on total stolen Echoes:
+  - [ ] 0 Stolen $\rightarrow$ Ending A (The Shatter)
+  - [ ] 1–2 Stolen $\rightarrow$ Ending B (The Retreat)
+  - [ ] 3–5 Stolen $\rightarrow$ Ending C (The Warning)
 
 ### Task B3: Fix Campaign Map Mid-Chamber Flow
-- **Target File:** [`assets/maps/campaign.json`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/assets/maps/campaign.json)
-- **Priority:** P2 — High
-- **Description:** Re-order `campaign.json` so Mid-Chambers occur *between* main chambers (e.g. L1Ch1 $\rightarrow$ Mid $\rightarrow$ L1Ch2 $\rightarrow$ Mid $\rightarrow$ L1Ch3).
+- [ ] **Target File:** [`assets/maps/campaign.json`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/assets/maps/campaign.json)
+- [ ] **Priority:** P2 — High
+- [ ] **Description:** Re-order `campaign.json` so Mid-Chambers occur *between* main chambers (e.g. L1Ch1 $\rightarrow$ Mid $\rightarrow$ L1Ch2 $\rightarrow$ Mid $\rightarrow$ L1Ch3).
 
 ### Task B4: Implement L3Ch1 Resonance Hall Noise Mechanic
-- **Target File:** [`src/chambers/protect-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/protect-chamber.cpp)
-- **Priority:** P3 — Medium
-- **Description:** Increment noise counter on player attack in L3Ch1, spawning +1 Hushed Stalker per attack (capped at +12). Killing a Slowed Stalker drops 2 fragments silently without triggering noise spawn.
+- [ ] **Target File:** [`src/chambers/protect-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/protect-chamber.cpp)
+- [ ] **Priority:** P3 — Medium
+- [ ] **Description:** Increment noise counter on player attack in L3Ch1, spawning +1 Hushed Stalker per attack (capped at +12). Killing a Slowed Stalker drops 2 fragments silently without triggering noise spawn.
 
 ### Task B5: Implement L3Ch3 Hunger Pit Instant Death Void
-- **Target File:** [`src/chambers/boss-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/boss-chamber.cpp) or `gauntlet-chamber.cpp`
-- **Priority:** P2 — High
-- **Description:** Add 5-unit radius central void hazard circle causing instant death on contact for both player and knockback-pushed enemies.
+- [ ] **Target File:** [`src/chambers/boss-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/boss-chamber.cpp) or `gauntlet-chamber.cpp`
+- [ ] **Priority:** P2 — High
+- [ ] **Description:** Add 5-unit radius central void hazard circle causing instant death on contact for both player and knockback-pushed enemies.
 
 ### Task B6: L3Ch4 Sarcophagus Reliquary Buff & Obsidian Pit Edge Opacity
-- **Target Files:** `protect-chamber.cpp`, `gauntlet-chamber.cpp`
-- **Priority:** P4 — Low
-- **Description:**
-  - **L3Ch4:** Successfully defending decoy reliquary grants a one-time +20% Max HP buff for the final boss fight.
-  - **Obsidian Key:** Reduce pit edge warning glow opacity by 60% in Hunger Pit if Obsidian Key was stolen.
+- [ ] **Target Files:** `protect-chamber.cpp`, `gauntlet-chamber.cpp`
+- [ ] **Priority:** P4 — Low
+- [ ] **Description:**
+  - [ ] **L3Ch4:** Successfully defending decoy reliquary grants a one-time +20% Max HP buff for the final boss fight.
+  - [ ] **Obsidian Key:** Reduce pit edge warning glow opacity by 60% in Hunger Pit if Obsidian Key was stolen.
 
 ### Task B7: Implement Per-Chamber Timer Overlay in HUD
-- **Target File:** [`src/ui/widgets/hud.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/ui/widgets/hud.cpp)
-- **Priority:** EXPANSION
-- **Description:** Add a clean digital timer widget to the HUD displaying elapsed chamber time.
+- [ ] **Target File:** [`src/ui/widgets/hud.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/ui/widgets/hud.cpp)
+- [ ] **Priority:** EXPANSION
+- [ ] **Description:** Add a clean digital timer widget to the HUD displaying elapsed chamber time.
 
 ### Task B8: Implement Minimap Radar Widget in HUD
-- **Target File:** `src/ui/widgets/minimap.cpp` [NEW]
-- **Priority:** EXPANSION
-- **Description:** Create corner radar UI widget rendering miniature tiles for chamber walls, player dot (blue), exit gate (red), and enemy dots (yellow).
+- [ ] **Target File:** `src/ui/widgets/minimap.cpp` [NEW]
+- [ ] **Priority:** EXPANSION
+- [ ] **Description:** Create corner radar UI widget rendering miniature tiles for chamber walls, player dot (blue), exit gate (red), and enemy dots (yellow).
 
 ### Task B9: Implement Inter-Chamber Run Statistics Screen
-- **Target File:** `src/core/states/inter-chamber-state.cpp` [NEW]
-- **Priority:** EXPANSION
-- **Description:** Create UI transition state between chambers displaying player stat boosts, active enemy/boss modifiers from stolen Echoes, banked fragments, and total time elapsed.
+- [ ] **Target File:** `src/core/states/inter-chamber-state.cpp` [NEW]
+- [ ] **Priority:** EXPANSION
+- [ ] **Description:** Create UI transition state between chambers displaying player stat boosts, active enemy/boss modifiers from stolen Echoes, banked fragments, and total time elapsed.
 
 ### Task B10: Implement Difficulty Modes Selection & Scaling
-- **Target Files:** `src/global-settings/setting-manager.hpp`, `src/chambers/chamber-factory.cpp`
-- **Priority:** EXPANSION
-- **Description:** Add `DifficultyMode` enum (Easy, Normal, Hard / Nightmare) and apply multiplier scaling to enemy HP, damage, and speed during chamber instantiation.
+- [ ] **Target Files:** `src/global-settings/setting-manager.hpp`, `src/chambers/chamber-factory.cpp`
+- [ ] **Priority:** EXPANSION
+- [ ] **Description:** Add `DifficultyMode` enum (Easy, Normal, Hard / Nightmare) and apply multiplier scaling to enemy HP, damage, and speed during chamber instantiation.
 
 ---
 

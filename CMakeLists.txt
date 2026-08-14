@@ -36,6 +36,7 @@ add_executable(game
     src/core/states/pause-state.cpp
     src/core/states/game-over-state.cpp
     src/core/states/setting-state.cpp
+    src/core/states/debug-state.cpp
 
     # graphics
     src/graphics/particle-system.cpp

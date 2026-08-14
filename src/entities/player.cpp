@@ -100,6 +100,14 @@ void Player::update(float deltaTime) {
     }
 }
 
+void Player::draw(sf::RenderWindow& window) const {
+    Character::draw(window);
+
+    if (stateMachine.getActiveState()) {
+        stateMachine.getActiveState()->draw(*this, window);
+    }
+}
+
 
 void Player::setChamber(Chamber* chamber) {
     this->currentChamber = chamber;
@@ -171,6 +179,13 @@ void Player::gainMomentum(float amount, FormType form) {
     if (it != formMomentum.end()) {
         it->second += amount;
         it->second = std::clamp(it->second, 0.0f, MAX_MOMENTUM);
+    }
+}
+
+void Player::setMomentum(float amount, FormType form) {
+    auto it = formMomentum.find(form);
+    if (it != formMomentum.end()) {
+        it->second = std::clamp(amount, 0.0f, MAX_MOMENTUM);
     }
 }
 

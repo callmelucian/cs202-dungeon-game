@@ -6,10 +6,6 @@ GauntletChamber::GauntletChamber(Player& player) : Chamber(player) {
     dropsFragments = false;
 }
 
-void GauntletChamber::setWaves(const std::vector<WaveConfig>& configs) {
-    waveSpawner.setWaves(configs);
-}
-
 void GauntletChamber::update(float dt) {
     Chamber::update(dt);
 
