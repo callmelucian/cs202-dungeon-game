@@ -469,16 +469,21 @@ void GameplayState::onChamberCompleted() {
             } else {
                 // Game completely over! (Win)
                 int stolenCount = 0;
-                for (const auto& pair : runState.echoOutcomes) {
-                    if (pair.second == EchoOutcome::STOLEN) {
+                for (const auto& [type, outcome] : runState.echoOutcomes) {
+                    if (outcome == EchoOutcome::STOLEN) {
                         stolenCount++;
                     }
                 }
+                runState.echoesStolen = stolenCount;
 
                 EndingType ending = EndingType::ENDING_A_SHATTER;
-                if (stolenCount == 0) ending = EndingType::ENDING_A_SHATTER;
-                else if (stolenCount <= 2) ending = EndingType::ENDING_B_RETREAT;
-                else ending = EndingType::ENDING_C_WARNING;
+                if (stolenCount == 0) {
+                    ending = EndingType::ENDING_A_SHATTER;
+                } else if (stolenCount <= 2) {
+                    ending = EndingType::ENDING_B_RETREAT;
+                } else {
+                    ending = EndingType::ENDING_C_WARNING;
+                }
 
                 std::cout << "Campaign completed with " << stolenCount << " stolen Echo(es). Transitioning to Ending "
                           << (ending == EndingType::ENDING_A_SHATTER ? "A (Shatter)" : (ending == EndingType::ENDING_B_RETREAT ? "B (Retreat)" : "C (Warning)")) << "\n";
