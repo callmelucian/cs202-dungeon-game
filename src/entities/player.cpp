@@ -72,7 +72,7 @@ void Player::triggerAnimation(const std::string& key) {
 void Player::update(float deltaTime) {
     animController.tickAttackFinished(*this);
     sf::Vector2f dir = movementController.update(*this, deltaTime);
-    animController.updateMovementAnim(*this, dir, movementController.getIsFacingRight());
+    animController.updateMovementAnim(*this, dir, movementController.getFacingString());
 
     // 4. Update switch cooldown
     if (switchCooldownTimer > 0.0f) {
@@ -213,7 +213,11 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
 void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
     if (!canAct()) return;
 
-    animController.triggerAttackAnim(*this, movementController.getIsFacingRight());
+    if (Math::length(targetDir) > 0.01f) {
+        movementController.setFacingFromVector(targetDir);
+    }
+
+    animController.triggerAttackAnim(*this, movementController.getFacingString());
 
     // Dispatch attack logic via the state machine (combat, not animation)
     if (stateMachine.getActiveState())
@@ -281,6 +285,10 @@ Stats Player::getEffectiveStats() const {
 
 bool Player::getIsFacingRight() const {
     return movementController.getIsFacingRight();
+}
+
+std::string Player::getFacingString() const {
+    return movementController.getFacingString();
 }
 
 

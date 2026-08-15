@@ -31,12 +31,7 @@ sf::Vector2f PlayerMovementController::update(Player& player, float deltaTime) {
     }
     
     sf::Vector2f moveDir = Math::normalize(inputDir);
-    
-    if (moveDir.x < 0.f) {
-        isFacingRight = false;
-    } else if (moveDir.x > 0.f) {
-        isFacingRight = true;
-    }
+    setFacingFromVector(moveDir);
     
     float speedToPixels = settings.getCellSize() * settings.getSpeedMultiplier();
     player.setVelocity(moveDir * player.getSpeed() * speedToPixels);
@@ -48,6 +43,31 @@ void PlayerMovementController::onWallCollision() {
     // Stateless movement: no persistent moving state needs to be cleared.
 }
 
+FacingDirection PlayerMovementController::getFacingDirection() const {
+    return facingDirection;
+}
+
+std::string PlayerMovementController::getFacingString() const {
+    switch (facingDirection) {
+        case FacingDirection::UP:    return "up";
+        case FacingDirection::DOWN:  return "down";
+        case FacingDirection::LEFT:  return "left";
+        case FacingDirection::RIGHT: return "right";
+    }
+    return "down";
+}
+
+void PlayerMovementController::setFacingFromVector(const sf::Vector2f& dir) {
+    if (std::abs(dir.x) < 0.01f && std::abs(dir.y) < 0.01f) {
+        return;
+    }
+    if (std::abs(dir.x) >= std::abs(dir.y)) {
+        facingDirection = (dir.x > 0.f) ? FacingDirection::RIGHT : FacingDirection::LEFT;
+    } else {
+        facingDirection = (dir.y > 0.f) ? FacingDirection::DOWN : FacingDirection::UP;
+    }
+}
+
 bool PlayerMovementController::getIsFacingRight() const {
-    return isFacingRight;
+    return facingDirection != FacingDirection::LEFT;
 }

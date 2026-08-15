@@ -9,9 +9,8 @@
 
 void PlayerAnimationController::updateMovementAnim(Player& player,
                                                    const sf::Vector2f& dir,
-                                                   bool isFacingRight) {
+                                                   const std::string& facing) {
     if (attacking) return; // don't interrupt attack clip
-    std::string facing = isFacingRight ? "right" : "left";
     
     // Check if the vector is practically zero
     if (std::abs(dir.x) > 0.01f || std::abs(dir.y) > 0.01f) {
@@ -21,13 +20,22 @@ void PlayerAnimationController::updateMovementAnim(Player& player,
     }
 }
 
-void PlayerAnimationController::triggerAttackAnim(Player& player, bool isFacingRight) {
-    std::string facing = isFacingRight ? "right" : "left";
+void PlayerAnimationController::updateMovementAnim(Player& player,
+                                                   const sf::Vector2f& dir,
+                                                   bool isFacingRight) {
+    updateMovementAnim(player, dir, isFacingRight ? "right" : "left");
+}
+
+void PlayerAnimationController::triggerAttackAnim(Player& player, const std::string& facing) {
     std::string animName = player.getActiveForm() 
                            ? player.getActiveForm()->getAttackAnimKey() 
                            : "slash-facing-";
     attacking = true;
     player.triggerAnimation(animName + facing);
+}
+
+void PlayerAnimationController::triggerAttackAnim(Player& player, bool isFacingRight) {
+    triggerAttackAnim(player, isFacingRight ? "right" : "left");
 }
 
 bool PlayerAnimationController::tickAttackFinished(Player& player) {

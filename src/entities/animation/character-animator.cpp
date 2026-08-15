@@ -75,10 +75,9 @@ void CharacterAnimator::draw(sf::RenderWindow& window, sf::Vector2f position, sf
         sprite->setPosition(position);
         
         if (size.x > 0.f && size.y > 0.f) {
-            sf::FloatRect localBounds = sprite->getLocalBounds();
-            if (localBounds.size.x > 0.f && localBounds.size.y > 0.f) {
-                sprite->setScale(sf::Vector2f(size.x / localBounds.size.x, size.y / localBounds.size.y));
-            }
+            // Standard frame base dimension is 64x64. Scale proportionally so
+            // oversized frames (e.g. 192x192) extend naturally while body stays aligned.
+            sprite->setScale(sf::Vector2f(size.x / 64.0f, size.y / 64.0f));
         } else {
             sprite->setScale(sf::Vector2f(1.f, 1.f));
         }

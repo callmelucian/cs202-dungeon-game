@@ -45,7 +45,9 @@ public:
 
     // TODO: Implement new animation system.
     // See backup-files/player-animation-controller.cpp for the previous implementation.
+    void updateMovementAnim(Player& player, const sf::Vector2f& dir, const std::string& facing);
     void updateMovementAnim(Player& player, const sf::Vector2f& dir, bool isFacingRight);
+    void triggerAttackAnim(Player& player, const std::string& facing);
     void triggerAttackAnim(Player& player, bool isFacingRight);
     bool tickAttackFinished(Player& player);
     bool isAttacking() const;

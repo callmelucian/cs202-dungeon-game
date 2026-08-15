@@ -18,6 +18,7 @@ protected:
     float attackCooldown;
     int fragmentDropCount;
     bool isFacingRight = true;
+    std::string facingString = "down";
     bool isRealCarrier;
     bool hitWall;
 

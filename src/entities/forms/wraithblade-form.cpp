@@ -11,6 +11,11 @@ WraithbladeForm::WraithbladeForm()
                  Stats{100.0f, 100.0f, 12.0f, 7.0f, 15.0f},
                  1.5f, 2.0f) {}
 
+void WraithbladeForm::update(Player& player, float dt) {
+    PlayerForm::update(player, dt);
+    timeSinceLastAttack += dt;
+}
+
 void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     SoundManager::getInstance().playSound("swing");
 
@@ -49,7 +54,13 @@ float WraithbladeForm::getMomentumGainOnHit(float hpLost) const {
 }
 
 std::string WraithbladeForm::getAttackAnimKey() const {
-    return "backslash-facing-";
+    if (timeSinceLastAttack > 1.2f) {
+        useReverseSlash = false;
+    }
+    std::string key = useReverseSlash ? "slash_reverse_oversize-facing-" : "slash_oversize-facing-";
+    useReverseSlash = !useReverseSlash;
+    timeSinceLastAttack = 0.0f;
+    return key;
 }
 
 

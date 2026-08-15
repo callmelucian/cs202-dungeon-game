@@ -26,8 +26,9 @@ bool AnimationManager::loadAllAnimations(const std::string &filePath) {
     }
 
     AnimationSet baseSet;
-    if (j.contains("animations")) {
-        for (auto& [key, animData] : j["animations"].items()) {
+
+    auto parseAnimationMap = [&](const json& mapObj) {
+        for (auto& [key, animData] : mapObj.items()) {
             bool looping = true;
             if (animData.contains("looping")) {
                 looping = animData["looping"].get<bool>();
@@ -73,6 +74,16 @@ bool AnimationManager::loadAllAnimations(const std::string &filePath) {
 
             Animation animation(frames, looping);
             baseSet.addAnimation(key, animation);
+        }
+    };
+
+    if (j.contains("animations")) {
+        parseAnimationMap(j["animations"]);
+    }
+
+    if (j.contains("weapons")) {
+        for (auto& [weaponKey, weaponObj] : j["weapons"].items()) {
+            parseAnimationMap(weaponObj);
         }
     }
 

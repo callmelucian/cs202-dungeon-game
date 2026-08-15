@@ -45,6 +45,7 @@ public:
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
     bool getIsFacingRight() const;
+    std::string getFacingString() const;
     
     void setSpecial1Threshold(float threshold);
     float getSpecial1Threshold() const;

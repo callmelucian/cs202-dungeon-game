@@ -34,23 +34,31 @@
 #define PLAYER_MOVEMENT_CONTROLLER_HPP
 
 #include <SFML/System/Vector2.hpp>
+#include <string>
 
 class Player;
+
+enum class FacingDirection {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
 
 class PlayerMovementController {
 public:
     PlayerMovementController() = default;
 
-    // TODO: Implement new movement system.
-    // See backup-files/player-movement-controller.cpp for the previous implementation.
     sf::Vector2f update(Player& player, float deltaTime);
     void onWallCollision();
+    
+    FacingDirection getFacingDirection() const;
+    std::string getFacingString() const;
+    void setFacingFromVector(const sf::Vector2f& dir);
     bool getIsFacingRight() const;
 
 private:
-    // TODO: these fields belong to the new movement system.
-    // Previously: lastDir (auto-glide), isFacingRight, wasKeyHeld (edge detection).
-    bool isFacingRight = true;
+    FacingDirection facingDirection = FacingDirection::DOWN;
 };
 
 #endif // PLAYER_MOVEMENT_CONTROLLER_HPP

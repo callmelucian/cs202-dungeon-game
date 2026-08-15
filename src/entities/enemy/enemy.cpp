@@ -25,17 +25,16 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
 void Enemy::update(float deltaTime) {
     sf::Vector2f vel = getVelocity();
     
-    if (vel.x < 0.f) {
-        isFacingRight = false;
-    } else if (vel.x > 0.f) {
-        isFacingRight = true;
-    }
-    
-    std::string direction = isFacingRight ? "right" : "left";
-    if (vel.x != 0.f || vel.y != 0.f) {
-        notifyStateChanged("walk-facing-" + direction);
+    if (std::abs(vel.x) > 0.01f || std::abs(vel.y) > 0.01f) {
+        if (std::abs(vel.x) >= std::abs(vel.y)) {
+            facingString = (vel.x > 0.f) ? "right" : "left";
+            isFacingRight = (vel.x > 0.f);
+        } else {
+            facingString = (vel.y > 0.f) ? "down" : "up";
+        }
+        notifyStateChanged("walk-facing-" + facingString);
     } else {
-        notifyStateChanged("idle-facing-" + direction);
+        notifyStateChanged("idle-facing-" + facingString);
     }
 
     Character::update(deltaTime);

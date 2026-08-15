@@ -7,10 +7,15 @@ class WraithbladeForm : public PlayerForm {
 public:
     WraithbladeForm();
 
+    void update(Player& player, float dt) override;
     void attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     std::unique_ptr<SpecialAbilityState> createSpecialState(int abilityIndex) override;
     float getMomentumGainOnHit(float hpLost) const override;
     std::string getAttackAnimKey() const override;
+
+private:
+    mutable bool useReverseSlash = false;
+    mutable float timeSinceLastAttack = 0.0f;
 };
 
 class WraithbladeRiftcrushState : public SpecialAbilityState {
