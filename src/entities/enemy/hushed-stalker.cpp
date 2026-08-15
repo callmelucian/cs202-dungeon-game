@@ -14,7 +14,7 @@ HushedStalker::HushedStalker(Player& player)
     baseStats.hp = 22.0f;
     baseStats.maxHp = 22.0f;
     baseStats.damage = 9.0f;
-    baseStats.speed = 5.0f;
+    baseStats.speed = 3.5f;
     
     fragmentDropCount = 1;
     attackCooldown = 0.0f;

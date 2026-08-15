@@ -217,9 +217,9 @@
 
   - [ ] Refined enemy steering logic.
   - [ ] Boss sprite/animation assets — design and implement multi-phase boss visuals.
-  - [ ] Implement ending checker in `GameplayState` after boss defeat: count `RunState.echoesStolen`. 0 stolen → `EndingType::ENDING_A_SHATTER`; 1–2 stolen → `EndingType::ENDING_B_RETREAT`; 3–5 stolen → `EndingType::ENDING_C_WARNING`. Push `GameOverState(ending)`.
-  - [ ] Enhance `GameOverState` to display: narrative text and visual treatment for each ending (A: triumphant golden palette, B: somber blue-grey, C: dark red-black), Echo Power summary table (all 5 Echoes with final Power% and Collected/Stolen status), fade-in animation, "Return to Main Menu" button.
-  - [ ] Fix `EndingType` enum duplication: remove from `game-over-state.hpp`, use only `enums.hpp` version.
+  - [x] Implement ending checker in `GameplayState` after boss defeat: count `RunState.echoesStolen`. 0 stolen → `EndingType::ENDING_A_SHATTER`; 1–2 stolen → `EndingType::ENDING_B_RETREAT`; 3–5 stolen → `EndingType::ENDING_C_WARNING`. Push `GameOverState(ending)`.
+  - [x] Enhance `GameOverState` to display: narrative text and visual treatment for each ending (A: triumphant golden palette, B: somber blue-grey, C: dark red-black), Echo Power summary table (all 5 Echoes with final Power% and Collected/Stolen status), fade-in animation, "Return to Main Menu" button.
+  - [x] Fix `EndingType` enum duplication: remove from `game-over-state.hpp`, use only `enums.hpp` version.
   - [ ] Implement `SettingState` key rebinding UI (connect to `SettingManager::setKeyBinding()`).
   - [ ] Complete Level 3 Chamber 4 (Sarcophagus Approach) decoy reliquary: successful 10s collect grants +20% Max HP buff for the Final Chamber only.
   - [ ] Full end-to-end game flow testing: Level 1 → Mid → Level 2 → Mid → Level 3 → Boss → Ending.
@@ -232,14 +232,14 @@
 * **Developer B (Save/Load, Balance, QA & Demo)**
   - [x] Complete `SaveLoadManager` to cleanly write/load all `RunState` fields. Verify that loading correctly restores all game state so the run resumes identically.
   - [x] Implement "Load Game" flow from `MainMenuState` — detect save file, restore game state, resume at correct chamber.
-  - [ ] Conduct balance pass: enemy HP/damage tuning, Momentum gain rates, Echo Power economy, boss phase difficulty curve.
-  - [ ] Memory leak cleanup: verify all `unique_ptr` ownership is correct, no dangling references.
-  - [ ] Conduct debugging, playtesting, and edge case handling (form switch during boss phase transition, save during mid-chamber, etc.).
-  - [ ] End-of-game screen rendering for `GameOverState` (death/failure screen triggers chamber restart, distinct from the ending screens).
+  - [x] Conduct balance pass: enemy HP/damage tuning, Momentum gain rates, Echo Power economy, boss phase difficulty curve.
+  - [x] Memory leak cleanup: verify all `unique_ptr` ownership is correct, no dangling references.
+  - [x] Conduct debugging, playtesting, and edge case handling (form switch during boss phase transition, save during mid-chamber, etc.).
+  - [x] End-of-game screen rendering for `GameOverState` (death/failure screen triggers chamber restart, distinct from the ending screens).
   - [ ] **Record demo video** (3–5 min) showing: main menu → Level 1–3 gameplay → form switching → Echo collection → boss fight → ending screen.
 
 * **AI Agent Tasks**
-  - [ ] End-of-game screen rendering boilerplate for `GameOverState`.
+  - [x] End-of-game screen rendering boilerplate for `GameOverState`.
   - [ ] Save data serialization/deserialization test cases.
   - [ ] Automated balance spreadsheet: DPS calculations, time-to-kill per enemy per form, Momentum accrual rates.
   - **Prompt (Dev A provides):** *"Generate an enhanced GameOverState class. It receives EndingType from enums.hpp and renders the appropriate ending screen: ENDING_A_SHATTER (triumphant golden palette, bright effects), ENDING_B_RETREAT (somber blue-grey palette), ENDING_C_WARNING (dark red-black palette). Include: narrative text overlay with fade-in animation, a table showing all 5 Echoes with their final Power% and Collected/Stolen status, a 'Return to Main Menu' button. Use our UI framework (VerticalBox, Text, Button) and ColorPaletteManager."*
