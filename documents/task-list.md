@@ -232,9 +232,9 @@
 * **Developer B (Save/Load, Balance, QA & Demo)**
   - [x] Complete `SaveLoadManager` to cleanly write/load all `RunState` fields. Verify that loading correctly restores all game state so the run resumes identically.
   - [x] Implement "Load Game" flow from `MainMenuState` — detect save file, restore game state, resume at correct chamber.
-  - [ ] Conduct balance pass: enemy HP/damage tuning, Momentum gain rates, Echo Power economy, boss phase difficulty curve.
-  - [ ] Memory leak cleanup: verify all `unique_ptr` ownership is correct, no dangling references.
-  - [ ] Conduct debugging, playtesting, and edge case handling (form switch during boss phase transition, save during mid-chamber, etc.).
+  - [x] Conduct balance pass: enemy HP/damage tuning, Momentum gain rates, Echo Power economy, boss phase difficulty curve.
+  - [x] Memory leak cleanup: verify all `unique_ptr` ownership is correct, no dangling references.
+  - [x] Conduct debugging, playtesting, and edge case handling (form switch during boss phase transition, save during mid-chamber, etc.).
   - [x] End-of-game screen rendering for `GameOverState` (death/failure screen triggers chamber restart, distinct from the ending screens).
   - [ ] **Record demo video** (3–5 min) showing: main menu → Level 1–3 gameplay → form switching → Echo collection → boss fight → ending screen.
 
