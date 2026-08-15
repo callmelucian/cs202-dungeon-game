@@ -16,7 +16,8 @@ public:
     static TilemapLoader& getInstance();
 
 
-    // Synthesizes complete 2.5D layout, autotiling, cliffs, shadows, overlays and pathfinding data
+    // Synthesizes complete 2.5D layout, autotiling, cliffs, shadows, overlays and pathfinding data.
+    // Returns the full TilemapRenderData including the walkableGrid bitmask used by the pathfinder.
     TilemapRenderData synthesizeMap(
         const std::vector<std::vector<std::string>>& typeGrid,
         const std::vector<std::vector<int>>& levelGrid

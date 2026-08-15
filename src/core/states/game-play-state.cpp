@@ -468,7 +468,22 @@ void GameplayState::onChamberCompleted() {
                 runState.currentChamber = 1;
             } else {
                 // Game completely over! (Win)
-                stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, EndingType::ENDING_A_SHATTER));
+                int stolenCount = 0;
+                for (const auto& pair : runState.echoOutcomes) {
+                    if (pair.second == EchoOutcome::STOLEN) {
+                        stolenCount++;
+                    }
+                }
+
+                EndingType ending = EndingType::ENDING_A_SHATTER;
+                if (stolenCount == 0) ending = EndingType::ENDING_A_SHATTER;
+                else if (stolenCount <= 2) ending = EndingType::ENDING_B_RETREAT;
+                else ending = EndingType::ENDING_C_WARNING;
+
+                std::cout << "Campaign completed with " << stolenCount << " stolen Echo(es). Transitioning to Ending "
+                          << (ending == EndingType::ENDING_A_SHATTER ? "A (Shatter)" : (ending == EndingType::ENDING_B_RETREAT ? "B (Retreat)" : "C (Warning)")) << "\n";
+
+                stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, ending));
                 return;
             }
         }

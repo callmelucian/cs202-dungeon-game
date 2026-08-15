@@ -11,6 +11,8 @@
 #include "mid-chamber.hpp"
 #include "boss-chamber.hpp"
 
+#include "../core/game.hpp"
+
 std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberIndex, Player& player) {
     std::cout << "Creating Chamber - Level: " << level << ", Index: " << chamberIndex << "\n";
     
@@ -25,7 +27,14 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     std::unique_ptr<Chamber> chamber;
     
     if (config.chamberType == "ProtectChamber") {
-        auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", 10.0f);
+        float baseTime = 10.0f;
+        float timeReduction = Game::getInstance().getRunState().collectTimeReduction;
+        auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", baseTime * timeReduction);
+        if (level == 3 && chamberIndex == 1) {
+            protectChamber->setIsNoiseHall(true);
+        } else if (level == 3 && chamberIndex == 4) {
+            protectChamber->setIsReliquaryDecoy(true);
+        }
         // Position will be set from grid later
         chamber = std::move(protectChamber);
     } else if (config.chamberType == "PreventChamber") {
@@ -34,6 +43,9 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         chamber = std::move(preventChamber);
     } else if (config.chamberType == "GauntletChamber") {
         auto gauntlet = std::make_unique<GauntletChamber>(player);
+        if (level == 3 && chamberIndex == 3) {
+            gauntlet->setIsHungerPit(true);
+        }
         if (!config.waves.empty()) {
             gauntlet->setWaves(config.waves);
         }

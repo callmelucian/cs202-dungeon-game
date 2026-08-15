@@ -48,6 +48,11 @@ void ProtectChamber::update(float dt) {
                 SoundManager::getInstance().playSound("echo-collect");
                 ParticleSystem::getInstance().emitGlow(echoPosition, 40, sf::Color(255, 255, 200, 200), 50.0f);
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
+                if (isReliquaryDecoy) {
+                    float buffAmount = player.getEffectiveStats().maxHp * 0.20f;
+                    player.heal(buffAmount);
+                    std::cout << "Sarcophagus Reliquary Defended! Granted +20% Max HP buff (" << buffAmount << " HP).\n";
+                }
                 completeChamber();
             }
         } else {
@@ -87,7 +92,33 @@ void ProtectChamber::drawForeground(sf::RenderWindow& window) {
     }
 }
 
+#include "../entities/enemy/enemy-factory.hpp"
+
+int ProtectChamber::processPlayerAttack(const Hitbox& hitbox) {
+    int totalHits = Chamber::processPlayerAttack(hitbox);
+    
+    if (isNoiseHall && noiseStalkerCount < 12) {
+        noiseStalkerCount++;
+        auto stalker = EnemyFactory::createEnemy("HUSHED_STALKER", player);
+        if (stalker) {
+            float cell = SettingManager::getInstance().getCellSize();
+            float ox = SettingManager::getInstance().getGridOffsetX();
+            float oy = SettingManager::getInstance().getGridOffsetY();
+            stalker->setPosition({ox + 3.0f * cell, oy + 3.0f * cell});
+            spawnEnemy(std::move(stalker));
+            std::cout << "Resonance Hall Noise! Spawned Hushed Stalker (" << noiseStalkerCount << "/12).\n";
+        }
+    }
+    return totalHits;
+}
+
 void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    if (lethal && enemy && isNoiseHall) {
+        if (enemy->isSlowed()) {
+            itemManager.spawnFragments(enemy->getPosition(), 2);
+            std::cout << "Slowed Hushed Stalker killed silently! Dropped 2 fragments without noise.\n";
+        }
+    }
     Chamber::onEnemyHit(enemy, lethal);
 }
 

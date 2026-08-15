@@ -31,6 +31,11 @@ public:
     void onEnemyHit(Enemy* enemy, bool lethal) override;
 
     void setEchoPosition(sf::Vector2f pos);
+    void setRequiredCollectionTime(float time) { requiredCollectionTime = time; }
+    void setIsNoiseHall(bool active) { isNoiseHall = active; }
+    void setIsReliquaryDecoy(bool active) { isReliquaryDecoy = active; }
+    
+    int processPlayerAttack(const Hitbox& hitbox) override;
     
     // Echo mechanics
     void onEchoHit(float rawDamage);
@@ -39,6 +44,11 @@ public:
 
     Echo* getEcho() const { return echo.get(); }
     bool getIsCollected() const { return isCollected; }
+
+private:
+    bool isNoiseHall = false;
+    bool isReliquaryDecoy = false;
+    int noiseStalkerCount = 0;
 };
 
 #endif // PROTECT_CHAMBER_HPP

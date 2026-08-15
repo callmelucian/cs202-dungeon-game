@@ -83,7 +83,14 @@ void Chamber::setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGr
     float cellSize = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
-    
+
+    // Synthesize the full 2.5D render data (includes the walkableGrid bitmask).
+    // Store it so getWalkableGrid() returns the correct graph for the pathfinder.
+    // Previously createRenderableMap() built and then silently discarded this data,
+    // leaving renderData2D5.walkableGrid permanently empty and forcing the pathfinder
+    // to fall back to the flat typeGrid BFS that ignores elevation entirely.
+    renderData2D5 = TilemapLoader::getInstance().synthesizeMap(typeGrid, levelGrid);
+
     tileMap = TilemapLoader::getInstance().createRenderableMap(typeGrid, levelGrid, cellSize, ox, oy);
     buildObstaclesFromGrid();
 }

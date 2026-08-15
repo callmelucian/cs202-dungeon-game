@@ -114,39 +114,39 @@ graph TD
 *Directory Ownership:* `src/chambers/`, `src/ui/`, `src/core/states/`, `assets/maps/`
 
 ### Task B1: Apply Clarity Shard Protect Timer Reduction
-- [ ] **Target File:** [`src/chambers/chamber-factory.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/chamber-factory.cpp)
-- [ ] **Priority:** P2 — High
-- [ ] **Description:** Multiply `requiredCollectionTime` in `ProtectChamber` by `runState.collectTimeReduction` (10% or 20% timer reduction when Clarity Shard is collected/intact).
+- [x] **Target File:** [`src/chambers/chamber-factory.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/chamber-factory.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Multiply `requiredCollectionTime` in `ProtectChamber` by `runState.collectTimeReduction` (10% or 20% timer reduction when Clarity Shard is collected/intact).
 
 ### Task B2: Implement Run Ending Determination Logic
-- [ ] **Target File:** [`src/core/states/game-play-state.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/core/states/game-play-state.cpp)
-- [ ] **Priority:** P2 — High
-- [ ] **Description:** Replace hardcoded `ENDING_A_SHATTER` with dynamic calculation based on total stolen Echoes:
-  - [ ] 0 Stolen $\rightarrow$ Ending A (The Shatter)
-  - [ ] 1–2 Stolen $\rightarrow$ Ending B (The Retreat)
-  - [ ] 3–5 Stolen $\rightarrow$ Ending C (The Warning)
+- [x] **Target File:** [`src/core/states/game-play-state.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/core/states/game-play-state.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Replace hardcoded `ENDING_A_SHATTER` with dynamic calculation based on total stolen Echoes:
+  - [x] 0 Stolen $\rightarrow$ Ending A (The Shatter)
+  - [x] 1–2 Stolen $\rightarrow$ Ending B (The Retreat)
+  - [x] 3–5 Stolen $\rightarrow$ Ending C (The Warning)
 
 ### Task B3: Fix Campaign Map Mid-Chamber Flow
-- [ ] **Target File:** [`assets/maps/campaign.json`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/assets/maps/campaign.json)
-- [ ] **Priority:** P2 — High
-- [ ] **Description:** Re-order `campaign.json` so Mid-Chambers occur *between* main chambers (e.g. L1Ch1 $\rightarrow$ Mid $\rightarrow$ L1Ch2 $\rightarrow$ Mid $\rightarrow$ L1Ch3).
+- [x] **Target File:** [`assets/maps/campaign.json`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/assets/maps/campaign.json)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Re-order `campaign.json` so Mid-Chambers occur *between* main chambers (e.g. L1Ch1 $\rightarrow$ Mid $\rightarrow$ L1Ch2 $\rightarrow$ Mid $\rightarrow$ L1Ch3).
 
 ### Task B4: Implement L3Ch1 Resonance Hall Noise Mechanic
-- [ ] **Target File:** [`src/chambers/protect-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/protect-chamber.cpp)
-- [ ] **Priority:** P3 — Medium
-- [ ] **Description:** Increment noise counter on player attack in L3Ch1, spawning +1 Hushed Stalker per attack (capped at +12). Killing a Slowed Stalker drops 2 fragments silently without triggering noise spawn.
+- [x] **Target File:** [`src/chambers/protect-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/protect-chamber.cpp)
+- [x] **Priority:** P3 — Medium
+- [x] **Description:** Increment noise counter on player attack in L3Ch1, spawning +1 Hushed Stalker per attack (capped at +12). Killing a Slowed Stalker drops 2 fragments silently without triggering noise spawn.
 
 ### Task B5: Implement L3Ch3 Hunger Pit Instant Death Void
-- [ ] **Target File:** [`src/chambers/boss-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/boss-chamber.cpp) or `gauntlet-chamber.cpp`
-- [ ] **Priority:** P2 — High
-- [ ] **Description:** Add 5-unit radius central void hazard circle causing instant death on contact for both player and knockback-pushed enemies.
+- [x] **Target File:** [`src/chambers/gauntlet-chamber.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/chambers/gauntlet-chamber.cpp)
+- [x] **Priority:** P2 — High
+- [x] **Description:** Add 5-unit radius central void hazard circle causing instant death on contact for both player and knockback-pushed enemies.
 
 ### Task B6: L3Ch4 Sarcophagus Reliquary Buff & Obsidian Pit Edge Opacity
-- [ ] **Target Files:** `protect-chamber.cpp`, `gauntlet-chamber.cpp`
-- [ ] **Priority:** P4 — Low
-- [ ] **Description:**
-  - [ ] **L3Ch4:** Successfully defending decoy reliquary grants a one-time +20% Max HP buff for the final boss fight.
-  - [ ] **Obsidian Key:** Reduce pit edge warning glow opacity by 60% in Hunger Pit if Obsidian Key was stolen.
+- [x] **Target Files:** `protect-chamber.cpp`, `gauntlet-chamber.cpp`
+- [x] **Priority:** P4 — Low
+- [x] **Description:**
+  - [x] **L3Ch4:** Successfully defending decoy reliquary grants a one-time +20% Max HP buff for the final boss fight.
+  - [x] **Obsidian Key:** Reduce pit edge warning glow opacity by 60% in Hunger Pit if Obsidian Key was stolen.
 
 ### Task B7: Implement Per-Chamber Timer Overlay in HUD
 - [ ] **Target File:** [`src/ui/widgets/hud.cpp`](file:///d:/Code/CS202%20Lab/cs202-dungeon-game/src/ui/widgets/hud.cpp)
