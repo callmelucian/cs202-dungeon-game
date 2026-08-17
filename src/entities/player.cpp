@@ -74,6 +74,17 @@ void Player::update(float deltaTime) {
     sf::Vector2f dir = movementController.update(*this, deltaTime);
     animController.updateMovementAnim(*this, dir, movementController.getFacingString());
 
+    // 3. Update pending attack release (for archery bow windup / release)
+    if (hasPendingAttack) {
+        attackReleaseTimer -= deltaTime;
+        if (attackReleaseTimer <= 0.0f) {
+            hasPendingAttack = false;
+            if (stateMachine.getActiveState() && currentChamber) {
+                stateMachine.getActiveState()->onAttack(*this, pendingAttackDir, *currentChamber);
+            }
+        }
+    }
+
     // 4. Update switch cooldown
     if (switchCooldownTimer > 0.0f) {
         switchCooldownTimer -= deltaTime;
@@ -150,6 +161,8 @@ bool Player::switchForm(FormType newForm) {
     if (activeForm && activeForm->getFormType() == newForm) return false;
     if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) return false;
 
+    hasPendingAttack = false;
+
     // Reset momentum of form we are switching away from
     if (activeForm) formMomentum[activeForm->getFormType()] = 0.0f;
 
@@ -211,7 +224,7 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
 }
 
 void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
-    if (!canAct()) return;
+    if (!canAct() || animController.isAttacking() || hasPendingAttack) return;
 
     if (Math::length(targetDir) > 0.01f) {
         movementController.setFacingFromVector(targetDir);
@@ -219,9 +232,16 @@ void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
 
     animController.triggerAttackAnim(*this, movementController.getFacingString());
 
-    // Dispatch attack logic via the state machine (combat, not animation)
-    if (stateMachine.getActiveState())
-        stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
+    if (getActiveFormType() == FormType::VOIDCASTER) {
+        // Defer attack execution to align with bow release frame (~0.65s into shoot animation)
+        hasPendingAttack = true;
+        attackReleaseTimer = 0.65f;
+        pendingAttackDir = targetDir;
+    } else {
+        // Dispatch attack logic via the state machine immediately for melee
+        if (stateMachine.getActiveState())
+            stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
+    }
 }
 
 

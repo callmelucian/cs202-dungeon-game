@@ -78,6 +78,10 @@ private:
     bool isSwitchCooldownEnabled;
     bool inMidChamber = false;
     float special1Threshold = 50.0f;
+
+    bool hasPendingAttack = false;
+    float attackReleaseTimer = 0.0f;
+    sf::Vector2f pendingAttackDir;
 };
 
 #endif // PLAYER_HPP
