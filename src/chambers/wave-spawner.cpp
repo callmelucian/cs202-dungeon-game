@@ -34,7 +34,7 @@ void WaveSpawner::update(float dt, Chamber& chamber, Player& player) {
                 float ox = SettingManager::getInstance().getGridOffsetX();
                 float oy = SettingManager::getInstance().getGridOffsetY();
 
-                // Collect all walkable ground cells ("L") to ensure enemies never spawn in obstacles
+                // Collect all walkable ground cells to ensure enemies never spawn in obstacles
                 const auto& grid = chamber.getTypeGrid();
                 std::vector<sf::Vector2f> walkablePositions;
                 if (!grid.empty()) {
@@ -42,7 +42,8 @@ void WaveSpawner::update(float dt, Chamber& chamber, Player& player) {
                     int cols = static_cast<int>(grid[0].size());
                     for (int r = 1; r < rows - 1; ++r) {
                         for (int c = 1; c < cols - 1; ++c) {
-                            if (grid[r][c] == "L") { // "L" is walkable ground floor
+                            const std::string& cellType = grid[r][c];
+                            if (cellType == "L" || cellType == "V" || cellType == "H" || cellType == "S") {
                                 walkablePositions.push_back({ox + (c + 0.5f) * cell, oy + (r + 0.5f) * cell});
                             }
                         }

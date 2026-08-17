@@ -36,9 +36,35 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
     initPlayerPosition();
 
     std::string filepath = MapLoader::getChamberFilepath(runState.currentLevel, runState.currentChamber);
-    ChamberConfig cfg = MapLoader::loadChamber(filepath);
-    std::string chamberName = cfg.chamberType;
-    std::string titleStr = "Level " + std::to_string(runState.currentLevel) + " - Chamber " + std::to_string(runState.currentChamber) + ": " + chamberName;
+    std::string titleStr;
+    if (filepath.find("level-1/chamber-1.json") != std::string::npos) {
+        titleStr = "Level 1 - The Outer Vault (Marrow Echo)";
+    } else if (filepath.find("level-1/chamber-2.json") != std::string::npos) {
+        titleStr = "Level 1 - The Sunken Corridor (Hollow Bell)";
+    } else if (filepath.find("level-1/chamber-3.json") != std::string::npos) {
+        titleStr = "Level 1 - The Gate Gauntlet";
+    } else if (filepath.find("level-2/chamber-1.json") != std::string::npos) {
+        titleStr = "Level 2 - The Sunken Choir (Clarity Shard)";
+    } else if (filepath.find("level-2/chamber-2.json") != std::string::npos) {
+        titleStr = "Level 2 - The Hall of Resonance (Resonance Core)";
+    } else if (filepath.find("level-2/chamber-3.json") != std::string::npos) {
+        titleStr = "Level 2 - The Choir Gauntlet";
+    } else if (filepath.find("level-3/chamber-1.json") != std::string::npos) {
+        titleStr = "Level 3 - The Resonance Hall (Noise Hall)";
+    } else if (filepath.find("level-3/chamber-2.json") != std::string::npos) {
+        titleStr = "Level 3 - The Hall of Mirrors (Obsidian Key)";
+    } else if (filepath.find("level-3/chamber-3.json") != std::string::npos) {
+        titleStr = "Level 3 - The Hunger Pit (Gauntlet)";
+    } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
+        titleStr = "Level 3 - The Sarcophagus Approach (Decoy Reliquary)";
+    } else if (filepath.find("mid.json") != std::string::npos) {
+        titleStr = "Resting Sanctuary (Free Form Swap)";
+    } else if (filepath.find("boss.json") != std::string::npos) {
+        titleStr = "The Heart of the Ashen Vault (Boss: Malachar)";
+    } else {
+        ChamberConfig cfg = MapLoader::loadChamber(filepath);
+        titleStr = "Level " + std::to_string(runState.currentLevel) + " - Chamber " + std::to_string(runState.currentChamber);
+    }
     startChamberIntro(titleStr);
 }
 

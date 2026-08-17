@@ -17,20 +17,32 @@
 #include "../../ui/widgets/slider.hpp"
 #include "../../ui/base/text.hpp"
 
-// SettingState: Represents the settings/options state, allowing changes to volume and other settings.
+#include <unordered_map>
+#include <string>
+
+// SettingState: Represents the settings/options state, allowing changes to volume and keybindings.
 class SettingState : public GameState {
 public:
     SettingState(StateManager& manager);
+    void handleEvents(sf::Event& event) override;
 
 private:
+    void refreshKeyBindingLabels();
+
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
-    UI::VerticalBox* buttonBox;
+    UI::HorizontalBox* columnsBox;
+    UI::VerticalBox* audioBox;
+    UI::VerticalBox* keybindBox;
+
     UI::Text* musicLabel;
     UI::Slider* musicSlider;
     UI::Text* sfxLabel;
     UI::Slider* sfxSlider;
     UI::Button* backButton;
+
+    std::string pendingRebindAction;
+    std::unordered_map<std::string, UI::Button*> keyButtons;
 };
 
 #endif // SETTING_STATE

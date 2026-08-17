@@ -4,6 +4,7 @@
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../graphics/particle-system.hpp"
 #include <cmath>
 
 WraithbladeForm::WraithbladeForm()
@@ -83,11 +84,31 @@ float WraithbladeRiftcrushState::modifyOutgoingDamage(float baseAmount) {
 }
 
 void WraithbladeRiftcrushState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
-    // TODO (Future): Change this to trigger the explosion from the ENEMY'S location instead of the Player
+    SoundManager::getInstance().playSound("swing");
+
+    // Primary strike in front of player
+    float rangePixels = 90.0f; // 1.5 units * 60 pixels = 90
+    float len = std::sqrt(targetDir.x * targetDir.x + targetDir.y * targetDir.y);
+    if (len > 0) targetDir /= len;
+    else targetDir = sf::Vector2f(1.0f, 0.0f);
+
+    // Target detonation center at enemy in range or forward target point
+    sf::Vector2f blastCenter = player.getPosition() + targetDir * (rangePixels * 0.75f);
+    for (Enemy* enemy : chamber.getEnemiesRaw()) {
+        if (enemy && enemy->isAlive()) {
+            if (Math::distance(player.getPosition(), enemy->getPosition()) <= rangePixels + 25.0f) {
+                blastCenter = enemy->getPosition();
+                break;
+            }
+        }
+    }
+
+    // Detonate 180px Riftcrush AoE shockwave from target location
     CircleHitbox bigBlast;
-    bigBlast.center = player.getPosition();
-    bigBlast.radius = 120.0f; // 3 units * 60 pixels = 180
+    bigBlast.center = blastCenter;
+    bigBlast.radius = 180.0f; // 3 units * 60 pixels = 180
     
+    ParticleSystem::getInstance().emitBurst(blastCenter, 40, sf::Color(180, 50, 255, 220), 50.0f, 200.0f, 0.3f, 0.7f, 6.0f);
     chamber.processPlayerAttack(bigBlast);
 
     // Consume the ability instantly so it only works for the "Next strike"
