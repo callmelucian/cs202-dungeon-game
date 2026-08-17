@@ -149,7 +149,7 @@ void Character::takeDamage(float rawAmount) {
     if (!isAlive()) return;
     float finalDmg = calculateMitigatedDamage(rawAmount);
     baseStats.hp -= finalDmg;
-    std::cout << "Character took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
+    std::cout << "[" << getDisplayName() << "] took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
     
     auto observersCopy = observers;
     for (auto observer : observersCopy) {
@@ -165,7 +165,7 @@ void Character::takeDamage(float rawAmount) {
 void Character::heal(float amount) {
     if (!isAlive()) return;
     baseStats.hp = std::min(baseStats.hp + amount, baseStats.maxHp);
-    std::cout << "Character healed " << amount << " HP. HP now: " << baseStats.hp << "\n";
+    std::cout << "[" << getDisplayName() << "] healed " << amount << " HP. HP now: " << baseStats.hp << "\n";
 }
 
 float Character::calculateMitigatedDamage(float rawAmount) {

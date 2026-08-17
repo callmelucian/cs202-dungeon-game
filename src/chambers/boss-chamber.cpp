@@ -94,23 +94,33 @@ void BossChamber::update(float dt) {
     // Update platform state ( shrinking in Phase 4, sunder timers )
     updatePlatforms(dt);
 
-    // Hazard check: player taking void damage if off-platform during Phase 3 & 4
+    // Hazard check: player taking void damage if standing on void tile ("0") and off-platform during Phase 3 & 4
     if (currentPhase >= 3 && player.isAlive()) {
         sf::Vector2f playerPos = player.getPosition();
         float cellSize = SettingManager::getInstance().getCellSize();
-        bool onPlatform = false;
+        float ox = SettingManager::getInstance().getGridOffsetX();
+        float oy = SettingManager::getInstance().getGridOffsetY();
 
-        for (const auto& p : platforms) {
-            if (p.isSundered) continue;
-            float dist = Math::distance(playerPos, p.center);
-            if (dist <= p.radius * cellSize) {
-                onPlatform = true;
-                break;
+        int tx = static_cast<int>((playerPos.x - ox) / cellSize);
+        int ty = static_cast<int>((playerPos.y - oy) / cellSize);
+
+        bool isOffGrid = (typeGrid.empty() || ty < 0 || ty >= static_cast<int>(typeGrid.size()) || tx < 0 || tx >= static_cast<int>(typeGrid[0].size()));
+        bool isVoidTile = isOffGrid || (typeGrid[ty][tx] == "0");
+
+        if (isVoidTile) {
+            bool onPlatform = false;
+            for (const auto& p : platforms) {
+                if (p.isSundered) continue;
+                float dist = Math::distance(playerPos, p.center);
+                if (dist <= p.radius * cellSize) {
+                    onPlatform = true;
+                    break;
+                }
             }
-        }
 
-        if (!onPlatform) {
-            player.takeDamage(10.0f * dt); // 10 damage/sec while in void
+            if (!onPlatform) {
+                player.takeDamage(10.0f * dt); // 10 damage/sec while in void
+            }
         }
     }
 }
