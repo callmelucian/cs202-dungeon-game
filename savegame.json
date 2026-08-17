@@ -1,7 +1,7 @@
 {
     "activeForm": 0,
     "collectTimeReduction": 1.0,
-    "currentChamber": 1,
+    "currentChamber": 3,
     "currentLevel": 1,
     "echoOutcomes": {
         "0": 0,
@@ -17,6 +17,6 @@
     "playerHP": 100.0,
     "special1MomentumThreshold": 50.0,
     "special2MomentumThreshold": 100.0,
-    "voidcasterMomentum": 12.0,
-    "wraithbladeMomentum": 0.0
+    "voidcasterMomentum": 0.0,
+    "wraithbladeMomentum": 100.0
 }

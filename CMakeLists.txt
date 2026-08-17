@@ -63,6 +63,7 @@ add_executable(game
     src/ui/widgets/health-bar.cpp
     src/ui/widgets/player-health-bar.cpp
     src/ui/widgets/enemy-health-bar.cpp
+    src/ui/widgets/boss-health-bar.cpp
     src/ui/widgets/hud.cpp
     src/ui-test.cpp
 
@@ -89,16 +90,9 @@ add_executable(game
     src/entities/enemy/enemy-factory.cpp
     src/entities/enemy/enemy-steering-strategy.cpp
     src/entities/enemy/enemy-state.cpp
-    src/entities/enemy/waterlogged-scribe.cpp
-    src/entities/enemy/shard-soldier.cpp
-    src/entities/enemy/bone-sprinter.cpp
-    src/entities/enemy/shard-wraith.cpp
-    src/entities/enemy/siege-wraith.cpp
-    src/entities/enemy/choir-husk.cpp
-    src/entities/enemy/resonant-cantor.cpp
-    src/entities/enemy/hushed-stalker.cpp
-    src/entities/enemy/mirror-bearer.cpp
-    src/entities/enemy/void-shunter.cpp
+    src/entities/enemy/sprinter.cpp
+    src/entities/enemy/soldier.cpp
+    src/entities/enemy/brute.cpp
     src/entities/enemy/boss-malachar.cpp
 
     ## items & economy

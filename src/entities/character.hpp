@@ -48,6 +48,7 @@ public:
 
     virtual std::string getDisplayName() const;
     void setDisplayName(const std::string& name);
+    void setCharacterKey(const std::string& key);
 
     UI::HealthBar* getHealthBar();
     const UI::HealthBar* getHealthBar() const;

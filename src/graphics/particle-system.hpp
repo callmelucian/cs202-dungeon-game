@@ -34,6 +34,7 @@ public:
 
     // Update all particles
     void update(float dt);
+    void clear() { particles.clear(); needsVertexUpdate = true; }
 
     // Emitters
     void emitBurst(sf::Vector2f pos, int count, sf::Color color, float speedMin, float speedMax, float lifeMin, float lifeMax, float size);

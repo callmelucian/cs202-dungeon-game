@@ -4,9 +4,9 @@
 #include <cmath>
 #include <algorithm>
 #include "../utils/collision-solver.hpp"
-#include "../entities/enemy/waterlogged-scribe.hpp"
-#include "../entities/enemy/shard-soldier.hpp"
-#include "../entities/enemy/bone-sprinter.hpp"
+#include "../entities/enemy/sprinter.hpp"
+#include "../entities/enemy/soldier.hpp"
+#include "../entities/enemy/brute.hpp"
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
@@ -284,7 +284,7 @@ void Chamber::checkCollisions(float dt) {
 }
 
 
-#include "../entities/enemy/choir-husk.hpp"
+
 
 int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     debugHitboxes.push_back({hitbox, 0.2f});
@@ -322,20 +322,7 @@ int Chamber::processPlayerAttack(const Hitbox& hitbox) {
         }
     }
 
-    // Choir Husk dual-kill bonus: +1 fragment per husk when killing 2+ Husks during windup
-    std::vector<ChoirHusk*> killedWindingUpHusks;
-    for (auto* killed : killedEnemies) {
-        ChoirHusk* husk = dynamic_cast<ChoirHusk*>(killed);
-        if (husk && husk->isWindingUp()) {
-            killedWindingUpHusks.push_back(husk);
-        }
-    }
-    if (killedWindingUpHusks.size() >= 2) {
-        for (auto* husk : killedWindingUpHusks) {
-            husk->addBonusFragments(1);
-            std::cout << "Choir Husk dual-windup kill! +1 Bonus Fragment awarded.\n";
-        }
-    }
+
 
     return totalHits;
 }

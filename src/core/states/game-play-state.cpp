@@ -5,6 +5,7 @@
 #include "main-menu-state.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../chambers/protect-chamber.hpp"
+#include "../../chambers/boss-chamber.hpp"
 #include "../../chambers/map-loader.hpp"
 #include "../../global-settings/setting-manager.hpp"
 #include "../../graphics/particle-system.hpp"
@@ -282,6 +283,52 @@ void GameplayState::update(float deltaTime) {
             onChamberFailed();
             return;
         }
+    }
+
+    // Check if active chamber is BossChamber and currently in phase transition sequence
+    BossChamber* bossChamber = dynamic_cast<BossChamber*>(activeChamber.get());
+    if (bossChamber && bossChamber->getBoss() && bossChamber->getBoss()->isAlive()) {
+        if (!bossHealthBar) {
+            bossHealthBar = root->createChild<UI::BossHealthBar>();
+        }
+        bossHealthBar->updateBossState(*bossChamber->getBoss());
+    }
+
+    if (bossChamber && bossChamber->isPhaseTransitioning()) {
+        PhaseTransitionStage stage = bossChamber->getTransitionStage();
+
+        float gridMinX = settings.getGridOffsetX();
+        float gridMinY = settings.getGridOffsetY();
+        float gridWidth = settings.getGridCols() * settings.getCellSize();
+        float gridHeight = settings.getGridRows() * settings.getCellSize();
+
+        if (!bossChamber->getTypeGrid().empty() && !bossChamber->getTypeGrid()[0].empty()) {
+            gridWidth = static_cast<float>(bossChamber->getTypeGrid()[0].size()) * settings.getCellSize();
+            gridHeight = static_cast<float>(bossChamber->getTypeGrid().size()) * settings.getCellSize();
+        }
+
+        sf::Vector2f mapCenter({gridMinX + gridWidth / 2.0f, gridMinY + gridHeight / 2.0f});
+        float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
+                                    gridHeight / static_cast<float>(settings.getWindowHeight()));
+
+        if (stage == PhaseTransitionStage::ZOOM_OUT || stage == PhaseTransitionStage::FADE_LERP_ISLANDS) {
+            camera.setTargetCenter(mapCenter);
+            camera.setTargetZoom(maxZoomOut * 1.2f, maxZoomOut * 1.2f);
+        } else if (stage == PhaseTransitionStage::ZOOM_IN) {
+            if (player) {
+                camera.setTargetCenter(player->getPosition());
+                camera.setTargetZoom(0.5f, maxZoomOut * 1.2f);
+            }
+        }
+
+        sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
+        camera.update(deltaTime, mapBounds);
+
+        // Update active chamber during transition (ticks phase transition timers)
+        activeChamber->update(deltaTime);
+
+        GameState::update(deltaTime);
+        return; // Skip player inputs and entity movement while camera transitions!
     }
 
     // 2. Resolve movement collisions

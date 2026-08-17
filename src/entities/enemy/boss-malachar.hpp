@@ -75,6 +75,7 @@ public:
     void update(float deltaTime) override;
     void updateState(float dt, Chamber& chamber) override;
     void draw(sf::RenderWindow& window) const override;
+    sf::FloatRect getBounds() const override;
     void takeDamage(float rawAmount) override;
     void onDeath(Chamber* chamber = nullptr) override;
 
@@ -82,6 +83,7 @@ public:
     void transitionPhase(int phase);
     void platformSunder(Chamber& chamber);
     void soulLance(Chamber& chamber);
+    void clearProjectiles();
 
     bool canBeKnockedBack() const override { return false; }
 };

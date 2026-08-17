@@ -1,8 +1,9 @@
 #include "boss-malachar.hpp"
+#include "../animation/character-animator.hpp"
 #include "../../chambers/boss-chamber.hpp"
 #include "enemy-state.hpp"
 #include "enemy-steering-strategy.hpp"
-#include "shard-wraith.hpp"
+#include "sprinter.hpp"
 #include "../player.hpp"
 #include "../../core/game.hpp"
 #include "../../core/run-state.hpp"
@@ -44,6 +45,7 @@ BossMalachar::BossMalachar(Player& player)
 
     setSteeringStrategy(std::make_unique<SeekStrategy>());
     changeState(std::make_unique<IdleState>());
+    setHealthBar(nullptr); // Head health bar removed; large top-right UI bar used instead
 
     applyRunStateModifiers();
     resetCycle();
@@ -93,7 +95,35 @@ void BossMalachar::resetCycle() {
 }
 
 void BossMalachar::update(float deltaTime) {
-    Enemy::update(deltaTime);
+    sf::Vector2f myPos = getPosition();
+    sf::Vector2f playerPos = getPlayer().getPosition();
+    sf::Vector2f dir = playerPos - myPos;
+
+    // Dynamically switch weapon spritesheet based on phase & active attack:
+    // Staff for Void Bolt / spell casting in Phase 1 & 2; Sword for Soul Lance / Sunder in Phase 3 & 4
+    if (isSoulLanceCharging || currentPhase >= 3) {
+        setCharacterKey("boss_malachar_sword");
+    } else {
+        setCharacterKey("boss_malachar_staff");
+    }
+
+    if (isVoidBoltCharging || isSoulLanceCharging) {
+        if (std::abs(dir.x) >= std::abs(dir.y)) {
+            facingString = (dir.x > 0.f) ? "right" : "left";
+            isFacingRight = (dir.x > 0.f);
+        } else {
+            facingString = (dir.y > 0.f) ? "down" : "up";
+        }
+
+        if (isVoidBoltCharging) {
+            notifyStateChanged("thrust_oversize-facing-" + facingString);
+        } else if (isSoulLanceCharging) {
+            notifyStateChanged("slash_oversize-facing-" + facingString);
+        }
+        Character::update(deltaTime);
+    } else {
+        Enemy::update(deltaTime);
+    }
 }
 
 void BossMalachar::updateState(float dt, Chamber& chamber) {
@@ -206,16 +236,16 @@ void BossMalachar::updateVoidBoltCycle(float dt, Chamber& chamber) {
         summoningBurstFired = true;
         sf::Vector2f myPos = getPosition();
 
-        auto w1 = std::make_unique<ShardWraith>(getPlayer());
+        auto w1 = std::make_unique<Sprinter>(getPlayer(), false);
         w1->setPosition(myPos + sf::Vector2f(-40.0f, -40.0f));
 
-        auto w2 = std::make_unique<ShardWraith>(getPlayer());
+        auto w2 = std::make_unique<Sprinter>(getPlayer(), false);
         w2->setPosition(myPos + sf::Vector2f(40.0f, 40.0f));
 
         chamber.spawnEnemy(std::move(w1));
         chamber.spawnEnemy(std::move(w2));
 
-        std::cout << "[BossMalachar] Summoning Burst: Spawned 2 Shard Wraiths!\n";
+        std::cout << "[BossMalachar] Summoning Burst: Spawned 2 Sprinters!\n";
     }
 }
 
@@ -378,16 +408,25 @@ void BossMalachar::onDeath(Chamber* chamber) {
     }
 }
 
+sf::FloatRect BossMalachar::getBounds() const {
+    float cellSize = SettingManager::getInstance().getCellSize();
+    // 2x2 grid area bounding box (2x width and 2x height = 4x area compared to 1x1 player)
+    float width = cellSize * 0.9f;
+    float height = cellSize * 1.0f;
+    sf::Vector2f pos = getPosition();
+    return sf::FloatRect({pos.x - width / 2.0f, pos.y - height / 2.0f}, {width, height});
+}
+
 void BossMalachar::draw(sf::RenderWindow& window) const {
     // 1. Draw Void Bolt charge glow around Malachar
     if (isVoidBoltCharging) {
-        float radius = 35.0f;
+        float radius = 60.0f;
         sf::CircleShape aura(radius);
         aura.setOrigin({radius, radius});
         aura.setPosition(getPosition());
         aura.setFillColor(sf::Color(160, 30, 220, 100)); // Glowing purple aura
         aura.setOutlineColor(sf::Color(220, 100, 255, 200));
-        aura.setOutlineThickness(3.0f);
+        aura.setOutlineThickness(4.0f);
         window.draw(aura);
     }
 
@@ -399,7 +438,7 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
         };
         window.draw(line, 2, sf::PrimitiveType::Lines);
 
-        float targetRadius = 15.0f;
+        float targetRadius = 20.0f;
         sf::CircleShape targetMarker(targetRadius);
         targetMarker.setOrigin({targetRadius, targetRadius});
         targetMarker.setPosition(soulLanceTargetPos);
@@ -412,7 +451,7 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
     // 3. Draw active Void Bolts
     for (const auto& bolt : voidBolts) {
         if (!bolt.active) continue;
-        float radius = 8.0f;
+        float radius = 10.0f;
         sf::CircleShape bShape(radius);
         bShape.setOrigin({radius, radius});
         bShape.setPosition(bolt.position);
@@ -422,6 +461,26 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
         window.draw(bShape);
     }
 
-    // 4. Draw base Malachar sprite/shape and health bar
-    Enemy::draw(window);
+    // 4. Draw Malachar sprite scaled 2x larger (2x2 cell size = 1.6 * cellSize)
+    if (animator && animator->hasSprite()) {
+        float spriteSize = SettingManager::getInstance().getCellSize() * 1.6f;
+        sf::Vector2f spritePos = getPosition();
+        spritePos.y -= spriteSize * 0.15f;
+        animator->draw(window, spritePos, sf::Vector2f(spriteSize, spriteSize));
+    } else {
+        sf::RectangleShape rect(getBounds().size);
+        rect.setPosition(getBounds().position);
+        rect.setFillColor(sf::Color(200, 50, 50, 150));
+        window.draw(rect);
+    }
+
+    if (isAlive() && healthBar) {
+        healthBar->draw(window);
+    }
+}
+
+void BossMalachar::clearProjectiles() {
+    voidBolts.clear();
+    isVoidBoltCharging = false;
+    isSoulLanceCharging = false;
 }

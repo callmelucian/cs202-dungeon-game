@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 struct WaveConfig {
     std::string enemyType;
@@ -22,6 +23,7 @@ struct ChamberConfig {
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
     std::vector<WaveConfig> waves;
+    std::map<int, std::string> phaseMaps;
 };
 
 struct CampaignLevelConfig {

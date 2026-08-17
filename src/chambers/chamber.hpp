@@ -37,7 +37,7 @@ public:
     virtual int processPlayerAttack(const Hitbox& hitbox);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
-    void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
+    virtual void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
     const std::vector<std::vector<std::string>>& getTypeGrid() const { return typeGrid; }
     const std::vector<std::vector<int>>& getLevelGrid() const { return levelGrid; }
     const std::vector<std::vector<uint8_t>>& getWalkableGrid() const { return renderData2D5.walkableGrid; }

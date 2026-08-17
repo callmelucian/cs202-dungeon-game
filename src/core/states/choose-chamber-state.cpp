@@ -57,6 +57,11 @@ ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manage
             stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::PREVENT));
         });
         
+    bossChamberBtn = buttonBox->createChild<UI::Button>("Boss Chamber", "regular", 25)
+        ->setOnClick([this]() {
+            stateManager.pushState(std::make_unique<GameplayState>(stateManager, ChamberSelectionType::BOSS));
+        });
+        
     backBtn = buttonBox->createChild<UI::Button>("Back", "regular", 25)
         ->setOnClick([this]() {
             stateManager.popState();

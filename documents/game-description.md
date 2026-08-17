@@ -462,174 +462,62 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 #### 11.1.1 Chamber 1 — The Drowned Archive (Protect)
 
-- **Enemies:** 6× Waterlogged Scribe — HP 18 each, Damage 5/hit, Speed 1.0
-  units/s (already reduced by the chamber's water; this is their effective
-  speed, not a base value further multiplied by Slowed unless additionally
-  afflicted).
-- **Collection time:** **8 seconds** base (subject to later Clarity-Shard
-  self-reduction from *other* chambers only — Chamber 1 cannot reduce its own
-  timer since the Shard isn't collected yet).
+- **Enemies:** 6× Sprinter — HP 15 each, Damage 5/hit, Speed 1.0 units/s (effective speed slowed by the flooded archive's water field).
+- **Collection time:** **8 seconds** base.
 - **Echo position:** center of room, half-submerged reading table.
-- **Water field:** all combatants (Serin included) in the chamber have a
-  permanent ambient **Slowed** effect (30% speed reduction) applied as a zone
-  effect, not a timed status — it is not removed by the 10-second expiry rule
-  and persists for the whole chamber.
+- **Water field:** all combatants (Serin included) in the chamber have a permanent ambient **Slowed** effect (30% speed reduction).
 
 #### 11.1.2 Chamber 2 — The Bone Corridor (Prevent)
 
-- **Enemies:** 4× Bone Sprinter (carriers) — HP 14 each, Speed 6.0 units/s
-  (this is the "Bone Sprinter base speed" referenced in §7.2's 1.4× carrier
-  multiplier note — carriers in this chamber already *are* Bone Sprinters, so
-  no additional multiplier applies here; the 1.4× rule in §7.2 is the general
-  rule for chambers where carriers are a different enemy type than their base
-  movement archetype).
-- **Blockers:** 3× Bone Sprinter (blocker variant) — HP 20 each, Speed 4.0
-  units/s, do not carry, position between Serin and carriers.
-- **Corridor length:** 30 units; carriers reach the exit gate in ~3.3s of
-  unobstructed movement, so engagement must be immediate.
+- **Enemies:** 4× Sprinter (carrier variant) — HP 15 each, Speed 5.5 units/s.
+- **Blockers:** 3× Soldier (blocker variant) — HP 22 each, Speed 3.5 units/s.
+- **Corridor length:** 30 units; carriers reach the exit gate quickly, requiring immediate engagement.
 - **Real-carrier tell:** faint luminous flicker, always visible (baseline).
 
 #### 11.1.3 Chamber 3 — The Collapsed Barracks (Gauntlet)
 
-- **Wave 1:** 5× Shard Soldier — HP 16 each, Damage 6/hit.
-- **Wave 2:** 4× Shard Soldier + 1× Siege Wraith — Siege Wraith HP 40, Damage
-  10/hit, explodes on death dealing **15 AOE damage** in a 3-unit radius
-  (can chain into other enemies — "baited into each other's death zones" per
-  source doc, meaning a Siege Wraith's death-AOE can kill/damage other nearby
-  enemies including other Siege Wraiths).
-- **Wave 3:** 3× Shard Soldier + 2× Siege Wraith.
-- **Self-healing modifier (if Marrow Echo was stolen, §8.2):** all Shard
-  Soldiers in this chamber regenerate 3% Max HP/sec while not taking damage;
-  Siege Wraiths are explicitly exempt from self-healing (per source doc: "Can
-  be baited into each other's death zones" implies they're balanced around
-  burst removal, not sustained healing).
+- **Wave 1:** 5× Soldier — HP 20 each, Damage 8/hit.
+- **Wave 2:** 4× Soldier + 1× Brute — Brute HP 40, Damage 12/hit.
+- **Wave 3:** 3× Soldier + 2× Brute.
 
 ### 11.2 Level 2 — The Sunken Choir
 
-The Vault's mid-section: a half-drowned processional hall built for rites
-nobody alive remembers. This level introduces the **Hollow Bell** Echo
-(§9.1) and is intentionally shorter than Levels 1 and 3 — three chambers,
-one Echo — functioning as a tonal and difficulty bridge between the
-abandoned outer wards and the fully-awake inner sanctum.
-
 #### 11.2.1 Chamber 1 — The Drowned Choir (Protect)
 
-- **Enemies:** 7× Choir Husk — HP 20 each, Damage 7/hit, Speed 2.5 units/s,
-  attack in a call-and-response pattern (one Husk "calls," triggering a 0.6s
-  windup on up to 2 nearby Husks before they all strike together).
-- **Collection time:** **10 seconds** base (subject to the standing Clarity
-  Shard reduction from §8.1: −10% if Shard collected at any Power, −20% if
-  fully intact, i.e., 9.0s or 8.0s respectively).
-- **Echo position:** suspended above a cracked altar at the hall's center,
-  the literal Hollow Bell.
-- **Fragment opportunity:** killing 2+ Husks within the same 0.6s
-  call-and-response window (any form) grants **+1 bonus fragment**, on top
-  of normal per-kill and per-form bonuses (§5.5) — rewarding players who
-  punish the call-and-response pattern instead of picking Husks off one at a
-  time.
+- **Enemies:** 7× Soldier — HP 25 each, Damage 10/hit, Speed 3.5 units/s.
+- **Collection time:** **10 seconds** base.
 
 #### 11.2.2 Chamber 2 — The Choir Loft (Prevent)
 
-- **Carriers:** 5× Choir Husk (carrier variant) — HP 16 each, Speed 5.0
-  units/s, **no decoys in this chamber** (all 5 carriers are real — the
-  challenge is volume and speed, not deception, a deliberate contrast with
-  Level 3's Mirror Vault).
-- **Guards:** 2× Choir Husk (guard variant) — HP 22 each.
-- **Mechanic:** carriers do not path toward a single exit gate but toward
-  **3 separate loft exits** simultaneously (roughly even split), forcing
-  Serin to triage rather than funnel-block a single corridor the way
-  Ironshell can in the Bone Corridor.
-- **Note:** This chamber guards no unique Echo of its own (the Hollow Bell
-  was already collected in Chamber 1, per §9.2) — its fragments still feed
-  Echo Power retroactively into the Hollow Bell's banked total if collected
-  at less than 100% (fragments collected here apply the standard +5%/
-  carrier-kill 3-fragment rule from §5.6, capped at the Hollow Bell's 100%
-  ceiling). If the Hollow Bell chamber already capped Echo Power at 100%,
-  fragments here simply have no further mechanical effect beyond their
-  normal momentum/combat value.
+- **Carriers:** 5× Sprinter (carrier variant) — HP 18 each, Speed 6.0 units/s.
+- **Guards:** 2× Soldier (guard variant) — HP 25 each.
 
 #### 11.2.3 Chamber 3 — The Silent Nave (Gauntlet)
 
-- **Wave 1:** 6× Choir Husk — HP 20 each, Damage 7/hit.
-- **Wave 2:** 5× Choir Husk + 1× Resonant Cantor — Cantor HP 50, Damage
-  9/hit, periodically (every 5s) emits a pulse that applies **Slowed** to
-  Serin if she is within 6 units.
-- **Wave 3:** 4× Choir Husk + 2× Resonant Cantor.
-- **Mechanic:** Resonant Cantors do not move; they must be approached or
-  shot. Their slow-pulse stacks with environmental hazards but not with
-  itself (Slowed refreshes per §4, does not stack in magnitude).
+- **Wave 1:** 6× Soldier — HP 25 each, Damage 10/hit.
+- **Wave 2:** 5× Soldier + 1× Brute — Brute HP 50, Damage 15/hit.
+- **Wave 3:** 4× Soldier + 2× Brute.
 
 ### 11.3 Level 3 — The Inner Sanctum
 
 #### 11.3.1 Chamber 1 — The Resonance Hall (Protect)
 
-- **Enemies:** 8× Hushed Stalker (base) — HP 22 each, Damage 9/hit, **invisible
-  until they begin an attack wind-up** (0.4s telegraph window when they become
-  visible/targetable, then attack).
-- **Noise mechanic:** +1 Hushed Stalker spawned per offensive action by Serin,
-  capped at +12 (see §10.1).
-- **Collection time:** **12 seconds** base (subject to Clarity Shard reduction
-  per §8.1: −10% if Shard collected at any Power, −20% total if fully intact,
-  i.e., 10.8s or 9.6s respectively).
-- **Fragment opportunity:** Stalkers afflicted with Slowed (Ironshell aura or
-  Veil of Thorns) become permanently visible/targetable for the duration of the
-  Slowed effect, and killing a Slowed Stalker drops **2 fragments without
-  triggering the +1-spawn noise penalty** for that kill specifically (the kill
-  itself is silent; other simultaneous Serin actions still trigger spawns
-  normally).
+- **Enemies:** 8× Soldier (stealth variant) — HP 30 each, Damage 12/hit.
+- **Collection time:** **12 seconds** base.
 
 #### 11.3.2 Chamber 2 — The Mirror Vault (Prevent)
 
-- **Carriers:** 3× Mirror Bearer — HP 18 each, Speed 4.5 units/s. **1 real, 2
-  decoys** (randomized which slot is real each playthrough/attempt).
-- **Guards:** 2× Mirror Bearer (guard variant, non-carrying) — HP 24 each.
-- **Decoy death:** shatters into smoke, deals no AOE, drops 0 fragments (decoys
-  are illusions, not real kills — only the real carrier's death yields the §5.6
-  carrier-fragment bonus of 3).
-- **Real carrier on non-lethal hit:** staggers visibly (0.5s stagger animation,
-  no gameplay-mechanical stun, purely the identifying "tell" described in
-  source doc) — this is what Voidcaster pierce-shots and Wraithblade knockback
-  reveal at range/on contact.
+- **Carriers:** 3× Sprinter — HP 22 each, Speed 6.5 units/s. **1 real, 2 decoys**.
+- **Guards:** 2× Soldier — HP 30 each.
 
 #### 11.3.3 Chamber 3 — The Hunger Pit (Gauntlet)
 
-- **5 waves, 4× Void Shunter each = 20 total** — HP 25 each, Damage 11/hit
-  (charge attack only; Void Shunters have no ranged attack), Speed 6.0 units/s
-  when charging.
-- **Spawn pattern:** each wave spawns progressively closer to Serin's starting
-  position — Wave 1 spawns at the arena edge (10 units out), Wave 5 spawns at
-  4 units out, decreasing by 1.5 units per wave.
-- **Void pit:** instant death (§6.2) on contact, centered in the arena, radius
-  5 units.
-- **Knockback interaction:** Wraithblade's standard knockback (4 units, per
-  §7.1) and Riftcrush's enhanced knockback can push Void Shunters into the pit
-  for an instant kill.
-- **Obsidian Key flicker modifier (if stolen, §10.2):** pit-edge visual
-  telegraphing (the warning glow/outline at the pit's boundary) is reduced in
-  opacity by 60% for this chamber; the actual physical boundary is unchanged.
+- **5 waves, 4× Brute each = 20 total** — HP 60 each, Damage 18/hit, Speed 5.5 units/s when charging.
 
 #### 11.3.4 Chamber 4 — The Sarcophagus Approach (Protect)
 
-A short, tense final chamber before the boss door: Malachar's thralls make
-one last attempt to recover whatever Echoes remain unclaimed, guarding the
-threshold to his throne room. No new Echo is introduced here — this chamber
-exists purely to apply final pressure on whichever Echoes are still in play
-mechanically (Echo Power can still be raised on already-collected Echoes is
-**not** possible per §5.2's per-chamber cap design; instead, this chamber's
-"Echo" is a **decoy reliquary** that, if successfully defended, grants a
-one-time **+20% Max HP** buff for the Final Chamber only, on top of carried-
-over HP per §6.1).
-
-- **Enemies:** 4× Void Shunter (HP 25, Damage 11/hit charging, Speed 6.0 charging)
-  and 2× Choir Husk (HP 20, Damage 7/hit, Speed 4.0 units/s). Voidcaster pierce
-  shots are highly effective for managing the charging Shunters at range.
-- **Collection time:** **10 seconds** base (subject to the standing Clarity
-  Shard reduction from §8.1, same as all Protect chambers).
-- **Reward:** successful collection grants the +20% Max HP buff described
-  above. Failure to collect (chamber timer never completes because Serin
-  keeps getting forced out of radius) simply forfeits the buff — there is no
-  "stolen" penalty, since the decoy reliquary holds no real Echo and Malachar
-  gains nothing from it either way.
+- **Enemies:** 4× Brute and 2× Soldier.
+- **Collection time:** **10 seconds** base.
 
 ---
 
@@ -637,19 +525,15 @@ over HP per §6.1).
 
 ### 13.1 Base Stats
 
-- **Max HP:** 1250 (scaled up from the 2-level version's 1000 to account for
-  the additional Level 2 content and the 5th Echo's modifiers).
-- **Arena:** circular, 20-unit radius, becomes the floating-platform layout in
-  Phase 3 (§13.4) and the fractured-void layout in Phase 4 (§13.5).
+- **Max HP:** 1250
+- **Arena:** circular, 20-unit radius.
 
 ### 13.2 Phase 1 — Baseline
 
 - **Trigger:** fight start.
 - **Moveset (fixed cycle, repeats every 12 seconds regardless of run history):**
-  1. **Void Bolt Cycle:** 3 ranged bolts, Damage 14 each, fired in sequence
-     0.8s apart, telegraphed by a 0.5s charge glow.
-  2. **Summoning Burst:** spawns 2× Shard Wraith — HP 30 each, Damage 8/hit,
-     fly toward Serin.
+  1. **Void Bolt Cycle:** 3 ranged bolts, Damage 14 each, fired in sequence 0.8s apart, telegraphed by a 0.5s charge glow.
+  2. **Summoning Burst:** spawns 2× Sprinter — HP 20 each, Damage 6/hit.
 - **Phase 1 → Phase 2 transition trigger:** Malachar's HP drops to **75%**
   (937.5 HP).
 - **Foretell interaction:** if Clarity Shard was collected fully intact

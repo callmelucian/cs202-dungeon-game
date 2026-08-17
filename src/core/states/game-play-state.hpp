@@ -26,6 +26,7 @@
 #include "../../ui/widgets/player-health-bar.hpp"
 #include "../../ui/widgets/enemy-health-bar.hpp"
 #include "../../ui/widgets/hud.hpp"
+#include "../../ui/widgets/boss-health-bar.hpp"
 
 
 enum class ChamberIntroState {
@@ -58,6 +59,7 @@ private:
     UI::Text* chamberTitleText = nullptr;
 
     UI::HUD* hud;
+    UI::BossHealthBar* bossHealthBar = nullptr;
     
     UI::VerticalBox* playerInfoBox;
     UI::Container* playerInfoBoxWrapper;

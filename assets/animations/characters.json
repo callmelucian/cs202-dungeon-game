@@ -2739,17 +2739,22 @@
     "Serin_Wraithblade": "wraithblade-final",
     "Serin_Voidcaster": "voidcaster-final",
     "Serin_Ironshell": "iron-shell",
+    "sprinter": "bone-sprinter",
+    "soldier": "shard-soldier",
+    "brute": "waterlogged-scribe",
     "waterlogged_scribe": "waterlogged-scribe",
     "shard_soldier": "shard-soldier",
     "bone_sprinter": "bone-sprinter",
-    "siege_wraith": "shard-soldier",
-    "choir_husk": "waterlogged-scribe",
+    "siege_wraith": "waterlogged-scribe",
+    "choir_husk": "shard-soldier",
     "resonant_cantor": "waterlogged-scribe",
     "hushed_stalker": "shard-soldier",
     "mirror_bearer": "shard-soldier",
     "void_shunter": "bone-sprinter",
     "sarcophagus_warden": "shard-soldier",
-    "boss_malachar": "voidcaster-final"
+    "boss_malachar": "boss-malachar-echo-staff",
+    "boss_malachar_staff": "boss-malachar-echo-staff",
+    "boss_malachar_sword": "boss-malachar-sword"
   },
   "weapons": {
     "sword": {

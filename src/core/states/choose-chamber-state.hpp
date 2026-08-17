@@ -19,6 +19,7 @@ private:
     UI::Button* testChamberBtn;
     UI::Button* protectChamberBtn;
     UI::Button* preventChamberBtn;
+    UI::Button* bossChamberBtn;
     UI::Button* backBtn;
 };
 

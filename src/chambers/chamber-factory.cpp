@@ -161,8 +161,13 @@ std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType
         chamber = std::make_unique<TestChamber>(player);
     }
     
-    std::string filepath = MapLoader::getChamberFilepath(1, 1);
-    if (filepath.empty()) filepath = "assets/maps/level-1/chamber-1.json";
+    std::string filepath;
+    if (type == ChamberSelectionType::BOSS) {
+        filepath = "assets/maps/level-4/boss.json";
+    } else {
+        filepath = MapLoader::getChamberFilepath(1, 1);
+        if (filepath.empty()) filepath = "assets/maps/level-1/chamber-1.json";
+    }
     ChamberConfig config = MapLoader::loadChamber(filepath);
     
     if (config.playerSpawnCell.first >= 0 && config.playerSpawnCell.second >= 0) {

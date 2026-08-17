@@ -285,3 +285,12 @@ bool Character::isSlowed() const {
     }
     return false;
 }
+
+void Character::setCharacterKey(const std::string& key) {
+    if (characterKey != key) {
+        characterKey = key;
+        if (animator) {
+            animator->setCharacterKey(key);
+        }
+    }
+}

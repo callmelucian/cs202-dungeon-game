@@ -37,6 +37,14 @@
         { "file": "assets/maps/level-3/chamber-4.json" },
         { "file": "assets/maps/level-3/mid.json" }
       ]
+    },
+    {
+      "levelIndex": 4,
+      "name": "The Vault's Heart",
+      "chambers": [
+        { "file": "assets/maps/level-4/boss.json" }
+      ]
     }
   ]
 }
+

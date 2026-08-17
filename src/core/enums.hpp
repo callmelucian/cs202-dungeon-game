@@ -44,17 +44,9 @@ enum class ChamberType {
 };
 
 enum class EnemyType {
-    WATERLOGGED_SCRIBE,
-    SHARD_SOLDIER,
-    BONE_SPRINTER,
-    SHARD_WRAITH,
-    SIEGE_WRAITH,
-    CHOIR_HUSK,
-    RESONANT_CANTOR,
-    HUSHED_STALKER,
-    MIRROR_BEARER,
-    VOID_SHUNTER,
-    SARCOPHAGUS_WARDEN,
+    SPRINTER,
+    SOLDIER,
+    BRUTE,
     BOSS_MALACHAR
 };
 

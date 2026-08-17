@@ -69,6 +69,13 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
 
 
         
+        if (j.contains("phaseMaps") && j["phaseMaps"].is_object()) {
+            for (auto& [key, val] : j["phaseMaps"].items()) {
+                int phaseNum = std::stoi(key);
+                config.phaseMaps[phaseNum] = val.get<std::string>();
+            }
+        }
+
         config.waves = loadWaves(filepath);
     } catch (const json::exception& e) {
         std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;

@@ -1,4 +1,5 @@
 #include "boss-chamber.hpp"
+#include "tilemap-loader.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "../graphics/particle-system.hpp"
@@ -8,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <cstdint>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -23,6 +25,11 @@ BossChamber::BossChamber(Player& player)
     initPlatforms();
 }
 
+void BossChamber::setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid) {
+    Chamber::setGrids2D5(tGrid, lGrid);
+    initPlatforms();
+}
+
 void BossChamber::initPlatforms() {
     platforms.clear();
 
@@ -32,8 +39,20 @@ void BossChamber::initPlatforms() {
     float cols = SettingManager::getInstance().getGridCols();
     float rows = SettingManager::getInstance().getGridRows();
 
+    if (!typeGrid.empty() && !typeGrid[0].empty()) {
+        cols = static_cast<float>(typeGrid[0].size());
+        rows = static_cast<float>(typeGrid.size());
+    }
+
     sf::Vector2f centerPos = {ox + (cols * cellSize) / 2.0f, oy + (rows * cellSize) / 2.0f};
-    float ringRadius = 7.0f * cellSize;
+
+    // Position Boss Malachar at the upper-center of the arena floor
+    if (boss) {
+        sf::Vector2f bossSpawnPos = {ox + (cols / 2.0f) * cellSize, oy + 5.5f * cellSize};
+        boss->setPosition(bossSpawnPos);
+    }
+
+    float ringRadius = 6.0f * cellSize;
 
     for (int i = 0; i < 6; ++i) {
         float angle = static_cast<float>(i) * (2.0f * M_PI / 6.0f);
@@ -53,6 +72,12 @@ void BossChamber::initPlatforms() {
 }
 
 void BossChamber::update(float dt) {
+    if (transitionStage != PhaseTransitionStage::NONE) {
+        updatePhaseTransitionSequence(dt);
+        ParticleSystem::getInstance().update(dt);
+        return; // Freeze entities & player updates during cinematic transition!
+    }
+
     // Update underlying chamber ( regular enemies, items, collisions )
     Chamber::update(dt);
 
@@ -87,6 +112,86 @@ void BossChamber::update(float dt) {
         if (!onPlatform) {
             player.takeDamage(10.0f * dt); // 10 damage/sec while in void
         }
+    }
+}
+
+void BossChamber::updatePhaseTransitionSequence(float dt) {
+    transitionTimer -= dt;
+
+    if (transitionStage == PhaseTransitionStage::FREEZE_AND_CLEAR) {
+        if (transitionTimer <= 0.0f) {
+            transitionStage = PhaseTransitionStage::ZOOM_OUT;
+            transitionTimer = 0.8f;
+        }
+    } else if (transitionStage == PhaseTransitionStage::ZOOM_OUT) {
+        if (transitionTimer <= 0.0f) {
+            // Apply map extension layout for the new phase
+            applyMapLayoutForPhase(pendingNewPhase);
+            transitionStage = PhaseTransitionStage::FADE_LERP_ISLANDS;
+            transitionTimer = 1.2f;
+            fadeAlpha = 0.0f;
+        }
+    } else if (transitionStage == PhaseTransitionStage::FADE_LERP_ISLANDS) {
+        fadeAlpha = std::min(1.0f, fadeAlpha + dt / 1.2f);
+        if (transitionTimer <= 0.0f) {
+            fadeAlpha = 1.0f;
+            transitionStage = PhaseTransitionStage::ZOOM_IN;
+            transitionTimer = 0.8f;
+        }
+    } else if (transitionStage == PhaseTransitionStage::ZOOM_IN) {
+        if (transitionTimer <= 0.0f) {
+            transitionStage = PhaseTransitionStage::NONE;
+            std::cout << "[BossChamber] Cinematic Phase Transition Complete. Game unfreezes and resumes!\n";
+        }
+    }
+}
+
+void BossChamber::triggerPhaseTransition(int newPhase) {
+    if (transitionStage != PhaseTransitionStage::NONE) return;
+    pendingNewPhase = newPhase;
+    transitionStage = PhaseTransitionStage::FREEZE_AND_CLEAR;
+    transitionTimer = 0.4f;
+
+    // 1. Resolve/clear temporary visual effects (particles, in-flight projectiles, debug hitboxes)
+    ParticleSystem::getInstance().clear();
+    if (boss) {
+        boss->clearProjectiles();
+    }
+    debugHitboxes.clear();
+
+    SoundManager::getInstance().playSound("boss-phase");
+    std::cout << "[BossChamber] Cinematic Phase Transition Triggered -> Phase " << newPhase << "\n";
+}
+
+void BossChamber::applyMapLayoutForPhase(int phase) {
+    std::string mapPath;
+
+    ChamberConfig initialConfig = MapLoader::loadChamber("assets/maps/level-4/boss.json");
+    if (initialConfig.phaseMaps.count(phase)) {
+        mapPath = initialConfig.phaseMaps[phase];
+    } else {
+        mapPath = "assets/maps/level-4/boss-phase-" + std::to_string(phase) + ".json";
+    }
+
+    ChamberConfig phaseCfg = MapLoader::loadChamber(mapPath);
+    if (!phaseCfg.typeGrid.empty() && !phaseCfg.levelGrid.empty()) {
+        typeGrid = phaseCfg.typeGrid;
+        levelGrid = phaseCfg.levelGrid;
+
+        // Re-synthesize 2.5D render data, recreate renderable tileMap, and rebuild collision obstacles from JSON!
+        Chamber::setGrids2D5(typeGrid, levelGrid);
+
+        if (phase == 3) {
+            // Re-initialize 6 floating platforms
+            for (auto& p : platforms) {
+                p.radius = 3.0f;
+                p.isSundered = false;
+                p.isWarning = false;
+            }
+        }
+        std::cout << "[BossChamber] Loaded Phase " << phase << " layout directly from JSON file: " << mapPath << "\n";
+    } else {
+        std::cerr << "[BossChamber] Could not load phase map JSON: " << mapPath << "\n";
     }
 }
 
@@ -158,21 +263,7 @@ int BossChamber::getCurrentPhase() const {
 void BossChamber::setCurrentPhase(int phase) {
     if (currentPhase != phase) {
         currentPhase = phase;
-        SoundManager::getInstance().playSound("boss-phase");
-        
-        if (boss) {
-            ParticleSystem::getInstance().emitBurst(boss->getPosition(), 100, sf::Color(255, 100, 100, 200), 100.0f, 300.0f, 0.5f, 1.5f, 10.0f);
-        }
-        
-        std::cout << "[BossChamber] Phase changed to " << currentPhase << "\n";
-        if (currentPhase == 3) {
-            // Re-init / activate 6 floating platforms for Phase 3
-            for (auto& p : platforms) {
-                p.radius = 3.0f;
-                p.isSundered = false;
-                p.isWarning = false;
-            }
-        }
+        triggerPhaseTransition(phase);
     }
 }
 
@@ -226,6 +317,21 @@ void BossChamber::draw(sf::RenderWindow& window) {
     // Draw boss if active
     if (boss && boss->isAlive()) {
         boss->draw(window);
+    }
+
+    // Draw fade-in overlay effect during island expansion transition
+    if (transitionStage == PhaseTransitionStage::FADE_LERP_ISLANDS) {
+        float cellSize = SettingManager::getInstance().getCellSize();
+        float ox = SettingManager::getInstance().getGridOffsetX();
+        float oy = SettingManager::getInstance().getGridOffsetY();
+        float cols = static_cast<float>(typeGrid[0].size());
+        float rows = static_cast<float>(typeGrid.size());
+
+        sf::RectangleShape riftOverlay({cols * cellSize, rows * cellSize});
+        riftOverlay.setPosition({ox, oy});
+        std::uint8_t alpha = static_cast<std::uint8_t>(std::clamp((1.0f - fadeAlpha) * 160.0f, 0.0f, 255.0f));
+        riftOverlay.setFillColor(sf::Color(160, 40, 220, alpha));
+        window.draw(riftOverlay);
     }
 }
 

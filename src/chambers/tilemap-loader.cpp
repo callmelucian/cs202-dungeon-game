@@ -375,22 +375,32 @@ TilemapRenderData TilemapLoader::synthesizeMap(
     for (int c = 1; c < cols; ++c) {
         int r = 0;
         while (r < rows) {
-            if (parseTileType(typeGrid[r][c]) == TileType::Land &&
-                parseTileType(typeGrid[r][c-1]) == TileType::Land &&
+            TileType tCurr = parseTileType(typeGrid[r][c]);
+            if (tCurr != TileType::Void && levelGrid[r][c] > 0 &&
                 levelGrid[r][c-1] > levelGrid[r][c]) {
 
                 int startR = r;
                 while (r < rows &&
-                       parseTileType(typeGrid[r][c]) == TileType::Land &&
-                       parseTileType(typeGrid[r][c-1]) == TileType::Land &&
+                       parseTileType(typeGrid[r][c]) != TileType::Void &&
+                       levelGrid[r][c] > 0 &&
                        levelGrid[r][c-1] > levelGrid[r][c]) {
                     r++;
                 }
                 int endR = r - 1;
-                
-                bool hasTopCell = false;
-                if (startR > 0 && parseTileType(typeGrid[startR - 1][c]) == TileType::Land && levelGrid[startR - 1][c] == levelGrid[startR][c]) {
-                    hasTopCell = true;
+
+                int actualEndR = endR;
+                if (endR + 1 < rows) {
+                    int delta = levelGrid[endR][c-1] - levelGrid[endR + 1][c-1];
+                    for (int step = 1; step <= delta && (endR + step) < rows; ++step) {
+                        int cliffR = endR + step;
+                        if (levelGrid[cliffR][c] > 0 &&
+                            parseTileType(typeGrid[cliffR][c]) != TileType::Void &&
+                            levelGrid[cliffR][c] < levelGrid[endR][c-1]) {
+                            actualEndR = cliffR;
+                        } else {
+                            break;
+                        }
+                    }
                 }
 
                 auto addShadowPixels = [&](int sr, int sc, int layer, const std::vector<std::string>& pattern) {
@@ -416,31 +426,11 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                     }
                 };
 
-                if (hasTopCell) {
-                    std::vector<std::string> topPattern = {
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "................",
-                        "xxx.............",
-                        "xxx.............",
-                        "xxx............."
-                    };
-                    addShadowPixels(startR - 1, c, levelGrid[startR - 1][c] + 1, topPattern);
-                }
-
-                for (int currR = startR; currR <= endR; ++currR) {
-                    if (currR == endR) { // bottom cell
+                for (int currR = startR; currR <= actualEndR; ++currR) {
+                    if (currR == actualEndR) { // bottom cell of elevated land structure (cliff base)
                         std::vector<std::string> botPattern = {
+                            "xxx.............",
+                            "xxx.............",
                             "xxx.............",
                             "xxx.............",
                             "xxx.............",
@@ -454,12 +444,10 @@ TilemapRenderData TilemapLoader::synthesizeMap(
                             "xx..............",
                             "x...............",
                             "................",
-                            "................",
-                            "................",
                             "................"
                         };
                         addShadowPixels(currR, c, levelGrid[currR][c] + 1, botPattern);
-                    } else { // middle cells and top cell
+                    } else { // middle cells
                         std::vector<std::string> midPattern = {
                             "xxx.............",
                             "xxx.............",
