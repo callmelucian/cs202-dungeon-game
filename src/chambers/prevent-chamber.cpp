@@ -47,27 +47,19 @@ void PreventChamber::update(float dt) {
     }
 
     if (waveSpawner.isFinished() && enemies.empty() && !isFailed) {
-        completeChamber();
-    }
-
-    // Tick debug hitbox timers (moved from drawBackground to avoid mutating state in draw)
-    for (auto it = debugHitboxes.begin(); it != debugHitboxes.end(); ) {
-        it->timer -= dt;
-        if (it->timer <= 0) {
-            it = debugHitboxes.erase(it);
-        } else {
-            ++it;
+        RunState& runState = Game::getInstance().getRunState();
+        if (runState.echoOutcomes[associatedEcho] != EchoOutcome::STOLEN) {
+            runState.echoOutcomes[associatedEcho] = EchoOutcome::COLLECTED;
+            runState.syncEchoModifiers();
+            std::cout << "PreventChamber: All enemies defeated! Echo safely preserved and COLLECTED.\n";
         }
+        completeChamber();
     }
 }
 
 void PreventChamber::drawBackground(sf::RenderWindow& window) {
     // Draw exit zone
     window.draw(exitShape);
-    
-    for (const auto& hb : debugHitboxes) {
-        CollisionSolver::drawDebug(window, hb.shape);
-    }
 }
 
 void PreventChamber::onEnemyHit(Enemy* enemy, bool lethal) {

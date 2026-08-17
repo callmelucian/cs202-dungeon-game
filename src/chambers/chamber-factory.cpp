@@ -29,21 +29,47 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     if (config.chamberType == "ProtectChamber") {
         float baseTime = 10.0f;
         float timeReduction = Game::getInstance().getRunState().collectTimeReduction;
-        auto protectChamber = std::make_unique<ProtectChamber>(player, "Test Echo", baseTime * timeReduction);
-        if (level == 3 && chamberIndex == 1) {
+        std::string echoName = "Test Echo";
+        EchoType echoType = EchoType::MARROW;
+
+        if (filepath.find("level-1/chamber-1.json") != std::string::npos) {
+            echoName = "Marrow Echo";
+            echoType = EchoType::MARROW;
+        } else if (filepath.find("level-2/chamber-1.json") != std::string::npos) {
+            echoName = "Clarity Shard";
+            echoType = EchoType::CLARITY_SHARD;
+        } else if (filepath.find("level-3/chamber-1.json") != std::string::npos) {
+            echoName = "Resonance Hall Echo";
+            echoType = EchoType::MARROW;
+        } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
+            echoName = "Sarcophagus Decoy Reliquary";
+            echoType = EchoType::OBSIDIAN_KEY;
+        }
+
+        auto protectChamber = std::make_unique<ProtectChamber>(player, echoName, baseTime * timeReduction, echoType);
+        if (filepath.find("level-3/chamber-1.json") != std::string::npos) {
             protectChamber->setIsNoiseHall(true);
-        } else if (level == 3 && chamberIndex == 4) {
+        } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
             protectChamber->setIsReliquaryDecoy(true);
         }
         // Position will be set from grid later
         chamber = std::move(protectChamber);
     } else if (config.chamberType == "PreventChamber") {
-        auto preventChamber = std::make_unique<PreventChamber>(player, EchoType::CLARITY_SHARD);
+        EchoType echoType = EchoType::HOLLOW_BELL;
+        if (filepath.find("level-1/chamber-2.json") != std::string::npos) {
+            echoType = EchoType::HOLLOW_BELL;
+        } else if (filepath.find("level-2/chamber-2.json") != std::string::npos) {
+            echoType = EchoType::RESONANCE_CORE;
+        } else if (filepath.find("level-3/chamber-2.json") != std::string::npos) {
+            echoType = EchoType::OBSIDIAN_KEY;
+        }
+
+        auto preventChamber = std::make_unique<PreventChamber>(player, echoType);
         preventChamber->setExitPosition({500.f, 500.f}); // Can be extracted from config later
         chamber = std::move(preventChamber);
     } else if (config.chamberType == "GauntletChamber") {
         auto gauntlet = std::make_unique<GauntletChamber>(player);
-        if (level == 3 && chamberIndex == 3) {
+        if (filepath.find("level-3/chamber-3.json") != std::string::npos) {
             gauntlet->setIsHungerPit(true);
         }
         if (!config.waves.empty()) {

@@ -166,6 +166,9 @@ void GameplayState::setupUI() {
     if (!isDebugMode) {
         RunState& runState = Game::getInstance().getRunState();
         runState.syncEchoModifiers();
+        if (runState.playerHP <= 0.0f) {
+            runState.playerHP = 100.0f;
+        }
         player->setHp(runState.playerHP);
         player->switchForm(runState.activeForm);
         player->gainMomentum(runState.wraithbladeMomentum, FormType::WRAITHBLADE);

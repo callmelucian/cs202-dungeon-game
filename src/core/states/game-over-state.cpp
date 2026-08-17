@@ -42,7 +42,9 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
             ->setOnClick([this]() {
                 // Restore HP from the last save (HP recorded at the start of this chamber)
                 RunState& runState = Game::getInstance().getRunState();
-                SaveLoadManager::getInstance().loadGame(runState);
+                if (!SaveLoadManager::getInstance().loadGame(runState) || runState.playerHP <= 0.0f) {
+                    runState.playerHP = 100.0f;
+                }
                 stateManager.changeState(std::make_unique<GameplayState>(stateManager));
             });
 

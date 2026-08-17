@@ -4,6 +4,7 @@
 #include "chamber.hpp"
 #include "../economy/echo.hpp"
 #include "../ui/widgets/enemy-health-bar.hpp"
+#include "../core/enums.hpp"
 #include <memory>
 
 class ProtectChamber : public Chamber {
@@ -13,6 +14,7 @@ private:
     float collectionTimer;
     float requiredCollectionTime;
     bool isCollected;
+    EchoType associatedEcho;
 
     // UI Collector Timer using EnemyHealthBar
     UI::EnemyHealthBar collectorTimerBar;
@@ -22,7 +24,7 @@ private:
     sf::CircleShape radiusShape;
 
 public:
-    ProtectChamber(Player& player, const std::string& echoName, float requiredTime);
+    ProtectChamber(Player& player, const std::string& echoName, float requiredTime, EchoType echoType = EchoType::MARROW);
     virtual ~ProtectChamber() = default;
 
     void update(float dt) override;
@@ -32,6 +34,8 @@ public:
 
     void setEchoPosition(sf::Vector2f pos);
     void setRequiredCollectionTime(float time) { requiredCollectionTime = time; }
+    void setAssociatedEcho(EchoType type) { associatedEcho = type; }
+    EchoType getAssociatedEcho() const { return associatedEcho; }
     void setIsNoiseHall(bool active) { isNoiseHall = active; }
     void setIsReliquaryDecoy(bool active) { isReliquaryDecoy = active; }
     

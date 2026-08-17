@@ -5,10 +5,11 @@
 #include "../utils/pathfinder.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "../graphics/particle-system.hpp"
+#include "../core/game.hpp"
 #include <iostream>
 
-ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime)
-    : Chamber(player), collectionTimer(0.0f), requiredCollectionTime(requiredTime), isCollected(false) {
+ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime, EchoType echoType)
+    : Chamber(player), collectionTimer(0.0f), requiredCollectionTime(requiredTime), isCollected(false), associatedEcho(echoType) {
     echo = std::make_unique<Echo>(echoName, 50.0f); // Starts at 50% power
 
     echoShape.setRadius(20.0f);
@@ -48,6 +49,19 @@ void ProtectChamber::update(float dt) {
                 SoundManager::getInstance().playSound("echo-collect");
                 ParticleSystem::getInstance().emitGlow(echoPosition, 40, sf::Color(255, 255, 200, 200), 50.0f);
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
+
+                RunState& runState = Game::getInstance().getRunState();
+                if (!isReliquaryDecoy && !isNoiseHall) {
+                    runState.echoOutcomes[associatedEcho] = EchoOutcome::COLLECTED;
+                    if (associatedEcho == EchoType::CLARITY_SHARD) {
+                        runState.foretellActive = true;
+                        if (echo->getPower() >= 99.9f) {
+                            runState.foretellPhase1 = true;
+                        }
+                    }
+                    runState.syncEchoModifiers();
+                }
+
                 if (isReliquaryDecoy) {
                     float buffAmount = player.getEffectiveStats().maxHp * 0.20f;
                     player.heal(buffAmount);
