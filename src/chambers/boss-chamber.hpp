@@ -58,6 +58,8 @@ public:
     void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
     int processPlayerAttack(const Hitbox& hitbox) override;
+    std::vector<Enemy*> getEnemiesRaw() const override;
+    void onEnemyHit(Enemy* enemy, bool lethal) override;
     void setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid) override;
 
     int getCurrentPhase() const;

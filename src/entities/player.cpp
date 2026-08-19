@@ -232,15 +232,9 @@ void Player::attack(sf::Vector2f targetDir, class Chamber& chamber) {
 
     animController.triggerAttackAnim(*this, movementController.getFacingString());
 
-    if (getActiveFormType() == FormType::VOIDCASTER) {
-        // Defer attack execution to align with bow release frame (~0.65s into shoot animation)
-        hasPendingAttack = true;
-        attackReleaseTimer = 0.65f;
-        pendingAttackDir = targetDir;
-    } else {
-        // Dispatch attack logic via the state machine immediately for melee
-        if (stateMachine.getActiveState())
-            stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
+    // Dispatch attack logic via active combat state immediately
+    if (stateMachine.getActiveState()) {
+        stateMachine.getActiveState()->onAttack(*this, targetDir, chamber);
     }
 }
 
@@ -255,6 +249,10 @@ float Player::getMomentum(FormType form) const {
 
 void Player::setSwitchCooldownEnabled(bool enabled) {
     isSwitchCooldownEnabled = enabled;
+}
+
+void Player::setFacingFromVector(const sf::Vector2f& dir) {
+    movementController.setFacingFromVector(dir);
 }
 
 void Player::setInMidChamber(bool value) {

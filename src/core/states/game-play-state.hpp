@@ -60,14 +60,6 @@ private:
 
     UI::HUD* hud;
     UI::BossHealthBar* bossHealthBar = nullptr;
-    
-    UI::VerticalBox* playerInfoBox;
-    UI::Container* playerInfoBoxWrapper;
-    UI::Text* formText;
-    UI::Text* hpText;
-    UI::Text* momentumText;
-    UI::Text* cooldownText;
-    UI::Text* echoPowerText;
 
     std::unique_ptr<PlayableCharacter> playableChar;
     std::unique_ptr<Player> player;

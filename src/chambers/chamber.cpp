@@ -54,6 +54,16 @@ void Chamber::update(float dt) {
     }
     
     itemManager.update(dt, player, *this);
+
+    for (auto it = activeArrows.begin(); it != activeArrows.end(); ) {
+        it->update(dt, *this, player);
+        if (!it->isActive()) {
+            it = activeArrows.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     checkCollisions(dt);
 }
 
@@ -63,6 +73,9 @@ void Chamber::draw(sf::RenderWindow& window) {
     drawBackground(window);
     
     itemManager.draw(window);
+    for (const auto& arrow : activeArrows) {
+        arrow.draw(window);
+    }
     for (const auto& enemy : enemies) {
         enemy->draw(window);
     }
@@ -73,6 +86,10 @@ void Chamber::draw(sf::RenderWindow& window) {
         CollisionSolver::drawDebug(window, hb.shape);
     }
     debugHitboxes.clear();
+}
+
+void Chamber::spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed, ArrowHitMode hitMode) {
+    activeArrows.emplace_back(startPos, direction, maxDistance, speed, hitMode);
 }
 
 
@@ -135,6 +152,69 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
     } else {
         // On level 1: ground tiles are solid walls, preventing walking off the edge.
         obs.insert(obs.end(), inverseElevationObstacles.begin(), inverseElevationObstacles.end());
+    }
+
+    return obs;
+}
+
+int Chamber::getElevationLevelAt(sf::Vector2f pos) const {
+    if (levelGrid.empty() || typeGrid.empty() || typeGrid[0].empty()) return 0;
+
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+
+    int tx = static_cast<int>((pos.x - ox) / cellSize);
+    int ty = static_cast<int>((pos.y - oy) / cellSize);
+
+    if (ty < 0 || ty >= static_cast<int>(levelGrid.size()) || tx < 0 || tx >= static_cast<int>(levelGrid[0].size())) {
+        return 0;
+    }
+
+    int level = levelGrid[ty][tx] - 1;
+    if (level < 0) level = 0;
+    return level;
+}
+
+std::vector<sf::FloatRect> Chamber::getArrowSolidObstacles(sf::Vector2f shooterPos) const {
+    std::vector<sf::FloatRect> obs;
+    if (typeGrid.empty() || typeGrid[0].empty()) return obs;
+
+    float size = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+    int rows = typeGrid.size();
+    int cols = typeGrid[0].size();
+
+    float mapWidth = cols * size;
+    float mapHeight = rows * size;
+    float thickness = 1000.f;
+
+    obs.push_back(sf::FloatRect({ox - thickness, oy - thickness}, {mapWidth + 2 * thickness, thickness})); // Top
+    obs.push_back(sf::FloatRect({ox - thickness, oy + mapHeight}, {mapWidth + 2 * thickness, thickness})); // Bottom
+    obs.push_back(sf::FloatRect({ox - thickness, oy}, {thickness, mapHeight})); // Left
+    obs.push_back(sf::FloatRect({ox + mapWidth, oy}, {thickness, mapHeight})); // Right
+    obs.push_back(sf::FloatRect({ox, oy}, {mapWidth, size})); // Top wall-front row 0
+
+    int shooterLevel = getElevationLevelAt(shooterPos);
+
+    // Dynamic elevation comparison:
+    // Any land tile with elevation level higher than the shooter's elevation (tileLevel > shooterLevel)
+    // acts as a solid height obstacle blocking the arrow.
+    if (!levelGrid.empty()) {
+        for (int y = 0; y < rows; ++y) {
+            for (int x = 0; x < cols; ++x) {
+                int tileLevel = levelGrid[y][x] - 1;
+                if (tileLevel < 0) tileLevel = 0;
+
+                std::string type = typeGrid[y][x];
+                // Water and Void chasms are not land height obstacles for flying arrows
+                if (tileLevel > shooterLevel && type != "W" && type != "0") {
+                    sf::FloatRect rect({ox + x * size, oy + y * size}, {size, size});
+                    obs.push_back(rect);
+                }
+            }
+        }
     }
 
     return obs;
@@ -287,7 +367,6 @@ void Chamber::checkCollisions(float dt) {
 
 
 int Chamber::processPlayerAttack(const Hitbox& hitbox) {
-    debugHitboxes.push_back({hitbox, 0.2f});
     int killsThisAttack = 0;
     int totalHits = 0;
     std::vector<Enemy*> killedEnemies;

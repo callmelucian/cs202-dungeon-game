@@ -46,6 +46,7 @@ public:
     float getSwitchCooldownTimer() const;
     bool getIsFacingRight() const;
     std::string getFacingString() const;
+    void setFacingFromVector(const sf::Vector2f& dir);
     
     void setSpecial1Threshold(float threshold);
     float getSpecial1Threshold() const;

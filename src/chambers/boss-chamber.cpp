@@ -285,6 +285,21 @@ BossMalachar* BossChamber::getBoss() const {
     return boss.get();
 }
 
+std::vector<Enemy*> BossChamber::getEnemiesRaw() const {
+    std::vector<Enemy*> raw = Chamber::getEnemiesRaw();
+    if (boss && boss->isAlive()) {
+        raw.push_back(boss.get());
+    }
+    return raw;
+}
+
+void BossChamber::onEnemyHit(Enemy* enemy, bool lethal) {
+    Chamber::onEnemyHit(enemy, lethal);
+    if (enemy == boss.get() && lethal) {
+        onBossDefeated();
+    }
+}
+
 void BossChamber::onBossDefeated() {
     std::cout << "[BossChamber] Boss defeated! Chamber completed.\n";
     completeChamber();

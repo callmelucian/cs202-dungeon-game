@@ -11,6 +11,7 @@
 
 #include "../entities/enemy/enemy.hpp"
 #include "../economy/item-manager.hpp"
+#include "../entities/effects/arrow-projectile.hpp"
 
 // Forward declarations for missing components
 class Player;
@@ -35,6 +36,7 @@ public:
     virtual void draw(sf::RenderWindow& window);
     
     virtual int processPlayerAttack(const Hitbox& hitbox);
+    virtual void spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed = 900.0f, ArrowHitMode hitMode = ArrowHitMode::PIERCING);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
     virtual void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
@@ -56,7 +58,9 @@ public:
     
     bool getIsCompleted() const;
     std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
-    std::vector<Enemy*> getEnemiesRaw() const;
+    std::vector<sf::FloatRect> getArrowSolidObstacles(sf::Vector2f shooterPos = sf::Vector2f(0.0f, 0.0f)) const;
+    int getElevationLevelAt(sf::Vector2f pos) const;
+    virtual std::vector<Enemy*> getEnemiesRaw() const;
     ItemManager& getItemManager() { return itemManager; }
 
 protected:
@@ -66,6 +70,7 @@ protected:
     ItemManager itemManager;
     WaveSpawner waveSpawner;
     std::vector<DebugHitbox> debugHitboxes;
+    std::vector<ArrowProjectile> activeArrows;
     
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};
     std::vector<std::vector<std::string>> typeGrid;

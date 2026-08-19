@@ -157,32 +157,6 @@ void GameplayState::setupUI() {
     chamberTitleText = titleContainer->createChild<UI::Text>("header", 28)
         ->setString("");
 
-    // Add old debug HUD
-    playerInfoBoxWrapper = root->createChild<UI::Container>()
-        ->setAlignmentX(UI::AlignmentX::Left)
-        ->setAlignmentY(UI::AlignmentY::Bottom)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
-
-    playerInfoBox = playerInfoBoxWrapper->createChild<UI::VerticalBox>()
-        ->setModeX(UI::SizeMode::Contained)
-        ->setModeY(UI::SizeMode::Contained)
-        ->setAlignmentX(UI::AlignmentX::Left)
-        ->setPadding(30.f, 30.f, 30.f, 30.f)
-        ->setColor(sf::Color(10, 10, 10, 200))
-        ->setSpacing(10.f)
-        ->setDistribution(UI::Distribution::SpaceBetween);
-
-    formText = playerInfoBox->createChild<UI::Text>("header", 25)
-        ->setString("Serin");
-    hpText = playerInfoBox->createChild<UI::Text>("regular", 20)
-        ->setString("HP: 100/100");
-    momentumText = playerInfoBox->createChild<UI::Text>("regular", 20)
-        ->setString("Momentum: 0");
-    cooldownText = playerInfoBox->createChild<UI::Text>("regular", 20)
-        ->setString("Cooldown: Ready");
-    echoPowerText = playerInfoBox->createChild<UI::Text>("regular", 20)
-        ->setString("");
-
     // Add the new HUD component
     hud = root->createChild<UI::HUD>();
 
@@ -305,6 +279,7 @@ void GameplayState::update(float deltaTime) {
         return; // Skip player and enemy updates while camera zooms in!
     }
     // 1. Update player logic (including real-time WASD movement)
+    Game::getInstance().setActiveWorldView(camera.getView());
     if (player) {
         player->update(deltaTime);
 
@@ -379,29 +354,6 @@ void GameplayState::update(float deltaTime) {
         hud->updatePlayerState(*player);
     }
     
-    // 3.5 Update Debug HUD text
-    if (player && formText && hpText && momentumText && cooldownText) {
-        FormType currentForm = player->getActiveFormType();
-        std::string formStr = "Unknown";
-        if (currentForm == FormType::WRAITHBLADE) formStr = "Wraithblade";
-        else if (currentForm == FormType::VOIDCASTER) formStr = "Voidcaster";
-        else if (currentForm == FormType::IRONSHELL) formStr = "Ironshell";
-        formText->setString("Form: " + formStr);
-        
-        Stats currentStats = player->getEffectiveStats();
-        hpText->setString("HP: " + std::to_string((int)currentStats.hp) + "/" + std::to_string((int)currentStats.maxHp));
-        momentumText->setString("Momentum: " + std::to_string((int)player->getMomentum(currentForm)));
-        
-        float cd = player->getSwitchCooldownTimer();
-        if (cd > 0.0f) {
-            char buffer[32];
-            snprintf(buffer, sizeof(buffer), "Cooldown: %.1fs", cd);
-            cooldownText->setString(buffer);
-        } else {
-            cooldownText->setString("Cooldown: Ready");
-        }
-    }
-
     // 4. Update camera position lerp & zoom lerp
     if (player) {
         camera.setTargetCenter(player->getPosition());
@@ -436,6 +388,7 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     window.clear(sf::Color(20, 20, 25));
 
     // Apply Camera View for World
+    Game::getInstance().setActiveWorldView(camera.getView());
     window.setView(camera.getView());
 
     if (activeChamber) activeChamber->draw(window);
@@ -508,10 +461,7 @@ void GameplayState::handleEvents(sf::Event& event) {
     GameState::handleEvents(event);
 }
 
-void GameplayState::onEchoPowerChanged(float power) {
-    if (echoPowerText) {
-        echoPowerText->setString("Echo Power: " + std::to_string((int)power) + "%");
-    }
+void GameplayState::onEchoPowerChanged(float /*power*/) {
 }
 
 void GameplayState::onChamberCompleted() {

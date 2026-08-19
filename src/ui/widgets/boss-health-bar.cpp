@@ -33,10 +33,11 @@ void BossHealthBar::handleEvent(const sf::Event& event) {
 
 void BossHealthBar::draw(sf::RenderTarget& target) const {
     float screenW = static_cast<float>(target.getSize().x);
+    float screenH = static_cast<float>(target.getSize().y);
     float barWidth = 420.0f;
     float barHeight = 24.0f;
     float posX = screenW - barWidth - 30.0f;
-    float posY = 30.0f;
+    float posY = screenH - barHeight - 40.0f; // Lower right corner
 
     // Background container frame
     sf::RectangleShape bgFrame({barWidth + 16.0f, barHeight + 36.0f});

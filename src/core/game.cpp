@@ -54,8 +54,9 @@ Game::Game() : running(false) {
     assets.loadTexture("boss-malachar-echo-staff", resolvePath("assets/textures/boss-malachar-echo-staff.png"));
     assets.loadTexture("boss-malachar-sword", resolvePath("assets/textures/boss-malachar-sword.png"));
     
-    // Load HUD textures
+    // Load HUD & Projectile textures
     assets.loadTexture("health-bar", resolvePath("assets/textures/health-bar.png"));
+    assets.loadTexture("arrow", resolvePath("assets/textures/arrow.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();

@@ -11,7 +11,7 @@ set(SFML_ROOT "C:/Program Files/SFML/SFML-3.0.2")
 list(APPEND CMAKE_PREFIX_PATH "${SFML_ROOT}")
 
 # Find SFML 3 libraries
-find_package(SFML 3 COMPONENTS Graphics Window System Audio Network REQUIRED)
+find_package(SFML 3 COMPONENTS Graphics Window System Audio Network Main REQUIRED)
 
 # Integrate nlohmann/json using FetchContent
 include(FetchContent)
@@ -80,6 +80,7 @@ add_executable(game
     src/entities/effects/slowed-effect.cpp
     src/entities/effects/paralyzed-effect.cpp
     src/entities/effects/burned-effect.cpp
+    src/entities/effects/arrow-projectile.cpp
     src/entities/playable-character.cpp
     src/entities/forms/wraithblade-form.cpp
     src/entities/forms/voidcaster-form.cpp
@@ -128,6 +129,7 @@ target_link_libraries(game PRIVATE
     SFML::System
     SFML::Audio
     SFML::Network
+    SFML::Main
     nlohmann_json::nlohmann_json
 )
 

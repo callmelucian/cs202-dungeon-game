@@ -3,6 +3,7 @@
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../core/game.hpp"
 #include <cmath>
 
 VoidcasterForm::VoidcasterForm()
@@ -10,43 +11,52 @@ VoidcasterForm::VoidcasterForm()
                  Stats{100.0f, 100.0f, 22.0f, 5.0f, 5.0f},
                  12.0f, 1.0f) {}
 
+void VoidcasterForm::update(Player& player, float dt) {
+    PlayerForm::update(player, dt);
+
+    if (hasPendingArrow) {
+        pendingTimer -= dt;
+        if (pendingTimer <= 0.0f) {
+            hasPendingArrow = false;
+            firePendingArrow(player);
+        }
+    }
+}
+
 void VoidcasterForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
-    SoundManager::getInstance().playSound("shoot");
-    
-    // Voidcaster: Ranged (12 units, piercing) - Line shape
-    float rangePixels = getAttackRange() * 60.0f; // 12.0 * 60 = 720
-    
     float len = std::sqrt(targetDir.x * targetDir.x + targetDir.y * targetDir.y);
     if (len > 0) targetDir /= len;
     else targetDir = sf::Vector2f(1.0f, 0.0f);
 
-    LineHitbox line;
-    line.start = player.getPosition();
-    line.end = line.start + targetDir * rangePixels;
+    float maxRange = getAttackRange() * 60.0f;
+    pendingTargetDir = targetDir;
+    pendingTargetWorldPos = player.getPosition() + targetDir * maxRange;
+    pendingChamber = &chamber;
+    hasPendingArrow = true;
+    pendingTimer = 0.8f; // 8 frames * 0.10s = 0.8s (Frame 8 release)
+}
 
-    // Check hit enemies and distances before damage calculation
-    int hits = 0;
-    bool hasFarRangeHit = false;
-    float farRangeThreshold = 6.0f * 60.0f; // 6 units = 360 pixels
+void VoidcasterForm::firePendingArrow(Player& player) {
+    if (!pendingChamber) return;
+    Chamber& chamber = *pendingChamber;
 
-    for (auto* enemy : chamber.getEnemiesRaw()) {
-        if (!enemy || !enemy->isAlive()) continue;
-        if (CollisionSolver::checkCollision(line, enemy->getBounds())) {
-            hits++;
-            float dist = Math::distance(player.getPosition(), enemy->getPosition());
-            if (dist >= farRangeThreshold) {
-                hasFarRangeHit = true;
-            }
-        }
+    // Calculate direction from player position at shooting moment towards target world location
+    sf::Vector2f currentPos = player.getPosition();
+    sf::Vector2f releaseDir = pendingTargetWorldPos - currentPos;
+    float len = std::sqrt(releaseDir.x * releaseDir.x + releaseDir.y * releaseDir.y);
+    if (len > 0.001f) {
+        releaseDir /= len;
+    } else {
+        releaseDir = pendingTargetDir;
     }
 
-    chamber.processPlayerAttack(line);
+    // Update facing direction right as arrow releases
+    player.setFacingFromVector(releaseDir);
 
-    if (hits > 0) {
-        // Gain +8 momentum for far-range hit (+4 bonus per additional pierced enemy)
-        float baseGain = hasFarRangeHit ? 8.0f : 4.0f;
-        player.gainMomentum(baseGain + 4.0f * (hits - 1), FormType::VOIDCASTER);
-    }
+    SoundManager::getInstance().playSound("shoot");
+
+    float maxRange = getAttackRange() * 60.0f; // 12.0 * 60 = 720
+    chamber.spawnArrow(currentPos, releaseDir, maxRange, arrowSpeed, hitMode);
 }
 
 std::unique_ptr<SpecialAbilityState> VoidcasterForm::createSpecialState(int abilityIndex) {

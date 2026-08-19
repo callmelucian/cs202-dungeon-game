@@ -18,9 +18,13 @@ public:
     bool isRunning() const;
     RunState& getRunState();
 
+    void setActiveWorldView(const sf::View& view) { activeWorldView = view; }
+    const sf::View& getActiveWorldView() const { return activeWorldView; }
+
 private:
     sf::ContextSettings contextSettings;
     sf::RenderWindow renderWindow;
+    sf::View activeWorldView;
     StateManager stateManager;
     bool running;
     RunState runState;
