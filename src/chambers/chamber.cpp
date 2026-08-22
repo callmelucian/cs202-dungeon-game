@@ -10,6 +10,8 @@
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
+#include "../graphics/particle-system.hpp"
+#include "../global-settings/sound-manager.hpp"
 #include "tilemap-loader.hpp"
 
 Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
@@ -30,17 +32,27 @@ void Chamber::update(float dt) {
 
     waveSpawner.update(dt, *this, player);
 
+    bool frozen = (freezeTimer > 0.0f);
+    if (frozen) {
+        freezeTimer -= dt;
+    }
+
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             (*it)->onDeath(this);
             if (dropsFragments) {
-                itemManager.spawnEnemyFragments((*it).get(), player);
+                itemManager.spawnEnemyDrops((*it).get(), player, *this);
             }
             it = enemies.erase(it);
         } else {
-            (*it)->update(dt);
-            if ((*it)->isAlive()) {
-                (*it)->updateState(dt, *this);
+            if (frozen) {
+                (*it)->setVelocity({0.0f, 0.0f});
+                (*it)->update(dt);
+            } else {
+                (*it)->update(dt);
+                if ((*it)->isAlive()) {
+                    (*it)->updateState(dt, *this);
+                }
             }
             ++it;
         }
@@ -363,8 +375,15 @@ void Chamber::checkCollisions(float dt) {
     }
 }
 
-
-
+void Chamber::freezeAllEnemies(float duration) {
+    freezeTimer = duration;
+    for (const auto& enemy : enemies) {
+        if (enemy && enemy->isAlive()) {
+            ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 15, sf::Color(100, 220, 255, 200), 20.0f, 60.0f, 0.5f, 1.0f, 3.0f);
+        }
+    }
+    std::cout << "[Chamber] All enemies frozen for " << duration << " seconds!\n";
+}
 
 int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     int killsThisAttack = 0;

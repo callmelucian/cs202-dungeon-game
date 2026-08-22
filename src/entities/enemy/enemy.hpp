@@ -4,6 +4,8 @@
 #include "../character.hpp"
 #include "../../ui/widgets/enemy-health-bar.hpp"
 #include <memory>
+#include <optional>
+#include <string>
 
 class Player;
 class Chamber;
@@ -21,6 +23,7 @@ protected:
     std::string facingString = "down";
     bool isRealCarrier;
     bool hitWall;
+    std::optional<std::string> guaranteedDrop;
 
 public:
     Enemy(const std::string& characterKey, Player& player);
@@ -54,6 +57,9 @@ public:
     
     float getAttackCooldown() const { return attackCooldown; }
     void setAttackCooldown(float cd) { attackCooldown = cd; }
+
+    std::optional<std::string> getGuaranteedDrop() const { return guaranteedDrop; }
+    void setGuaranteedDrop(const std::string& dropType) { guaranteedDrop = dropType; }
 
     virtual bool canBeKnockedBack() const { return true; }
 };

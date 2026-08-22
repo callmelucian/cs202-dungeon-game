@@ -22,6 +22,7 @@ public:
     virtual void takeDamage(float rawAmount);
     virtual void heal(float amount);
     void applyStatusEffect(std::unique_ptr<StatusEffect> effect);
+    void clearNegativeStatusEffects();
 
     void addObserver(CharacterObserver* observer);
     void removeObserver(CharacterObserver* observer);

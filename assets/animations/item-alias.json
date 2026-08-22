@@ -4,7 +4,8 @@
     "echo-fragment-1": { "x": 120, "y": 96 },
     "echo-fragment-2": { "x": 144, "y": 48 },
     "echo-fragment-3": { "x": 72, "y": 48 },
-    "freeze-portion": { "x": 48, "y": 240 },
-    "speed-up-portion": { "x": 96, "y": 240 },
-    "antidote": { "x": 144, "y": 240 }
+    "freeze-potion": { "x": 48, "y": 240 },
+    "speed-up-potion": { "x": 96, "y": 240 },
+    "antidote": { "x": 144, "y": 240 },
+    "healer": { "x": 48, "y": 216 } 
 }

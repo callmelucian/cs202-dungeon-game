@@ -16,10 +16,10 @@ protected:
     bool collected;
     
     // Visuals
-    sf::RectangleShape shape;
+    sf::Sprite sprite;
 
 public:
-    Item(sf::Vector2f startPos);
+    Item(sf::Vector2f startPos, sf::IntRect textureRect);
     virtual ~Item() = default;
 
     virtual void update(float dt, const sf::Vector2f& playerPos);
@@ -39,6 +39,30 @@ private:
 public:
     EchoFragment(sf::Vector2f startPos, float value);
     
+    void onCollect(Player& player, Chamber& chamber) override;
+};
+
+class FreezePotion : public Item {
+public:
+    FreezePotion(sf::Vector2f startPos);
+    void onCollect(Player& player, Chamber& chamber) override;
+};
+
+class SpeedPotion : public Item {
+public:
+    SpeedPotion(sf::Vector2f startPos);
+    void onCollect(Player& player, Chamber& chamber) override;
+};
+
+class AntidotePotion : public Item {
+public:
+    AntidotePotion(sf::Vector2f startPos);
+    void onCollect(Player& player, Chamber& chamber) override;
+};
+
+class HealthPotion : public Item {
+public:
+    HealthPotion(sf::Vector2f startPos);
     void onCollect(Player& player, Chamber& chamber) override;
 };
 

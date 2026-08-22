@@ -35,6 +35,9 @@ public:
     virtual void update(float dt);
     virtual void draw(sf::RenderWindow& window);
     
+    virtual void freezeAllEnemies(float duration);
+    bool isEnemiesFrozen() const { return freezeTimer > 0.0f; }
+
     virtual int processPlayerAttack(const Hitbox& hitbox);
     virtual void spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed = 900.0f, ArrowHitMode hitMode = ArrowHitMode::PIERCING);
     virtual void onFragmentCollected(float value);
@@ -62,6 +65,8 @@ public:
     int getElevationLevelAt(sf::Vector2f pos) const;
     virtual std::vector<Enemy*> getEnemiesRaw() const;
     ItemManager& getItemManager() { return itemManager; }
+    const WaveSpawner& getWaveSpawner() const { return waveSpawner; }
+    size_t getEnemyCount() const { return enemies.size(); }
 
 protected:
     Player& player;
@@ -83,6 +88,7 @@ protected:
     bool isCompleted;
     bool isFailed = false;
     bool dropsFragments = true;
+    float freezeTimer = 0.0f;
     ChamberObserver* observer = nullptr;
     
     virtual void completeChamber();

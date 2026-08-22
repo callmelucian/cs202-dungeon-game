@@ -27,6 +27,9 @@ private:
     
     UI::Text* momentumLabel;
     UI::Slider* momentumSlider;
+
+    UI::Text* damageLabel;
+    UI::Slider* damageSlider;
     
     UI::Button* backButton;
 };

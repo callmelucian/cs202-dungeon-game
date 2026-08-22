@@ -59,6 +59,8 @@ public:
     const std::string& getFormName() const;
     float getAttackRange() const;
     float getAttackRate() const;
+    void setDamage(float dmg) { baseStats.damage = dmg; }
+    float getDamage() const { return baseStats.damage; }
 
 protected:
     FormType formType;

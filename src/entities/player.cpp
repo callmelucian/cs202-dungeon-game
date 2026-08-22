@@ -284,6 +284,19 @@ float Player::getSpecial1Threshold() const {
     return special1Threshold;
 }
 
+void Player::setDamage(float dmg) {
+    baseStats.damage = dmg;
+    for (auto& [type, form] : forms) {
+        if (form) {
+            form->setDamage(dmg);
+        }
+    }
+}
+
+float Player::getDamage() const {
+    return getEffectiveStats().damage;
+}
+
 PlayerCombatStateMachine& Player::getStateMachine() {
     return stateMachine;
 }

@@ -51,6 +51,9 @@ public:
     void setSpecial1Threshold(float threshold);
     float getSpecial1Threshold() const;
 
+    void setDamage(float dmg);
+    float getDamage() const;
+
     FormType getActiveFormType() const;
     PlayerForm* getActiveForm() const;
     const PlayableCharacter& getCharacter() const;

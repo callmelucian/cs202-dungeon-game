@@ -7,6 +7,7 @@
 #include "animation/character-animator.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/asset-manager.hpp"
+#include "../graphics/particle-system.hpp"
 #include "effects/slowed-effect.hpp"
 
 static std::string formatDisplayName(const std::string& key) {
@@ -177,6 +178,30 @@ float Character::calculateMitigatedDamage(float rawAmount) {
 void Character::applyStatusEffect(std::unique_ptr<StatusEffect> effect) {
     if (!effect) return;
     pendingStatusEffects.push_back(std::move(effect));
+}
+
+void Character::clearNegativeStatusEffects() {
+    for (auto& effect : statusEffects) {
+        if (effect && effect->getName() != "SpeedUp") {
+            effect->remove(*this);
+        }
+    }
+    statusEffects.erase(
+        std::remove_if(statusEffects.begin(), statusEffects.end(),
+            [](const std::unique_ptr<StatusEffect>& eff) {
+                return eff && eff->getName() != "SpeedUp";
+            }),
+        statusEffects.end()
+    );
+    pendingStatusEffects.erase(
+        std::remove_if(pendingStatusEffects.begin(), pendingStatusEffects.end(),
+            [](const std::unique_ptr<StatusEffect>& eff) {
+                return eff && eff->getName() != "SpeedUp";
+            }),
+        pendingStatusEffects.end()
+    );
+    ParticleSystem::getInstance().emitBurst(getPosition(), 30, sf::Color(50, 255, 120, 220), 50.0f, 120.0f, 0.4f, 0.9f, 5.0f);
+    std::cout << "[" << getDisplayName() << "] Antidote applied! Purged all negative status effects.\n";
 }
 
 void Character::addObserver(CharacterObserver* observer) {

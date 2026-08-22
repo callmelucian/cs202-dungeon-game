@@ -62,6 +62,7 @@ public:
     int processPlayerAttack(const Hitbox& hitbox) override;
     std::vector<Enemy*> getEnemiesRaw() const override;
     void onEnemyHit(Enemy* enemy, bool lethal) override;
+    void freezeAllEnemies(float duration) override;
     void setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid) override;
 
     int getCurrentPhase() const;

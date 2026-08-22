@@ -17,6 +17,7 @@ public:
 
     void spawnFragments(sf::Vector2f position, int count);
     void spawnEnemyFragments(Enemy* enemy, Player& player);
+    void spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber);
     void addItem(std::unique_ptr<Item> item);
 
 private:

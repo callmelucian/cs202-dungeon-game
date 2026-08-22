@@ -57,6 +57,7 @@ Game::Game() : running(false) {
     // Load HUD & Projectile textures
     assets.loadTexture("health-bar", resolvePath("assets/textures/health-bar.png"));
     assets.loadTexture("arrow", resolvePath("assets/textures/arrow.png"));
+    assets.loadTexture("items", resolvePath("assets/textures/items.png"));
 
     // load audio via sound manager
     SoundManager &sounds = SoundManager::getInstance();

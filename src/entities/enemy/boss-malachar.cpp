@@ -238,14 +238,16 @@ void BossMalachar::updateVoidBoltCycle(float dt, Chamber& chamber) {
 
         auto w1 = std::make_unique<Sprinter>(getPlayer(), false);
         w1->setPosition(myPos + sf::Vector2f(-40.0f, -40.0f));
+        w1->setGuaranteedDrop("FREEZE_POTION");
 
         auto w2 = std::make_unique<Sprinter>(getPlayer(), false);
         w2->setPosition(myPos + sf::Vector2f(40.0f, 40.0f));
+        w2->setGuaranteedDrop("RANDOM_NON_FREEZE");
 
         chamber.spawnEnemy(std::move(w1));
         chamber.spawnEnemy(std::move(w2));
 
-        std::cout << "[BossMalachar] Summoning Burst: Spawned 2 Sprinters!\n";
+        std::cout << "[BossMalachar] Summoning Burst: Spawned 2 Sprinters (1 Freeze Potion + 1 Randomized Potion guaranteed drops)!\n";
     }
 }
 

@@ -80,6 +80,7 @@ add_executable(game
     src/entities/effects/slowed-effect.cpp
     src/entities/effects/paralyzed-effect.cpp
     src/entities/effects/burned-effect.cpp
+    src/entities/effects/speed-up-effect.cpp
     src/entities/effects/arrow-projectile.cpp
     src/entities/playable-character.cpp
     src/entities/forms/wraithblade-form.cpp

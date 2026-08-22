@@ -81,10 +81,15 @@ void BossChamber::update(float dt) {
     // Update underlying chamber ( regular enemies, items, collisions )
     Chamber::update(dt);
 
-    // Update Boss AI
+    // Update Boss AI (movement & AI state paused if enemies are frozen)
     if (boss && boss->isAlive()) {
-        boss->update(dt);
-        boss->updateState(dt, *this);
+        if (isEnemiesFrozen()) {
+            boss->setVelocity({0.0f, 0.0f});
+            boss->update(dt);
+        } else {
+            boss->update(dt);
+            boss->updateState(dt, *this);
+        }
 
         // Resolve boss collision against obstacles so it can't clip through walls
         CollisionSolver::resolveX(*boss, getObstaclesFor(boss.get()), dt);
@@ -269,6 +274,14 @@ void BossChamber::onEnemyHit(Enemy* enemy, bool lethal) {
 void BossChamber::onBossDefeated() {
     std::cout << "[BossChamber] Boss defeated! Chamber completed.\n";
     completeChamber();
+}
+
+void BossChamber::freezeAllEnemies(float duration) {
+    Chamber::freezeAllEnemies(duration);
+    if (boss && boss->isAlive()) {
+        ParticleSystem::getInstance().emitBurst(boss->getPosition(), 40, sf::Color(100, 220, 255, 220), 40.0f, 100.0f, 0.6f, 1.2f, 5.0f);
+        std::cout << "[BossChamber] Boss Malachar frozen in place for " << duration << " seconds!\n";
+    }
 }
 
 int BossChamber::processPlayerAttack(const Hitbox& hitbox) {

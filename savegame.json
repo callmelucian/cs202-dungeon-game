@@ -17,6 +17,6 @@
     "playerHP": 100.0,
     "special1MomentumThreshold": 50.0,
     "special2MomentumThreshold": 100.0,
-    "voidcasterMomentum": 16.0,
+    "voidcasterMomentum": 100.0,
     "wraithbladeMomentum": 0.0
 }

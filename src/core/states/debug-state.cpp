@@ -73,6 +73,23 @@ DebugState::DebugState(StateManager& manager, Player& player)
             momentumLabel->setString(ss.str());
         });
 
+    float currentDamage = playerRef.getEffectiveStats().damage;
+    std::ostringstream dmgSs;
+    dmgSs << "Attack Damage: " << static_cast<int>(currentDamage);
+
+    damageLabel = widgetBox->createChild<UI::Text>("regular", 20)
+        ->setString(dmgSs.str())
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained);
+
+    damageSlider = widgetBox->createChild<UI::Slider>(1.0f, 500.0f, currentDamage)
+        ->setOnValueChanged([this](float val) {
+            playerRef.setDamage(val);
+            std::ostringstream ss;
+            ss << "Attack Damage: " << static_cast<int>(val);
+            damageLabel->setString(ss.str());
+        });
+
     backButton = widgetBox->createChild<UI::Button>("Back to Game", "regular", 25.f)
         ->setOnClick([this]() {
             stateManager.popState();
