@@ -250,8 +250,6 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
 - If Serin's HP reaches 0 in any chamber, the chamber is failed and restarts from
   its beginning (Echo Power progress and fragment counts for that chamber reset;
   prior chambers' results are unaffected).
-- Falling into the void in The Hunger Pit (§11.3.3) is an instant-death failure
-  state, identical in consequence to HP reaching 0.
 
 ### 6.3 Damage Application
 
@@ -425,15 +423,11 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 - **If successfully defended:** Banked as Collected at Power% per §5.3/§5.6; no
   direct combat bonus, denies the stolen-state penalty below.
-- **If stolen:** Triggers two permanent-for-this-run effects:
-  1. **Phase 2 of the final boss:** Malachar gains a **Blink** ability — every
-     6–9 seconds (randomized) he teleports to a new position within the arena
-     instead of his normal movement, making him harder to consistently target
-     (no direct stat change, but interrupts sustained-DPS positioning strategies).
-  2. **Level 3, Chamber 3 (The Hunger Pit)'s exits** begin **flickering**:
-     visibility/telegraphing of the pit's edge geometry is reduced for the
-     remainder of that chamber (a fairness-preserving visual/UX penalty, not a
-     hidden insta-kill change — the pit boundary itself does not move).
+- **If stolen:** Triggers permanent-for-this-run effect:
+  - **Phase 2 of the final boss:** Malachar gains a **Blink** ability — every
+    6–9 seconds (randomized) he teleports to a new position within the arena
+    instead of his normal movement, making him harder to consistently target
+    (no direct stat change, but interrupts sustained-DPS positioning strategies).
 
 ### 10.3 Multiple-Echo-stolen interactions
 
@@ -462,10 +456,9 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 #### 11.1.1 Chamber 1 — The Drowned Archive (Protect)
 
-- **Enemies:** 6× Sprinter — HP 15 each, Damage 5/hit, Speed 1.0 units/s (effective speed slowed by the flooded archive's water field).
+- **Enemies:** 6× Sprinter — HP 15 each, Damage 5/hit, Speed 1.0 units/s.
 - **Collection time:** **8 seconds** base.
 - **Echo position:** center of room, half-submerged reading table.
-- **Water field:** all combatants (Serin included) in the chamber have a permanent ambient **Slowed** effect (30% speed reduction).
 
 #### 11.1.2 Chamber 2 — The Bone Corridor (Prevent)
 
@@ -639,7 +632,7 @@ its darkest ending.)
 |---|---|---|
 | Burned | 10s, ticks every 1s | 0.25 × dealer's base Damage per tick |
 | Paralyzed | 10s (or 1.5s for Aegis Pulse stagger application) | 40% action-miss chance |
-| Slowed | 10s (or chamber-permanent for water zones) | −30% movement speed |
+| Slowed | 10s | −30% movement speed |
 
 ### 14.3 Switch & Momentum Quick Reference
 

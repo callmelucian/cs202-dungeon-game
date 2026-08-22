@@ -38,6 +38,7 @@ private:
     std::vector<Platform> platforms;
     float shrinkRate;   // Radius reduction in units per second (0.1 in Phase 4)
     float minRadius;    // Floor radius limit in units (1.5 in Phase 4)
+    float sunderDamageTimer = 0.0f; // Accumulator for 1.0s periodic damage tick
 
     // Phase Transition Sequence Control
     PhaseTransitionStage transitionStage = PhaseTransitionStage::NONE;
@@ -49,7 +50,6 @@ private:
     void updatePlatforms(float dt);
     void drawPlatforms(sf::RenderWindow& window);
     void updatePhaseTransitionSequence(float dt);
-    void applyMapLayoutForPhase(int phase);
 
 public:
     BossChamber(Player& player);
@@ -57,6 +57,8 @@ public:
 
     void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
+    void drawBackground(sf::RenderWindow& window) override;
+    std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const override;
     int processPlayerAttack(const Hitbox& hitbox) override;
     std::vector<Enemy*> getEnemiesRaw() const override;
     void onEnemyHit(Enemy* enemy, bool lethal) override;

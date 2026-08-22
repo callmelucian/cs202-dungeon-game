@@ -4,18 +4,18 @@
 #include "chamber.hpp"
 #include "../core/enums.hpp"
 #include "../core/game.hpp"
-#include <memory>
+#include <optional>
 
 class PreventChamber : public Chamber {
 private:
-    EchoType associatedEcho;
+    std::optional<EchoType> associatedEcho;
     sf::Vector2f exitPosition;
 
     // Visuals for Exit
     sf::RectangleShape exitShape;
 
 public:
-    PreventChamber(Player& player, EchoType echoType);
+    PreventChamber(Player& player, std::optional<EchoType> echoType = std::nullopt);
     virtual ~PreventChamber() = default;
 
     void update(float dt) override;

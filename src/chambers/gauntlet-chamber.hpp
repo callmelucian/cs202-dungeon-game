@@ -10,12 +10,6 @@ public:
     virtual ~GauntletChamber() = default;
 
     void update(float dt) override;
-    void drawForeground(sf::RenderWindow& window) override;
-
-    void setIsHungerPit(bool active) { isHungerPit = active; }
-
-private:
-    bool isHungerPit = false;
 };
 
 #endif // GAUNTLET_CHAMBER_HPP

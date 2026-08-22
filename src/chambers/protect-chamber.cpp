@@ -51,12 +51,22 @@ void ProtectChamber::update(float dt) {
                 std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
 
                 RunState& runState = Game::getInstance().getRunState();
-                if (!isReliquaryDecoy && !isNoiseHall) {
+                if (!isReliquaryDecoy) {
                     runState.echoOutcomes[associatedEcho] = EchoOutcome::COLLECTED;
                     if (associatedEcho == EchoType::CLARITY_SHARD) {
                         runState.foretellActive = true;
-                        if (echo->getPower() >= 99.9f) {
+                        if (echo->getPower() >= 90.0f) {
                             runState.foretellPhase1 = true;
+                            runState.collectTimeReduction = 0.80f; // 20% reduction if fully intact
+                        } else {
+                            runState.collectTimeReduction = 0.90f; // 10% reduction
+                        }
+                    }
+                    if (associatedEcho == EchoType::HOLLOW_BELL) {
+                        if (echo->getPower() >= 90.0f) {
+                            runState.special1MomentumThreshold = 35.0f; // 30% reduction if fully intact
+                        } else {
+                            runState.special1MomentumThreshold = 42.5f; // 15% reduction
                         }
                     }
                     runState.syncEchoModifiers();

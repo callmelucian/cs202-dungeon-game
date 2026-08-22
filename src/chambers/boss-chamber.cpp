@@ -44,15 +44,15 @@ void BossChamber::initPlatforms() {
         rows = static_cast<float>(typeGrid.size());
     }
 
-    sf::Vector2f centerPos = {ox + (cols * cellSize) / 2.0f, oy + (rows * cellSize) / 2.0f};
+    sf::Vector2f centerPos = {ox + 9.5f * cellSize, oy + 9.5f * cellSize};
 
     // Position Boss Malachar at the upper-center of the arena floor
     if (boss) {
-        sf::Vector2f bossSpawnPos = {ox + (cols / 2.0f) * cellSize, oy + 5.5f * cellSize};
+        sf::Vector2f bossSpawnPos = {ox + 9.5f * cellSize, oy + 4.5f * cellSize};
         boss->setPosition(bossSpawnPos);
     }
 
-    float ringRadius = 6.0f * cellSize;
+    float ringRadius = 5.6f * cellSize;
 
     for (int i = 0; i < 6; ++i) {
         float angle = static_cast<float>(i) * (2.0f * M_PI / 6.0f);
@@ -61,7 +61,7 @@ void BossChamber::initPlatforms() {
         Platform p;
         p.id = i;
         p.center = pCenter;
-        p.radius = 3.0f; // 3 units radius for Phase 3
+        p.radius = 2.4f; // 2.4 units radius
         p.isWarning = false;
         p.sunderTimer = 0.0f;
         p.isSundered = false;
@@ -94,33 +94,31 @@ void BossChamber::update(float dt) {
     // Update platform state ( shrinking in Phase 4, sunder timers )
     updatePlatforms(dt);
 
-    // Hazard check: player taking void damage if standing on void tile ("0") and off-platform during Phase 3 & 4
+    // Hazard check: player taking void damage if standing on a sundered (collapsed) platform
     if (currentPhase >= 3 && player.isAlive()) {
         sf::Vector2f playerPos = player.getPosition();
         float cellSize = SettingManager::getInstance().getCellSize();
-        float ox = SettingManager::getInstance().getGridOffsetX();
-        float oy = SettingManager::getInstance().getGridOffsetY();
 
-        int tx = static_cast<int>((playerPos.x - ox) / cellSize);
-        int ty = static_cast<int>((playerPos.y - oy) / cellSize);
-
-        bool isOffGrid = (typeGrid.empty() || ty < 0 || ty >= static_cast<int>(typeGrid.size()) || tx < 0 || tx >= static_cast<int>(typeGrid[0].size()));
-        bool isVoidTile = isOffGrid || (typeGrid[ty][tx] == "0");
-
-        if (isVoidTile) {
-            bool onPlatform = false;
-            for (const auto& p : platforms) {
-                if (p.isSundered) continue;
+        // Check if player is on a platform that has collapsed (isSundered)
+        bool onSunderedPlatform = false;
+        for (const auto& p : platforms) {
+            if (p.isSundered) {
                 float dist = Math::distance(playerPos, p.center);
                 if (dist <= p.radius * cellSize) {
-                    onPlatform = true;
+                    onSunderedPlatform = true;
                     break;
                 }
             }
+        }
 
-            if (!onPlatform) {
-                player.takeDamage(10.0f * dt); // 10 damage/sec while in void
+        if (onSunderedPlatform) {
+            sunderDamageTimer += dt;
+            if (sunderDamageTimer >= 1.0f) {
+                sunderDamageTimer -= 1.0f;
+                player.takeDamage(10.0f); // 10 damage tick once per second
             }
+        } else {
+            sunderDamageTimer = 0.0f;
         }
     }
 }
@@ -131,22 +129,20 @@ void BossChamber::updatePhaseTransitionSequence(float dt) {
     if (transitionStage == PhaseTransitionStage::FREEZE_AND_CLEAR) {
         if (transitionTimer <= 0.0f) {
             transitionStage = PhaseTransitionStage::ZOOM_OUT;
-            transitionTimer = 0.8f;
+            transitionTimer = 0.6f;
         }
     } else if (transitionStage == PhaseTransitionStage::ZOOM_OUT) {
         if (transitionTimer <= 0.0f) {
-            // Apply map extension layout for the new phase
-            applyMapLayoutForPhase(pendingNewPhase);
             transitionStage = PhaseTransitionStage::FADE_LERP_ISLANDS;
-            transitionTimer = 1.2f;
+            transitionTimer = 0.8f;
             fadeAlpha = 0.0f;
         }
     } else if (transitionStage == PhaseTransitionStage::FADE_LERP_ISLANDS) {
-        fadeAlpha = std::min(1.0f, fadeAlpha + dt / 1.2f);
+        fadeAlpha = std::min(1.0f, fadeAlpha + dt / 0.8f);
         if (transitionTimer <= 0.0f) {
             fadeAlpha = 1.0f;
             transitionStage = PhaseTransitionStage::ZOOM_IN;
-            transitionTimer = 0.8f;
+            transitionTimer = 0.6f;
         }
     } else if (transitionStage == PhaseTransitionStage::ZOOM_IN) {
         if (transitionTimer <= 0.0f) {
@@ -173,38 +169,6 @@ void BossChamber::triggerPhaseTransition(int newPhase) {
     std::cout << "[BossChamber] Cinematic Phase Transition Triggered -> Phase " << newPhase << "\n";
 }
 
-void BossChamber::applyMapLayoutForPhase(int phase) {
-    std::string mapPath;
-
-    ChamberConfig initialConfig = MapLoader::loadChamber("assets/maps/level-4/boss.json");
-    if (initialConfig.phaseMaps.count(phase)) {
-        mapPath = initialConfig.phaseMaps[phase];
-    } else {
-        mapPath = "assets/maps/level-4/boss-phase-" + std::to_string(phase) + ".json";
-    }
-
-    ChamberConfig phaseCfg = MapLoader::loadChamber(mapPath);
-    if (!phaseCfg.typeGrid.empty() && !phaseCfg.levelGrid.empty()) {
-        typeGrid = phaseCfg.typeGrid;
-        levelGrid = phaseCfg.levelGrid;
-
-        // Re-synthesize 2.5D render data, recreate renderable tileMap, and rebuild collision obstacles from JSON!
-        Chamber::setGrids2D5(typeGrid, levelGrid);
-
-        if (phase == 3) {
-            // Re-initialize 6 floating platforms
-            for (auto& p : platforms) {
-                p.radius = 3.0f;
-                p.isSundered = false;
-                p.isWarning = false;
-            }
-        }
-        std::cout << "[BossChamber] Loaded Phase " << phase << " layout directly from JSON file: " << mapPath << "\n";
-    } else {
-        std::cerr << "[BossChamber] Could not load phase map JSON: " << mapPath << "\n";
-    }
-}
-
 void BossChamber::updatePlatforms(float dt) {
     // Phase 4: Platforms shrink continuously at 0.1 units/sec down to floor 1.5 units
     if (currentPhase == 4) {
@@ -215,22 +179,24 @@ void BossChamber::updatePlatforms(float dt) {
         }
     }
 
-    // Process platform sunder warnings & recovery
-    for (auto& p : platforms) {
-        if (p.isWarning) {
-            p.sunderTimer -= dt;
-            if (p.sunderTimer <= 0.0f) {
-                p.isWarning = false;
-                p.isSundered = true;
-                p.recoveryTimer = 12.0f; // Platform collapses, recovers after 12s
-                std::cout << "[BossChamber] Platform " << p.id << " sundered into void!\n";
-            }
-        } else if (p.isSundered) {
-            p.recoveryTimer -= dt;
-            if (p.recoveryTimer <= 0.0f) {
-                p.isSundered = false;
-                p.radius = (currentPhase == 4) ? minRadius : 3.0f;
-                std::cout << "[BossChamber] Platform " << p.id << " reformed.\n";
+    // Process platform sunder warnings & recovery (Phase 3 & 4)
+    if (currentPhase >= 3) {
+        for (auto& p : platforms) {
+            if (p.isWarning) {
+                p.sunderTimer -= dt;
+                if (p.sunderTimer <= 0.0f) {
+                    p.isWarning = false;
+                    p.isSundered = true;
+                    p.recoveryTimer = 12.0f; // Platform collapses, recovers after 12s
+                    std::cout << "[BossChamber] Platform " << p.id << " sundered into void!\n";
+                }
+            } else if (p.isSundered) {
+                p.recoveryTimer -= dt;
+                if (p.recoveryTimer <= 0.0f) {
+                    p.isSundered = false;
+                    p.radius = (currentPhase == 4) ? minRadius : 2.4f;
+                    std::cout << "[BossChamber] Platform " << p.id << " reformed.\n";
+                }
             }
         }
     }
@@ -330,13 +296,21 @@ int BossChamber::processPlayerAttack(const Hitbox& hitbox) {
     return hits;
 }
 
-void BossChamber::draw(sf::RenderWindow& window) {
-    // Draw background platforms for Phase 3 and 4
+std::vector<sf::FloatRect> BossChamber::getObstaclesFor(const Character* character) const {
+    return Chamber::getObstaclesFor(character);
+}
+
+void BossChamber::drawBackground(sf::RenderWindow& window) {
+    Chamber::drawBackground(window);
+
+    // Draw background platform halos and sunder indicators for Phase 3 and 4
     if (currentPhase >= 3) {
         drawPlatforms(window);
     }
+}
 
-    // Draw regular chamber components
+void BossChamber::draw(sf::RenderWindow& window) {
+    // Draw regular chamber components (tilemap, background platforms, items, enemies)
     Chamber::draw(window);
 
     // Draw boss if active
@@ -364,8 +338,6 @@ void BossChamber::drawPlatforms(sf::RenderWindow& window) {
     float cellSize = SettingManager::getInstance().getCellSize();
 
     for (const auto& p : platforms) {
-        if (p.isSundered) continue;
-
         float radiusPx = p.radius * cellSize;
         sf::CircleShape platformShape(radiusPx);
         platformShape.setOrigin({radiusPx, radiusPx});
@@ -373,17 +345,23 @@ void BossChamber::drawPlatforms(sf::RenderWindow& window) {
 
         // Platform fill and outline
         if (p.isWarning) {
-            // Telegraphing red/orange warning fill
-            platformShape.setFillColor(sf::Color(180, 50, 50, 200));
-            platformShape.setOutlineColor(sf::Color(255, 100, 0, 255));
+            // Telegraphing red/orange warning pulse
+            platformShape.setFillColor(sf::Color(220, 60, 60, 160));
+            platformShape.setOutlineColor(sf::Color(255, 120, 0, 255));
             platformShape.setOutlineThickness(4.0f);
-        } else {
-            // Dark obsidian floating platform fill
-            platformShape.setFillColor(sf::Color(40, 40, 60, 220));
-            platformShape.setOutlineColor(sf::Color(120, 100, 180, 255));
+            window.draw(platformShape);
+        } else if (p.isSundered) {
+            // Collapsed platform void hole overlay
+            platformShape.setFillColor(sf::Color(10, 5, 20, 230));
+            platformShape.setOutlineColor(sf::Color(80, 20, 120, 200));
+            platformShape.setOutlineThickness(3.0f);
+            window.draw(platformShape);
+        } else if (currentPhase == 4) {
+            // Phase 4: show shrinking boundary ring
+            platformShape.setFillColor(sf::Color::Transparent);
+            platformShape.setOutlineColor(sf::Color(140, 100, 220, 180));
             platformShape.setOutlineThickness(2.0f);
+            window.draw(platformShape);
         }
-
-        window.draw(platformShape);
     }
 }

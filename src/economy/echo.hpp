@@ -75,7 +75,6 @@ public:
     // Stored stolen effect values
     float getBlinkIntervalMin() const { return 6.0f; }
     float getBlinkIntervalMax() const { return 9.0f; }
-    float getPitTelegraphOpacityMultiplier() const { return 0.40f; } // 60% opacity reduction (40% remains)
 };
 
 #endif // ECHO_HPP

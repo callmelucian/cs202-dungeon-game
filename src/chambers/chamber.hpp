@@ -57,7 +57,7 @@ public:
     };
     
     bool getIsCompleted() const;
-    std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
+    virtual std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
     std::vector<sf::FloatRect> getArrowSolidObstacles(sf::Vector2f shooterPos = sf::Vector2f(0.0f, 0.0f)) const;
     int getElevationLevelAt(sf::Vector2f pos) const;
     virtual std::vector<Enemy*> getEnemiesRaw() const;

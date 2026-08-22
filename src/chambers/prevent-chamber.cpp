@@ -8,7 +8,7 @@
 #include "../core/game.hpp"
 #include <iostream>
 
-PreventChamber::PreventChamber(Player& player, EchoType echoType)
+PreventChamber::PreventChamber(Player& player, std::optional<EchoType> echoType)
     : Chamber(player), associatedEcho(echoType) {
     
     float cellSize = SettingManager::getInstance().getCellSize();
@@ -36,8 +36,10 @@ void PreventChamber::update(float dt) {
                 SoundManager::getInstance().playSound("enemy-hit");
                 ParticleSystem::getInstance().emitBurst(exitPosition, 30, sf::Color(255, 50, 50, 200), 40.0f, 120.0f, 0.3f, 0.8f, 5.0f);
                 RunState& runState = Game::getInstance().getRunState();
-                runState.echoOutcomes[associatedEcho] = EchoOutcome::STOLEN;
-                runState.echoesStolen++;
+                if (associatedEcho.has_value()) {
+                    runState.echoOutcomes[*associatedEcho] = EchoOutcome::STOLEN;
+                    runState.echoesStolen++;
+                }
                 
                 // Carrier escapes with the Echo — drops 0 fragments on exit gate
                 enemy->addBonusFragments(-enemy->getFragmentDropCount());
@@ -48,8 +50,8 @@ void PreventChamber::update(float dt) {
 
     if (waveSpawner.isFinished() && enemies.empty() && !isFailed) {
         RunState& runState = Game::getInstance().getRunState();
-        if (runState.echoOutcomes[associatedEcho] != EchoOutcome::STOLEN) {
-            runState.echoOutcomes[associatedEcho] = EchoOutcome::COLLECTED;
+        if (associatedEcho.has_value() && runState.echoOutcomes[*associatedEcho] != EchoOutcome::STOLEN) {
+            runState.echoOutcomes[*associatedEcho] = EchoOutcome::COLLECTED;
             runState.syncEchoModifiers();
             std::cout << "PreventChamber: All enemies defeated! Echo safely preserved and COLLECTED.\n";
         }
