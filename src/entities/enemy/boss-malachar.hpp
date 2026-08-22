@@ -83,6 +83,7 @@ public:
     void transitionPhase(int phase);
     void platformSunder(Chamber& chamber);
     void soulLance(Chamber& chamber);
+    void cancelCharging();
     void clearProjectiles();
 
     bool canBeKnockedBack() const override { return false; }

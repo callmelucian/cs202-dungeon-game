@@ -55,6 +55,11 @@ public:
     const UI::HealthBar* getHealthBar() const;
     void setHealthBar(std::unique_ptr<UI::HealthBar> bar);
 
+    void setTint(const sf::Color& color);
+    sf::Color getTint() const;
+    bool isFrozen() const;
+    void setFrozen(bool frozen);
+
 protected:
     void notifyStateChanged(std::string visualKey);
     float calculateMitigatedDamage(float rawAmount);
@@ -70,6 +75,7 @@ protected:
     std::vector<CharacterObserver*> observers;
     std::unique_ptr<CharacterAnimator> animator;
     std::unique_ptr<UI::HealthBar> healthBar;
+    bool isFrozenState = false;
 };
 
 #endif // CHARACTER_HPP

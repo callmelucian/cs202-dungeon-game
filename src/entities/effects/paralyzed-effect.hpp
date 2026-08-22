@@ -12,6 +12,8 @@ public:
     void apply(Character& character) override;
     void remove(Character& character) override;
     std::string getName() const override { return "Paralyzed"; }
+    sf::Color getColor() const override { return sf::Color(255, 230, 80); }
+    std::string getDisplayName() const override { return "PARALYZED"; }
 };
 
 #endif // PARALYZED_EFFECT_HPP

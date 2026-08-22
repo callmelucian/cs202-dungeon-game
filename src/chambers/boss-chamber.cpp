@@ -3,6 +3,7 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "../graphics/particle-system.hpp"
+#include "../ui/widgets/floating-text-manager.hpp"
 #include "../utils/collision-solver.hpp"
 #include "../utils/math-utility.hpp"
 #include "../entities/player.hpp"
@@ -87,6 +88,10 @@ void BossChamber::update(float dt) {
             boss->setVelocity({0.0f, 0.0f});
             boss->update(dt);
         } else {
+            if (boss->isFrozen()) {
+                boss->setFrozen(false);
+                boss->setTint(boss->getStatusEffects().empty() ? sf::Color::White : boss->getStatusEffects().back()->getColor());
+            }
             boss->update(dt);
             boss->updateState(dt, *this);
         }
@@ -279,6 +284,11 @@ void BossChamber::onBossDefeated() {
 void BossChamber::freezeAllEnemies(float duration) {
     Chamber::freezeAllEnemies(duration);
     if (boss && boss->isAlive()) {
+        boss->cancelCharging();
+        boss->setFrozen(true);
+        boss->setTint(sf::Color(100, 220, 255));
+        sf::Vector2f headPos = boss->getPosition() + sf::Vector2f(0.0f, -50.0f);
+        UI::FloatingTextManager::getInstance().spawnStatus(headPos, "FROZEN", sf::Color(100, 220, 255));
         ParticleSystem::getInstance().emitBurst(boss->getPosition(), 40, sf::Color(100, 220, 255, 220), 40.0f, 100.0f, 0.6f, 1.2f, 5.0f);
         std::cout << "[BossChamber] Boss Malachar frozen in place for " << duration << " seconds!\n";
     }

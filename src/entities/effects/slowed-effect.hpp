@@ -13,6 +13,8 @@ public:
     void remove (Character &character) override;
     bool update(float dt, Character &character) override;
     std::string getName() const override { return "Slowed"; }
+    sf::Color getColor() const override { return sf::Color(100, 200, 255); }
+    std::string getDisplayName() const override { return "SLOWED"; }
 };
 
 #endif // SLOWED_EFFECT_HPP

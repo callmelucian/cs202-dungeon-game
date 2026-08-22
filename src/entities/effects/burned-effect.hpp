@@ -13,6 +13,8 @@ public:
     void remove (Character &character) override;
     bool update (float dt, Character &character) override;
     std::string getName() const override { return "Burned"; }
+    sf::Color getColor() const override { return sf::Color(255, 120, 50); }
+    std::string getDisplayName() const override { return "BURNED"; }
 
 private:
     float damagePerTick, countDown;

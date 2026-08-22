@@ -11,6 +11,7 @@
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
 #include "../graphics/particle-system.hpp"
+#include "../ui/widgets/floating-text-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "tilemap-loader.hpp"
 
@@ -32,10 +33,19 @@ void Chamber::update(float dt) {
 
     waveSpawner.update(dt, *this, player);
 
-    bool frozen = (freezeTimer > 0.0f);
-    if (frozen) {
+    bool wasFrozen = (freezeTimer > 0.0f);
+    if (wasFrozen) {
         freezeTimer -= dt;
+        if (freezeTimer <= 0.0f) {
+            for (auto& enemy : enemies) {
+                if (enemy && enemy->isAlive()) {
+                    enemy->setFrozen(false);
+                    enemy->setTint(enemy->getStatusEffects().empty() ? sf::Color::White : enemy->getStatusEffects().back()->getColor());
+                }
+            }
+        }
     }
+    bool frozen = (freezeTimer > 0.0f);
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
@@ -379,6 +389,10 @@ void Chamber::freezeAllEnemies(float duration) {
     freezeTimer = duration;
     for (const auto& enemy : enemies) {
         if (enemy && enemy->isAlive()) {
+            enemy->setFrozen(true);
+            enemy->setTint(sf::Color(100, 220, 255));
+            sf::Vector2f headPos = enemy->getPosition() + sf::Vector2f(0.0f, -35.0f);
+            UI::FloatingTextManager::getInstance().spawnStatus(headPos, "FROZEN", sf::Color(100, 220, 255));
             ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 15, sf::Color(100, 220, 255, 200), 20.0f, 60.0f, 0.5f, 1.0f, 3.0f);
         }
     }

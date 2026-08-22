@@ -9,6 +9,7 @@
 #include "../../chambers/map-loader.hpp"
 #include "../../global-settings/setting-manager.hpp"
 #include "../../graphics/particle-system.hpp"
+#include "../../ui/widgets/floating-text-manager.hpp"
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
 #include "../../global-settings/save-load-manager.hpp"
@@ -348,6 +349,7 @@ void GameplayState::update(float deltaTime) {
         activeChamber->update(deltaTime);
     }
     ParticleSystem::getInstance().update(deltaTime);
+    UI::FloatingTextManager::getInstance().update(deltaTime);
 
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
     if (player && hud) {
@@ -399,6 +401,9 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     // Draw particles on top of world
     window.draw(ParticleSystem::getInstance());
     
+    // Draw floating text in world space
+    UI::FloatingTextManager::getInstance().draw(window);
+
     // Restore UI View for HUD
     window.setView(uiView);
     GameState::draw(window);

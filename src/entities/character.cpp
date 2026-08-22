@@ -8,6 +8,8 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/asset-manager.hpp"
 #include "../graphics/particle-system.hpp"
+#include "../ui/widgets/floating-text-manager.hpp"
+#include <random>
 #include "effects/slowed-effect.hpp"
 
 static std::string formatDisplayName(const std::string& key) {
@@ -73,12 +75,24 @@ void Character::update(float deltaTime) {
         }
         if (!found) {
             effect->apply(*this);
+            // Spawn floating status text above character with matching color
+            sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
+            UI::FloatingTextManager::getInstance().spawnStatus(headPos, effect->getDisplayName(), effect->getColor());
             statusEffects.push_back(std::move(effect));
         }
     }
     pendingStatusEffects.clear();
 
     tickStatusEffects(deltaTime);
+
+    // Update baseline tint from active status effects or frozen state
+    if (isFrozen()) {
+        setTint(sf::Color(100, 220, 255)); // Frost Cyan
+    } else if (!statusEffects.empty()) {
+        setTint(statusEffects.back()->getColor());
+    } else {
+        setTint(sf::Color::White);
+    }
 
     if (healthBar) {
         Stats effStats = getEffectiveStats();
@@ -152,6 +166,13 @@ void Character::takeDamage(float rawAmount) {
     baseStats.hp -= finalDmg;
     std::cout << "[" << getDisplayName() << "] took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
     
+    // Spawn floating damage text above character
+    sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
+    static std::mt19937 dmgRng(std::random_device{}());
+    std::uniform_real_distribution<float> jitter(-10.0f, 10.0f);
+    headPos.x += jitter(dmgRng);
+    UI::FloatingTextManager::getInstance().spawnDamage(headPos, finalDmg);
+
     auto observersCopy = observers;
     for (auto observer : observersCopy) {
         if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
@@ -167,6 +188,9 @@ void Character::heal(float amount) {
     if (!isAlive()) return;
     baseStats.hp = std::min(baseStats.hp + amount, baseStats.maxHp);
     std::cout << "[" << getDisplayName() << "] healed " << amount << " HP. HP now: " << baseStats.hp << "\n";
+
+    sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
+    UI::FloatingTextManager::getInstance().spawnHeal(headPos, amount);
 }
 
 float Character::calculateMitigatedDamage(float rawAmount) {
@@ -200,6 +224,13 @@ void Character::clearNegativeStatusEffects() {
             }),
         pendingStatusEffects.end()
     );
+    if (isFrozen()) {
+        setTint(sf::Color(100, 220, 255));
+    } else if (!statusEffects.empty()) {
+        setTint(statusEffects.back()->getColor());
+    } else {
+        setTint(sf::Color::White);
+    }
     ParticleSystem::getInstance().emitBurst(getPosition(), 30, sf::Color(50, 255, 120, 220), 50.0f, 120.0f, 0.4f, 0.9f, 5.0f);
     std::cout << "[" << getDisplayName() << "] Antidote applied! Purged all negative status effects.\n";
 }
@@ -318,4 +349,22 @@ void Character::setCharacterKey(const std::string& key) {
             animator->setCharacterKey(key);
         }
     }
+}
+
+void Character::setTint(const sf::Color& color) {
+    if (animator) {
+        animator->setTint(color);
+    }
+}
+
+sf::Color Character::getTint() const {
+    return animator ? animator->getTint() : sf::Color::White;
+}
+
+bool Character::isFrozen() const {
+    return isFrozenState;
+}
+
+void Character::setFrozen(bool frozen) {
+    isFrozenState = frozen;
 }

@@ -9,10 +9,14 @@
 #include "../../core/run-state.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/setting-manager.hpp"
+#include "../../graphics/particle-system.hpp"
+#include "../../ui/widgets/floating-text-manager.hpp"
+#include "../effects/burned-effect.hpp"
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <random>
 
 BossMalachar::BossMalachar(Player& player)
     : Enemy("boss_malachar", player),
@@ -124,6 +128,9 @@ void BossMalachar::update(float deltaTime) {
     } else {
         Enemy::update(deltaTime);
     }
+
+    // Always update in-flight projectiles (purple orbs continue flying even when boss is frozen)
+    updateProjectiles(deltaTime);
 }
 
 void BossMalachar::updateState(float dt, Chamber& chamber) {
@@ -187,9 +194,6 @@ void BossMalachar::updateState(float dt, Chamber& chamber) {
         }
         updateSoulLance(dt, chamber);
     }
-
-    // 9. Update active projectiles
-    updateProjectiles(dt);
 
     Enemy::updateState(dt, chamber);
 }
@@ -286,6 +290,14 @@ void BossMalachar::updateProjectiles(float dt) {
             getPlayer().takeDamage(bolt.damage);
             bolt.active = false;
             std::cout << "[BossMalachar] Void Bolt hit Serin for " << bolt.damage << " damage!\n";
+
+            // 25% chance to inflict Burned status effect
+            static std::mt19937 burnRng(std::random_device{}());
+            std::uniform_real_distribution<float> burnDist(0.0f, 1.0f);
+            if (burnDist(burnRng) < 0.25f) {
+                getPlayer().applyStatusEffect(std::make_unique<BurnedEffect>(5.0f, 5.0f));
+                std::cout << "[BossMalachar] Void Bolt inflicted Burned on Serin!\n";
+            }
         }
     }
 
@@ -390,6 +402,15 @@ void BossMalachar::soulLance(Chamber& chamber) {
 void BossMalachar::takeDamage(float rawAmount) {
     if (!isAlive()) return;
 
+    // By default, Boss Malachar is shielded and immune to damage unless frozen!
+    if (!isFrozen()) {
+        sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -50.0f);
+        UI::FloatingTextManager::getInstance().spawnStatus(headPos, "SHIELDED", sf::Color(140, 200, 255));
+        ParticleSystem::getInstance().emitBurst(getPosition(), 15, sf::Color(140, 200, 255, 220), 30.0f, 80.0f, 0.2f, 0.5f, 3.0f);
+        std::cout << "[BossMalachar] Attack deflected! Boss is SHIELDED (can only be attacked while frozen)!\n";
+        return;
+    }
+
     // Hollow Bell reflect ward (Phase 1 only)
     if (currentPhase == 1 && reflectWardActive && reflectWardCooldown <= 0.0f) {
         reflectWardCooldown = 8.0f;
@@ -420,6 +441,18 @@ sf::FloatRect BossMalachar::getBounds() const {
 }
 
 void BossMalachar::draw(sf::RenderWindow& window) const {
+    // 0. Draw protective shield barrier (active when not frozen)
+    if (isAlive() && !isFrozen()) {
+        float radius = 55.0f;
+        sf::CircleShape shield(radius);
+        shield.setOrigin({radius, radius});
+        shield.setPosition(getPosition());
+        shield.setFillColor(sf::Color(100, 180, 255, 30));
+        shield.setOutlineColor(sf::Color(140, 210, 255, 130));
+        shield.setOutlineThickness(2.5f);
+        window.draw(shield);
+    }
+
     // 1. Draw Void Bolt charge glow around Malachar
     if (isVoidBoltCharging) {
         float radius = 60.0f;
@@ -485,4 +518,16 @@ void BossMalachar::clearProjectiles() {
     voidBolts.clear();
     isVoidBoltCharging = false;
     isSoulLanceCharging = false;
+}
+
+void BossMalachar::cancelCharging() {
+    isVoidBoltCharging = false;
+    voidBoltTelegraphTimer = 0.0f;
+    voidBoltsRemaining = 0;
+    
+    isSoulLanceCharging = false;
+    soulLanceTelegraphTimer = 0.0f;
+    
+    setVelocity({0.0f, 0.0f});
+    std::cout << "[BossMalachar] Attack charging canceled due to Freeze!\n";
 }

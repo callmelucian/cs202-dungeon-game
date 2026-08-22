@@ -85,10 +85,10 @@ FreezePotion::FreezePotion(sf::Vector2f startPos)
     : Item(startPos, sf::IntRect({48, 240}, {24, 24})) {}
 
 void FreezePotion::onCollect(Player& player, Chamber& chamber) {
-    std::cout << "Freeze Potion collected! Freezing all enemies for 10 seconds.\n";
+    std::cout << "Freeze Potion collected! Freezing all enemies for 7 seconds.\n";
     SoundManager::getInstance().playSound("pickup");
     ParticleSystem::getInstance().emitBurst(getPosition(), 25, sf::Color(100, 220, 255, 230), 40.0f, 120.0f, 0.4f, 0.9f, 4.0f);
-    chamber.freezeAllEnemies(10.0f);
+    chamber.freezeAllEnemies(7.0f);
 }
 
 // ---- SpeedPotion ----
