@@ -2,6 +2,9 @@
 #include "math-utility.hpp"
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
+
+Camera* Camera::activeCamera = nullptr;
 
 Camera::Camera()
     : windowSize(1280.0f, 720.0f),
@@ -12,9 +15,13 @@ Camera::Camera()
       minZoom(0.5f),
       positionSpeed(8.0f),
       zoomSpeed(10.0f),
-      zoomStep(0.05f) {
+      zoomStep(0.05f),
+      shakeIntensity(0.0f),
+      shakeDuration(0.0f),
+      shakeTimer(0.0f) {
     view.setSize({windowSize.x * currentZoom, windowSize.y * currentZoom});
     view.setCenter(currentCenter);
+    activeCamera = this;
 }
 
 Camera::Camera(sf::Vector2f winSize, float initialZoom)
@@ -26,9 +33,13 @@ Camera::Camera(sf::Vector2f winSize, float initialZoom)
       minZoom(0.5f),
       positionSpeed(8.0f),
       zoomSpeed(10.0f),
-      zoomStep(0.05f) {
+      zoomStep(0.05f),
+      shakeIntensity(0.0f),
+      shakeDuration(0.0f),
+      shakeTimer(0.0f) {
     view.setSize({windowSize.x * currentZoom, windowSize.y * currentZoom});
     view.setCenter(currentCenter);
+    activeCamera = this;
 }
 
 void Camera::init(sf::Vector2f winSize, float initialZoom) {
@@ -113,7 +124,34 @@ void Camera::update(float deltaTime, const sf::FloatRect& mapBounds) {
     }
 
     currentCenter = sf::Vector2f(camX, camY);
-    view.setCenter(currentCenter);
+
+    // 5. Apply camera shake offset if active
+    if (shakeTimer > 0.0f) {
+        shakeTimer -= deltaTime;
+        float progress = std::clamp(shakeTimer / std::max(0.001f, shakeDuration), 0.0f, 1.0f);
+        float curIntensity = shakeIntensity * progress;
+        float offX = (((rand() % 200) - 100) / 100.0f) * curIntensity;
+        float offY = (((rand() % 200) - 100) / 100.0f) * curIntensity;
+        view.setCenter(currentCenter + sf::Vector2f(offX, offY));
+    } else {
+        view.setCenter(currentCenter);
+    }
+}
+
+void Camera::setActiveCamera(Camera* cam) {
+    activeCamera = cam;
+}
+
+void Camera::triggerShake(float intensity, float duration) {
+    if (activeCamera) {
+        activeCamera->shake(intensity, duration);
+    }
+}
+
+void Camera::shake(float intensity, float duration) {
+    shakeIntensity = intensity;
+    shakeDuration = duration;
+    shakeTimer = duration;
 }
 
 const sf::View& Camera::getView() const {

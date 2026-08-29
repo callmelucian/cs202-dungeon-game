@@ -9,6 +9,7 @@
 #include "../chambers/chamber.hpp"
 #include "effects/slowed-effect.hpp"
 #include "../global-settings/sound-manager.hpp"
+#include "../ui/graphics/aura-renderer.hpp"
 
 Player::Player(PlayableCharacter& character)
     : Character(character.getName()),
@@ -112,11 +113,65 @@ void Player::update(float deltaTime) {
 }
 
 void Player::draw(sf::RenderWindow& window) const {
+    // 1. Passive Ironshell slow air field
+    if (getActiveFormType() == FormType::IRONSHELL && !stateMachine.isInTemporaryState()) {
+        float cellSize = SettingManager::getInstance().getCellSize();
+        float auraRadius = 4.0f * cellSize;
+        // Subtle ambient atmospheric slow air field emitted from Ironshell
+        sf::Color coreColor(140, 180, 220, 30);
+        sf::Color edgeColor(100, 150, 200, 50);
+        AuraRenderer::getInstance().drawAura(window, getPosition(), auraRadius, coreColor, edgeColor, 0.45f, 0.8f);
+    }
+
+    // 2. Status effect radial aura veils
+    if (hasStatusEffect("SpeedUp")) {
+        // Luminous yellow speed air aura veil
+        sf::Color yellowCore(255, 235, 90, 130);
+        sf::Color yellowEdge(255, 180, 20, 190);
+        AuraRenderer::getInstance().drawAura(window, getPosition(), 48.0f, yellowCore, yellowEdge, 1.1f, 1.5f);
+    }
+
+    if (hasStatusEffect("CriticalBoost")) {
+        // Glowing crimson critical boost air aura veil
+        sf::Color redCore(255, 80, 80, 140);
+        sf::Color redEdge(220, 20, 20, 200);
+        AuraRenderer::getInstance().drawAura(window, getPosition(), 48.0f, redCore, redEdge, 1.15f, 1.6f);
+    }
+
     Character::draw(window);
 
     if (stateMachine.getActiveState()) {
         stateMachine.getActiveState()->draw(*this, window);
     }
+}
+
+void Player::setDebugCriticalRate(std::optional<float> rate) {
+    debugCritRate = rate;
+}
+
+std::optional<float> Player::getDebugCriticalRate() const {
+    return debugCritRate;
+}
+
+float Player::getCriticalHitRate() const {
+    if (debugCritRate.has_value()) {
+        return *debugCritRate;
+    }
+
+    FormType currentForm = getActiveFormType();
+    // Close-combat forms: Wraithblade and Ironshell
+    if (currentForm == FormType::WRAITHBLADE || currentForm == FormType::IRONSHELL) {
+        if (hasStatusEffect("CriticalBoost")) {
+            return 0.50f; // 50% crit rate when boosted by Critical Potion
+        }
+        return 0.20f; // 20% base close-combat crit rate
+    }
+
+    // Ranged form: Voidcaster
+    if (hasStatusEffect("CriticalBoost")) {
+        return 0.50f;
+    }
+    return 0.0f;
 }
 
 
@@ -138,7 +193,7 @@ void Player::applySlowAura(std::vector<Enemy*>& enemies) {
     }
 }
 
-void Player::takeDamage(float rawAmount) {
+void Player::takeDamage(float rawAmount, bool isCritical) {
     // 1. Modify incoming damage via active state (Decorator)
     float modifiedAmount = rawAmount;
     if (stateMachine.getActiveState()) {
@@ -147,7 +202,7 @@ void Player::takeDamage(float rawAmount) {
 
     // 2. Apply mitigated damage to base HP
     float oldHp = baseStats.hp;
-    Character::takeDamage(modifiedAmount);
+    Character::takeDamage(modifiedAmount, isCritical);
     float actualHpLost = oldHp - baseStats.hp;
 
     // 3. Gain momentum — rate is defined by the active form (no FormType switch needed)

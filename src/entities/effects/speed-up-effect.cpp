@@ -1,5 +1,5 @@
 #include "speed-up-effect.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
 #include "../character.hpp"
 
 SpeedUpEffect::SpeedUpEffect(float duration)

@@ -62,6 +62,9 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
         } else if (dropType == "SPEED_POTION") {
             items.push_back(std::make_unique<SpeedPotion>(pos));
             std::cout << "[ItemManager] Guaranteed Speed-Up Potion spawned from enemy death!\n";
+        } else if (dropType == "CRITICAL_POTION") {
+            items.push_back(std::make_unique<CriticalPotion>(pos));
+            std::cout << "[ItemManager] Guaranteed Critical Hit Potion spawned from enemy death!\n";
         } else if (dropType == "ANTIDOTE") {
             items.push_back(std::make_unique<AntidotePotion>(pos));
             std::cout << "[ItemManager] Guaranteed Antidote spawned from enemy death!\n";
@@ -69,13 +72,16 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
             items.push_back(std::make_unique<HealthPotion>(pos));
             std::cout << "[ItemManager] Guaranteed Healer spawned from enemy death!\n";
         } else if (dropType == "RANDOM_NON_FREEZE") {
-            // Equal 1/3 distribution among Speed, Antidote, and Healer for Boss Chamber 2nd add
-            std::uniform_int_distribution<int> pickDist(0, 2);
+            // Equal 1/4 distribution among Speed, Critical, Antidote, and Healer for Boss Chamber 2nd add
+            std::uniform_int_distribution<int> pickDist(0, 3);
             int pick = pickDist(rng);
             if (pick == 0) {
                 items.push_back(std::make_unique<SpeedPotion>(pos));
                 std::cout << "[ItemManager] Boss Add 2 Drop: Speed-Up Potion spawned!\n";
             } else if (pick == 1) {
+                items.push_back(std::make_unique<CriticalPotion>(pos));
+                std::cout << "[ItemManager] Boss Add 2 Drop: Critical Hit Potion spawned!\n";
+            } else if (pick == 2) {
                 items.push_back(std::make_unique<AntidotePotion>(pos));
                 std::cout << "[ItemManager] Boss Add 2 Drop: Antidote spawned!\n";
             } else {
@@ -91,8 +97,8 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
             // 25% overall chance that an item drops
             std::uniform_real_distribution<float> dropDist(0.0f, 100.0f);
             if (dropDist(rng) < 25.0f) {
-                // Select item with equal distribution among the 4 items (25% each)
-                std::uniform_int_distribution<int> itemDist(0, 3);
+                // Select item with equal distribution among the 5 items (20% each)
+                std::uniform_int_distribution<int> itemDist(0, 4);
                 int itemType = itemDist(rng);
                 if (itemType == 0) {
                     items.push_back(std::make_unique<FreezePotion>(pos));
@@ -101,6 +107,9 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
                     items.push_back(std::make_unique<SpeedPotion>(pos));
                     std::cout << "[ItemManager] 25% Drop: Speed-Up Potion dropped!\n";
                 } else if (itemType == 2) {
+                    items.push_back(std::make_unique<CriticalPotion>(pos));
+                    std::cout << "[ItemManager] 25% Drop: Critical Hit Potion dropped!\n";
+                } else if (itemType == 3) {
                     items.push_back(std::make_unique<AntidotePotion>(pos));
                     std::cout << "[ItemManager] 25% Drop: Antidote dropped!\n";
                 } else {

@@ -1,6 +1,6 @@
 #include "arrow-projectile.hpp"
 #include "../../global-settings/asset-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../utils/collision-solver.hpp"
 #include "../../chambers/chamber.hpp"

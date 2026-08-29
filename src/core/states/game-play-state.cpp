@@ -1,5 +1,6 @@
 #include "game-play-state.hpp"
 #include "pause-state.hpp"
+#include "echo-log-state.hpp"
 #include "debug-state.hpp"
 #include "game-over-state.hpp"
 #include "main-menu-state.hpp"
@@ -8,7 +9,8 @@
 #include "../../chambers/boss-chamber.hpp"
 #include "../../chambers/map-loader.hpp"
 #include "../../global-settings/setting-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include "../../ui/widgets/floating-text-manager.hpp"
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
@@ -20,6 +22,10 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
     setupUI();
     
     RunState& runState = Game::getInstance().getRunState();
+    if (runState.currentLevel >= 4 && runState.hasDecoyReliquaryBuff && player) {
+        player->setMaxHp(120.0f);
+        player->heal(20.0f);
+    }
     activeChamber = ChamberFactory::createChamber(runState.currentLevel, runState.currentChamber, *player);
     if (activeChamber) {
         activeChamber->setObserver(this);
@@ -109,31 +115,35 @@ void GameplayState::setupUI() {
     buttonBox = buttonBoxWrapper->createChild<UI::HorizontalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
-        ->setSpacing(25.f)
+        ->setSpacing(15.f)
         ->setDistribution(UI::Distribution::SpaceBetween)
-        ->setPadding(20.f, 20.f, 20.f, 20.f)
+        ->setPadding(15.f, 15.f, 15.f, 15.f)
         ->setColor(sf::Color({255, 255, 255, 10}));
 
     // Set defaults for buttons inside buttonBox
     buttonBox->setChildDefaults({
         .modeX = UI::SizeMode::Fixed,
         .modeY = UI::SizeMode::Fixed,
-        .fixedWidth = 180.f,
-        .fixedHeight = 50.f
+        .fixedWidth = 140.f,
+        .fixedHeight = 45.f
     });
 
     // Add buttons
-    pauseButton = buttonBox->createChild<UI::Button>("Pause", "regular", 25)
+    pauseButton = buttonBox->createChild<UI::Button>("Pause", "regular", 22)
         ->setOnClick([this]() {
             stateManager.pushState(std::make_unique<PauseState>(stateManager));
         });
-    debugButton = buttonBox->createChild<UI::Button>("Debug", "regular", 25)
+    echoesButton = buttonBox->createChild<UI::Button>("Echoes", "regular", 22)
+        ->setOnClick([this]() {
+            stateManager.pushState(std::make_unique<EchoLogState>(stateManager));
+        });
+    debugButton = buttonBox->createChild<UI::Button>("Debug", "regular", 22)
         ->setOnClick([this]() {
             if (player) {
                 stateManager.pushState(std::make_unique<DebugState>(stateManager, *player));
             }
         });
-    quitButton = buttonBox->createChild<UI::Button>("Quit Game", "regular", 25)
+    quitButton = buttonBox->createChild<UI::Button>("Quit Game", "regular", 22)
         ->setOnClick([this]() {
             stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
         });
@@ -349,6 +359,7 @@ void GameplayState::update(float deltaTime) {
         activeChamber->update(deltaTime);
     }
     ParticleSystem::getInstance().update(deltaTime);
+    AuraRenderer::getInstance().update(deltaTime);
     UI::FloatingTextManager::getInstance().update(deltaTime);
 
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
@@ -401,7 +412,14 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     // Draw particles on top of world
     window.draw(ParticleSystem::getInstance());
     
-    // Draw floating text in world space
+    // Draw screen flash if active (drawn over world before floating text, so red crit text stays visible on top!)
+    if (AuraRenderer::getInstance().hasScreenFlash()) {
+        window.setView(uiView);
+        AuraRenderer::getInstance().drawScreenFlash(window, window.getSize());
+        window.setView(camera.getView());
+    }
+
+    // Draw floating text in world space (visible on top of the white flash!)
     UI::FloatingTextManager::getInstance().draw(window);
 
     // Restore UI View for HUD

@@ -21,7 +21,15 @@ bool SaveLoadManager::saveGame(const RunState& state, const std::string& filenam
             outcomes[std::to_string(static_cast<int>(type))] = static_cast<int>(outcome);
         }
         j["echoOutcomes"] = outcomes;
+
+        json powers;
+        for (const auto& [type, power] : state.echoPowers) {
+            powers[std::to_string(static_cast<int>(type))] = power;
+        }
+        j["echoPowers"] = powers;
+
         j["echoesStolen"] = state.echoesStolen;
+        j["hasDecoyReliquaryBuff"] = state.hasDecoyReliquaryBuff;
         
         j["playerHP"] = state.playerHP;
         j["activeForm"] = static_cast<int>(state.activeForm);
@@ -72,7 +80,14 @@ bool SaveLoadManager::loadGame(RunState& state, const std::string& filename) {
                 state.echoOutcomes[type] = outcome;
             }
         }
+        if (j.contains("echoPowers")) {
+            for (auto& el : j["echoPowers"].items()) {
+                EchoType type = static_cast<EchoType>(std::stoi(el.key()));
+                state.echoPowers[type] = el.value().get<float>();
+            }
+        }
         if (j.contains("echoesStolen")) state.echoesStolen = j["echoesStolen"];
+        if (j.contains("hasDecoyReliquaryBuff")) state.hasDecoyReliquaryBuff = j["hasDecoyReliquaryBuff"];
 
         if (j.contains("playerHP")) state.playerHP = j["playerHP"];
         if (j.contains("activeForm")) state.activeForm = static_cast<FormType>(j["activeForm"].get<int>());
@@ -87,6 +102,8 @@ bool SaveLoadManager::loadGame(RunState& state, const std::string& filename) {
 
         if (j.contains("foretellActive")) state.foretellActive = j["foretellActive"];
         if (j.contains("foretellPhase1")) state.foretellPhase1 = j["foretellPhase1"];
+
+        state.syncEchoModifiers();
 
         return true;
     } catch (const std::exception& e) {

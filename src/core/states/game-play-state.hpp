@@ -52,6 +52,7 @@ private:
     UI::Container* buttonBoxWrapper;
     
     UI::Button* pauseButton;
+    UI::Button* echoesButton;
     UI::Button* debugButton;
     UI::Button* quitButton;
 

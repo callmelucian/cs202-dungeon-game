@@ -3,7 +3,8 @@
 #include "../effects/paralyzed-effect.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../global-settings/sound-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include <algorithm>
 
 IronshellForm::IronshellForm()
@@ -95,16 +96,10 @@ void IronshellAegisPulseState::draw(const Player& player, sf::RenderWindow& wind
     float progress = std::clamp(elapsedTime / duration, 0.0f, 1.0f);
     float maxRadius = 5.0f * 60.0f; // 300px
     float currentRadius = maxRadius * (0.1f + 0.9f * progress);
-    uint8_t alpha = static_cast<uint8_t>(255.0f * (1.0f - progress));
 
-    sf::CircleShape pulse(currentRadius);
-    pulse.setOrigin({currentRadius, currentRadius});
-    pulse.setPosition(player.getPosition());
-    pulse.setFillColor(sf::Color(255, 215, 0, alpha / 4)); // Translucent golden fill
-    pulse.setOutlineColor(sf::Color(255, 230, 100, alpha)); // Bright gold expanding ring
-    pulse.setOutlineThickness(4.0f);
-
-    window.draw(pulse);
+    // Smooth expanding golden radial pulse
+    sf::Color pulseColor(255, 215, 0, 220);
+    AuraRenderer::getInstance().drawPulse(window, player.getPosition(), currentRadius, maxRadius, pulseColor, progress);
 }
 
 // ---- IronshellVeilOfThornsState ----
@@ -149,14 +144,8 @@ void IronshellVeilOfThornsState::draw(const Player& player, sf::RenderWindow& wi
     SpecialAbilityState::draw(player, window);
 
     float radius = 4.0f * 60.0f; // 240px
-    sf::CircleShape aura(radius);
-    aura.setOrigin({radius, radius});
-    aura.setPosition(player.getPosition());
-
-    // Glowing golden thorn aura ring
-    aura.setFillColor(sf::Color(255, 180, 40, 35));
-    aura.setOutlineColor(sf::Color(255, 210, 60, 220));
-    aura.setOutlineThickness(3.5f);
-
-    window.draw(aura);
+    // Smooth radial gradient amber/gold resonance air aura radiating outward from the player
+    sf::Color coreColor(255, 235, 100, 110); // Bright golden resonant core
+    sf::Color edgeColor(230, 160, 20, 170);  // Deep amber protective boundary air
+    AuraRenderer::getInstance().drawAura(window, player.getPosition(), radius, coreColor, edgeColor, 1.0f, 1.1f);
 }

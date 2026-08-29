@@ -2,9 +2,10 @@
 #include "../entities/player.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
 #include "../utils/math-utility.hpp"
 #include "../entities/enemy/enemy-state.hpp"
+#include "../ui/widgets/floating-text-manager.hpp"
 #include "../core/game.hpp"
 #include <iostream>
 
@@ -38,7 +39,18 @@ void PreventChamber::update(float dt) {
                 RunState& runState = Game::getInstance().getRunState();
                 if (associatedEcho.has_value()) {
                     runState.echoOutcomes[*associatedEcho] = EchoOutcome::STOLEN;
+                    runState.echoPowers[*associatedEcho] = 0.0f;
                     runState.echoesStolen++;
+
+                    std::string echoName = "Echo";
+                    if (*associatedEcho == EchoType::CLARITY_SHARD) echoName = "Clarity Shard";
+                    else if (*associatedEcho == EchoType::MARROW) echoName = "Marrow Echo";
+                    else if (*associatedEcho == EchoType::HOLLOW_BELL) echoName = "Hollow Bell";
+                    else if (*associatedEcho == EchoType::RESONANCE_CORE) echoName = "Resonance Core";
+                    else if (*associatedEcho == EchoType::OBSIDIAN_KEY) echoName = "Obsidian Key";
+
+                    sf::Vector2f notifyPos = exitPosition + sf::Vector2f(0.0f, -50.0f);
+                    UI::FloatingTextManager::getInstance().spawnEchoStolen(notifyPos, echoName);
                 }
                 
                 // Carrier escapes with the Echo — drops 0 fragments on exit gate
@@ -52,7 +64,18 @@ void PreventChamber::update(float dt) {
         RunState& runState = Game::getInstance().getRunState();
         if (associatedEcho.has_value() && runState.echoOutcomes[*associatedEcho] != EchoOutcome::STOLEN) {
             runState.echoOutcomes[*associatedEcho] = EchoOutcome::COLLECTED;
+            runState.echoPowers[*associatedEcho] = 100.0f;
             runState.syncEchoModifiers();
+
+            std::string echoName = "Echo";
+            if (*associatedEcho == EchoType::CLARITY_SHARD) echoName = "Clarity Shard";
+            else if (*associatedEcho == EchoType::MARROW) echoName = "Marrow Echo";
+            else if (*associatedEcho == EchoType::HOLLOW_BELL) echoName = "Hollow Bell";
+            else if (*associatedEcho == EchoType::RESONANCE_CORE) echoName = "Resonance Core";
+            else if (*associatedEcho == EchoType::OBSIDIAN_KEY) echoName = "Obsidian Key";
+
+            sf::Vector2f notifyPos = player.getPosition() + sf::Vector2f(0.0f, -50.0f);
+            UI::FloatingTextManager::getInstance().spawnEchoCollected(notifyPos, echoName, 100.0f);
             std::cout << "PreventChamber: All enemies defeated! Echo safely preserved and COLLECTED.\n";
         }
         completeChamber();

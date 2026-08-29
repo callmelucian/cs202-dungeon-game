@@ -19,7 +19,7 @@ public:
 
     virtual void update(float deltaTime) = 0;
     virtual void draw(sf::RenderWindow &window) const;
-    virtual void takeDamage(float rawAmount);
+    virtual void takeDamage(float rawAmount, bool isCritical = false);
     virtual void heal(float amount);
     void applyStatusEffect(std::unique_ptr<StatusEffect> effect);
     void clearNegativeStatusEffects();
@@ -38,6 +38,7 @@ public:
     virtual void onWallCollision();
     float getHp() const;
     void setHp(float hp);
+    void setMaxHp(float maxHp);
     float getSpeed() const;
     void setSpeed(float speed);
     bool canAct() const;
@@ -45,6 +46,7 @@ public:
     virtual Stats getEffectiveStats() const;
     bool isAlive() const;
     bool isSlowed() const;
+    bool hasStatusEffect(const std::string& name) const;
     const std::vector<std::unique_ptr<StatusEffect>>& getStatusEffects() const { return statusEffects; }
 
     virtual std::string getDisplayName() const;

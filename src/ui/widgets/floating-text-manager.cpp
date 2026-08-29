@@ -103,13 +103,13 @@ void FloatingTextManager::spawnDamage(sf::Vector2f pos, float amount, bool isCri
     std::ostringstream ss;
     ss << "-" << static_cast<int>(std::round(amount));
 
-    unsigned int size = isCritical ? 12 : 9;
-    sf::Color fill = isCritical ? sf::Color(255, 220, 100) : sf::Color::White; // Pure white damage text
-    sf::Color outline = sf::Color(0, 0, 0, 230); // Clean black outline
-    float duration = isCritical ? 1.0f : 0.75f;
+    unsigned int size = isCritical ? 14 : 9;
+    sf::Color fill = isCritical ? sf::Color(255, 40, 40) : sf::Color::White; // Bright Red for critical hits, White for normal
+    sf::Color outline = sf::Color(0, 0, 0, 240); // Solid black outline
+    float duration = isCritical ? 1.1f : 0.75f;
     sf::Vector2f vel(0.0f, isCritical ? -70.0f : -50.0f);
 
-    spawnText(pos, ss.str(), fill, size, "header", duration, vel, outline, 1.5f);
+    spawnText(pos, ss.str(), fill, size, "header", duration, vel, outline, isCritical ? 2.0f : 1.5f);
 }
 
 void FloatingTextManager::spawnHeal(sf::Vector2f pos, float amount) {
@@ -127,6 +127,27 @@ void FloatingTextManager::spawnStatus(sf::Vector2f pos, const std::string& statu
     sf::Color outline(0, 0, 0, 220);
     sf::Vector2f vel(0.0f, -40.0f);
     spawnText(pos, statusName, color, 8, "header", 0.9f, vel, outline, 1.5f);
+}
+
+void FloatingTextManager::spawnEchoCollected(sf::Vector2f pos, const std::string& echoName, float power) {
+    std::ostringstream ss;
+    ss << "+ ECHO COLLECTED: " << echoName << " (" << static_cast<int>(std::round(power)) << "%)";
+
+    sf::Color fill(80, 240, 140); // Radiant Emerald Gold
+    sf::Color outline(0, 0, 0, 240);
+    sf::Vector2f vel(0.0f, -30.0f);
+
+    spawnText(pos, ss.str(), fill, 10, "header", 2.2f, vel, outline, 1.5f);
+}
+
+void FloatingTextManager::spawnEchoStolen(sf::Vector2f pos, const std::string& echoName) {
+    std::string text = "- ECHO STOLEN: " + echoName + "!";
+
+    sf::Color fill(255, 70, 70); // Fiery Crimson
+    sf::Color outline(0, 0, 0, 240);
+    sf::Vector2f vel(0.0f, -30.0f);
+
+    spawnText(pos, text, fill, 10, "header", 2.2f, vel, outline, 1.5f);
 }
 
 } // namespace UI

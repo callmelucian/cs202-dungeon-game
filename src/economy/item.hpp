@@ -54,6 +54,12 @@ public:
     void onCollect(Player& player, Chamber& chamber) override;
 };
 
+class CriticalPotion : public Item {
+public:
+    CriticalPotion(sf::Vector2f startPos);
+    void onCollect(Player& player, Chamber& chamber) override;
+};
+
 class AntidotePotion : public Item {
 public:
     AntidotePotion(sf::Vector2f startPos);

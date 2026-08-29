@@ -4,7 +4,8 @@
 #include "../utils/math-utility.hpp"
 #include "../utils/pathfinder.hpp"
 #include "../global-settings/sound-manager.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
+#include "../ui/widgets/floating-text-manager.hpp"
 #include "../core/game.hpp"
 #include <iostream>
 
@@ -53,28 +54,24 @@ void ProtectChamber::update(float dt) {
                 RunState& runState = Game::getInstance().getRunState();
                 if (!isReliquaryDecoy) {
                     runState.echoOutcomes[associatedEcho] = EchoOutcome::COLLECTED;
-                    if (associatedEcho == EchoType::CLARITY_SHARD) {
-                        runState.foretellActive = true;
-                        if (echo->getPower() >= 90.0f) {
-                            runState.foretellPhase1 = true;
-                            runState.collectTimeReduction = 0.80f; // 20% reduction if fully intact
-                        } else {
-                            runState.collectTimeReduction = 0.90f; // 10% reduction
-                        }
-                    }
-                    if (associatedEcho == EchoType::HOLLOW_BELL) {
-                        if (echo->getPower() >= 90.0f) {
-                            runState.special1MomentumThreshold = 35.0f; // 30% reduction if fully intact
-                        } else {
-                            runState.special1MomentumThreshold = 42.5f; // 15% reduction
-                        }
-                    }
+                    runState.echoPowers[associatedEcho] = echo->getPower();
                     runState.syncEchoModifiers();
-                }
 
-                if (isReliquaryDecoy) {
+                    std::string echoName = "Echo";
+                    if (associatedEcho == EchoType::CLARITY_SHARD) echoName = "Clarity Shard";
+                    else if (associatedEcho == EchoType::MARROW) echoName = "Marrow Echo";
+                    else if (associatedEcho == EchoType::HOLLOW_BELL) echoName = "Hollow Bell";
+                    else if (associatedEcho == EchoType::RESONANCE_CORE) echoName = "Resonance Core";
+                    else if (associatedEcho == EchoType::OBSIDIAN_KEY) echoName = "Obsidian Key";
+
+                    sf::Vector2f notifyPos = player.getPosition() + sf::Vector2f(0.0f, -50.0f);
+                    UI::FloatingTextManager::getInstance().spawnEchoCollected(notifyPos, echoName, echo->getPower());
+                } else {
+                    runState.hasDecoyReliquaryBuff = true;
                     float buffAmount = player.getEffectiveStats().maxHp * 0.20f;
                     player.heal(buffAmount);
+                    sf::Vector2f notifyPos = player.getPosition() + sf::Vector2f(0.0f, -50.0f);
+                    UI::FloatingTextManager::getInstance().spawnText(notifyPos, "+ SACRED RELIQUARY DEFENDED! (+20% MAX HP)", sf::Color(80, 240, 140), 10, "header", 2.2f);
                     std::cout << "Sarcophagus Reliquary Defended! Granted +20% Max HP buff (" << buffAmount << " HP).\n";
                 }
                 completeChamber();
@@ -182,4 +179,4 @@ bool ProtectChamber::checkIronshellRedirect() {
         }
     }
     return false;
-}
+}

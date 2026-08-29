@@ -9,7 +9,8 @@
 #include "../../core/run-state.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/setting-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include "../../ui/widgets/floating-text-manager.hpp"
 #include "../effects/burned-effect.hpp"
 #include <iostream>
@@ -25,7 +26,7 @@ BossMalachar::BossMalachar(Player& player)
       cycleTimer(0.0f),
       isVoidBoltCharging(false),
       voidBoltTelegraphTimer(0.0f),
-      voidBoltTelegraphMax(0.5f),
+      voidBoltTelegraphMax(1.5f),
       voidBoltsRemaining(0),
       voidBoltIntervalTimer(0.0f),
       summoningBurstFired(false),
@@ -34,7 +35,7 @@ BossMalachar::BossMalachar(Player& player)
       soulLanceCooldown(10.0f),
       isSoulLanceCharging(false),
       soulLanceTelegraphTimer(0.0f),
-      soulLanceTelegraphMax(1.0f),
+      soulLanceTelegraphMax(2.0f),
       reflectWardActive(false),
       reflectWardCooldown(0.0f),
       foretellActive(false),
@@ -91,7 +92,7 @@ void BossMalachar::applyRunStateModifiers() {
 void BossMalachar::resetCycle() {
     isVoidBoltCharging = true;
     
-    voidBoltTelegraphMax = foretellActive ? 1.1f : 0.5f;
+    voidBoltTelegraphMax = foretellActive ? 2.0f : 1.5f;
     voidBoltTelegraphTimer = voidBoltTelegraphMax;
     voidBoltsRemaining = 3;
     voidBoltIntervalTimer = 0.0f;
@@ -284,9 +285,9 @@ void BossMalachar::updateProjectiles(float dt) {
             continue;
         }
 
-        // Check collision with player (hitbox radius 20px)
+        // Check collision with player (hitbox radius 15px for smaller orb)
         float dist = Math::distance(bolt.position, playerPos);
-        if (dist < 20.0f) {
+        if (dist < 15.0f) {
             getPlayer().takeDamage(bolt.damage);
             bolt.active = false;
             std::cout << "[BossMalachar] Void Bolt hit Serin for " << bolt.damage << " damage!\n";
@@ -326,28 +327,20 @@ void BossMalachar::performBlink(Chamber& chamber) {
         // Randomize next blink between 6 and 9 seconds
         blinkTimer = 6.0f + static_cast<float>(std::rand() % 300) / 100.0f;
 
-        BossChamber* bossChamber = dynamic_cast<BossChamber*>(&chamber);
-        if (bossChamber && currentPhase == 3) {
-            const auto& platforms = bossChamber->getPlatforms();
-            std::vector<int> validIndices;
-            for (size_t i = 0; i < platforms.size(); ++i) {
-                if (!platforms[i].isSundered) validIndices.push_back(static_cast<int>(i));
-            }
-            if (!validIndices.empty()) {
-                int chosen = validIndices[std::rand() % validIndices.size()];
-                setPosition(platforms[chosen].center);
-                std::cout << "[BossMalachar] Blinked to Platform " << chosen << "\n";
-                return;
-            }
-        }
+        float cellSize = SettingManager::getInstance().getCellSize();
+        float ox = SettingManager::getInstance().getGridOffsetX();
+        float oy = SettingManager::getInstance().getGridOffsetY();
 
-        // Default blink position around center
+        // Single arena center
+        sf::Vector2f arenaCenter = {ox + 10.0f * cellSize, oy + 10.0f * cellSize};
         float angle = static_cast<float>(std::rand() % 360) * (3.14159265f / 180.0f);
-        float radius = 100.0f + static_cast<float>(std::rand() % 200);
-        sf::Vector2f currentPos = getPosition();
-        sf::Vector2f newPos = currentPos + sf::Vector2f(std::cos(angle) * radius, std::sin(angle) * radius);
+        float radius = static_cast<float>(std::rand() % std::max(1, static_cast<int>(6.0f * cellSize)));
+        sf::Vector2f newPos = arenaCenter + sf::Vector2f(std::cos(angle) * radius, std::sin(angle) * radius);
+
+        ParticleSystem::getInstance().emitBurst(getPosition(), 20, sf::Color(140, 40, 220, 220), 40.0f, 90.0f, 0.2f, 0.6f, 3.0f);
         setPosition(newPos);
-        std::cout << "[BossMalachar] Blinked to new arena location!\n";
+        ParticleSystem::getInstance().emitBurst(newPos, 20, sf::Color(140, 40, 220, 220), 40.0f, 90.0f, 0.2f, 0.6f, 3.0f);
+        std::cout << "[BossMalachar] Blinked to new arena location (" << newPos.x << ", " << newPos.y << ")!\n";
     }
 }
 
@@ -358,9 +351,13 @@ void BossMalachar::resonanceCoreBurst() {
         baseStats.hp = std::max(0.0f, baseStats.hp - burstDamage);
         std::cout << "[BossMalachar] Resonance Core transition burst dealt " << burstDamage << " damage to Malachar!\n";
 
-        // Double burst (~1s apart) if Resonance Core was collected/intact
-        pendingResonanceBurst = true;
-        pendingResonanceBurstTimer = 1.0f;
+        // Double burst (~1s apart) only if Resonance Core was collected fully intact (>= 90%)
+        if (runState.echoPowers.count(EchoType::RESONANCE_CORE) && runState.echoPowers[EchoType::RESONANCE_CORE] >= 90.0f) {
+            pendingResonanceBurst = true;
+            pendingResonanceBurstTimer = 1.0f;
+        } else {
+            pendingResonanceBurst = false;
+        }
     }
 }
 
@@ -392,18 +389,18 @@ void BossMalachar::soulLance(Chamber& chamber) {
     std::cout << "[BossMalachar] Casting Soul Lance!\n";
     isSoulLanceCharging = true;
 
-    soulLanceTelegraphMax = foretellActive ? 1.6f : 1.0f;
+    soulLanceTelegraphMax = foretellActive ? 2.5f : 2.0f;
     soulLanceTelegraphTimer = soulLanceTelegraphMax;
     soulLanceStartPos = getPosition();
     soulLanceTargetPos = getPlayer().getPosition();
     soulLanceCooldown = 10.0f;
 }
 
-void BossMalachar::takeDamage(float rawAmount) {
+void BossMalachar::takeDamage(float rawAmount, bool isCritical) {
     if (!isAlive()) return;
 
     // By default, Boss Malachar is shielded and immune to damage unless frozen!
-    if (!isFrozen()) {
+    if (isShielded()) {
         sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -50.0f);
         UI::FloatingTextManager::getInstance().spawnStatus(headPos, "SHIELDED", sf::Color(140, 200, 255));
         ParticleSystem::getInstance().emitBurst(getPosition(), 15, sf::Color(140, 200, 255, 220), 30.0f, 80.0f, 0.2f, 0.5f, 3.0f);
@@ -420,7 +417,7 @@ void BossMalachar::takeDamage(float rawAmount) {
                   << reflectedDmg << " damage back to Serin!\n";
     }
 
-    Enemy::takeDamage(rawAmount);
+    Enemy::takeDamage(rawAmount, isCritical);
 }
 
 void BossMalachar::onDeath(Chamber* chamber) {
@@ -443,56 +440,58 @@ sf::FloatRect BossMalachar::getBounds() const {
 void BossMalachar::draw(sf::RenderWindow& window) const {
     // 0. Draw protective shield barrier (active when not frozen)
     if (isAlive() && !isFrozen()) {
-        float radius = 55.0f;
-        sf::CircleShape shield(radius);
-        shield.setOrigin({radius, radius});
-        shield.setPosition(getPosition());
-        shield.setFillColor(sf::Color(100, 180, 255, 30));
-        shield.setOutlineColor(sf::Color(140, 210, 255, 130));
-        shield.setOutlineThickness(2.5f);
-        window.draw(shield);
+        float radius = 58.0f;
+        // Smooth radial gradient cyan air shield barrier
+        sf::Color coreColor(140, 220, 255, 110); // Bright crystalline cyan core
+        sf::Color edgeColor(80, 160, 255, 170);   // Deep icy protective air boundary
+        AuraRenderer::getInstance().drawAura(window, getPosition(), radius, coreColor, edgeColor, 0.95f, 1.2f);
     }
 
-    // 1. Draw Void Bolt charge glow around Malachar
+    // 1. Draw Void Bolt charge glow around Malachar (purple aura)
     if (isVoidBoltCharging) {
-        float radius = 60.0f;
-        sf::CircleShape aura(radius);
-        aura.setOrigin({radius, radius});
-        aura.setPosition(getPosition());
-        aura.setFillColor(sf::Color(160, 30, 220, 100)); // Glowing purple aura
-        aura.setOutlineColor(sf::Color(220, 100, 255, 200));
-        aura.setOutlineThickness(4.0f);
-        window.draw(aura);
+        float radius = 65.0f;
+        // Smooth radial gradient void charging air aura (purple)
+        sf::Color coreColor(220, 120, 255, 140); // Luminous magenta-violet charging core
+        sf::Color edgeColor(130, 20, 200, 200);  // Dark void pulsing perimeter air
+        AuraRenderer::getInstance().drawAura(window, getPosition(), radius, coreColor, edgeColor, 1.2f, 2.0f);
     }
 
-    // 2. Draw Soul Lance charging line & target indicator
+    // 2. Draw Soul Lance charging: red aura around boss, aiming laser, and red target orb
     if (isSoulLanceCharging) {
+        // Red radial charging air aura around Malachar
+        float radius = 65.0f;
+        sf::Color redCore(255, 80, 80, 150);
+        sf::Color redEdge(210, 20, 20, 210);
+        AuraRenderer::getInstance().drawAura(window, getPosition(), radius, redCore, redEdge, 1.25f, 2.2f);
+
+        // Aim line
         sf::Vertex line[] = {
-            sf::Vertex(getPosition(), sf::Color(255, 30, 30, 220)),
-            sf::Vertex(soulLanceTargetPos, sf::Color(255, 100, 0, 255))
+            sf::Vertex(getPosition(), sf::Color(255, 40, 40, 230)),
+            sf::Vertex(soulLanceTargetPos, sf::Color(255, 80, 0, 255))
         };
         window.draw(line, 2, sf::PrimitiveType::Lines);
 
-        float targetRadius = 20.0f;
+        // Glowing red target orb
+        float targetRadius = 16.0f;
         sf::CircleShape targetMarker(targetRadius);
         targetMarker.setOrigin({targetRadius, targetRadius});
         targetMarker.setPosition(soulLanceTargetPos);
-        targetMarker.setFillColor(sf::Color(255, 0, 0, 80));
-        targetMarker.setOutlineColor(sf::Color::Red);
-        targetMarker.setOutlineThickness(2.0f);
+        targetMarker.setFillColor(sf::Color(255, 20, 20, 140));
+        targetMarker.setOutlineColor(sf::Color(255, 100, 100, 240));
+        targetMarker.setOutlineThickness(2.5f);
         window.draw(targetMarker);
     }
 
-    // 3. Draw active Void Bolts
+    // 3. Draw active Void Bolts (smaller purple orb)
     for (const auto& bolt : voidBolts) {
         if (!bolt.active) continue;
-        float radius = 10.0f;
+        float radius = 6.5f;
         sf::CircleShape bShape(radius);
         bShape.setOrigin({radius, radius});
         bShape.setPosition(bolt.position);
-        bShape.setFillColor(sf::Color(140, 20, 220, 240));
+        bShape.setFillColor(sf::Color(150, 30, 230, 245));
         bShape.setOutlineColor(sf::Color(240, 180, 255, 255));
-        bShape.setOutlineThickness(2.0f);
+        bShape.setOutlineThickness(1.8f);
         window.draw(bShape);
     }
 

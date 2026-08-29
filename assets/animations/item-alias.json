@@ -6,6 +6,7 @@
     "echo-fragment-3": { "x": 72, "y": 48 },
     "freeze-potion": { "x": 48, "y": 240 },
     "speed-up-potion": { "x": 96, "y": 240 },
-    "antidote": { "x": 144, "y": 240 },
+    "critical-hit-potion": { "x": 144, "y": 240 },
+    "antidote": { "x": 0, "y": 240 },
     "healer": { "x": 48, "y": 216 } 
 }

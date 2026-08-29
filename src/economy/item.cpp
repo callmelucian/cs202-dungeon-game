@@ -3,8 +3,9 @@
 #include "../chambers/chamber.hpp"
 #include "../global-settings/asset-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
 #include "../entities/effects/speed-up-effect.hpp"
+#include "../entities/effects/critical-boost-effect.hpp"
 #include <cmath>
 #include <random>
 #include <iostream>
@@ -102,9 +103,20 @@ void SpeedPotion::onCollect(Player& player, Chamber& chamber) {
     player.applyStatusEffect(std::make_unique<SpeedUpEffect>(10.0f));
 }
 
+// ---- CriticalPotion ----
+CriticalPotion::CriticalPotion(sf::Vector2f startPos)
+    : Item(startPos, sf::IntRect({144, 240}, {24, 24})) {}
+
+void CriticalPotion::onCollect(Player& player, Chamber& chamber) {
+    std::cout << "Critical Hit Potion collected! +50% Crit Rate for 7 seconds.\n";
+    SoundManager::getInstance().playSound("pickup");
+    ParticleSystem::getInstance().emitBurst(getPosition(), 25, sf::Color(255, 50, 50, 230), 40.0f, 120.0f, 0.4f, 0.9f, 4.0f);
+    player.applyStatusEffect(std::make_unique<CriticalBoostEffect>(7.0f));
+}
+
 // ---- AntidotePotion ----
 AntidotePotion::AntidotePotion(sf::Vector2f startPos)
-    : Item(startPos, sf::IntRect({144, 240}, {24, 24})) {}
+    : Item(startPos, sf::IntRect({0, 240}, {24, 24})) {}
 
 void AntidotePotion::onCollect(Player& player, Chamber& chamber) {
     std::cout << "Antidote Potion collected! Purging negative status effects.\n";

@@ -30,6 +30,9 @@ private:
 
     UI::Text* damageLabel;
     UI::Slider* damageSlider;
+
+    UI::Text* critLabel;
+    UI::Slider* critSlider;
     
     UI::Button* backButton;
 };

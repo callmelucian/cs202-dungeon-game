@@ -3,6 +3,7 @@
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/sound-manager.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include "../../core/game.hpp"
 #include <cmath>
 
@@ -123,7 +124,7 @@ const std::string& VoidcasterDetonationFieldState::getVisualKey() {
     return key;
 }
 
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
 
 void VoidcasterDetonationFieldState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
     if (enemy && !isExplosionActive) {
@@ -156,14 +157,8 @@ void VoidcasterDetonationFieldState::draw(const Player& player, sf::RenderWindow
     SpecialAbilityState::draw(player, window);
 
     float radius = 2.5f * 60.0f; // 150px
-    sf::CircleShape field(radius);
-    field.setOrigin({radius, radius});
-    field.setPosition(player.getPosition());
-
-    // Glowing void purple aura ring
-    field.setFillColor(sf::Color(140, 50, 220, 30));
-    field.setOutlineColor(sf::Color(190, 100, 255, 200));
-    field.setOutlineThickness(3.0f);
-
-    window.draw(field);
+    // Smooth radial gradient void cosmic air aura radiating outward from the player
+    sf::Color coreColor(190, 90, 255, 120);  // Ethereal glowing magenta-violet core
+    sf::Color edgeColor(120, 20, 210, 180);  // Deep cosmic void edge air
+    AuraRenderer::getInstance().drawAura(window, player.getPosition(), radius, coreColor, edgeColor, 1.05f, 1.25f);
 }

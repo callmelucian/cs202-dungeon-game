@@ -34,12 +34,10 @@ add_executable(game
     src/core/states/choose-chamber-state.cpp
     src/core/states/game-play-state.cpp
     src/core/states/pause-state.cpp
+    src/core/states/echo-log-state.cpp
     src/core/states/game-over-state.cpp
     src/core/states/setting-state.cpp
     src/core/states/debug-state.cpp
-
-    # graphics
-    src/graphics/particle-system.cpp
 
     # global-settings
     src/global-settings/setting-manager.cpp
@@ -50,8 +48,9 @@ add_executable(game
     src/global-settings/animation-manager.cpp
     src/global-settings/tile-manager.cpp
 
-
     # ui
+    src/ui/graphics/particle-system.cpp
+    src/ui/graphics/aura-renderer.cpp
     src/ui/base/component.cpp
     src/ui/base/text.cpp
     src/ui/base/SetterMixin.cpp
@@ -82,6 +81,7 @@ add_executable(game
     src/entities/effects/paralyzed-effect.cpp
     src/entities/effects/burned-effect.cpp
     src/entities/effects/speed-up-effect.cpp
+    src/entities/effects/critical-boost-effect.cpp
     src/entities/effects/arrow-projectile.cpp
     src/entities/playable-character.cpp
     src/entities/forms/wraithblade-form.cpp

@@ -61,7 +61,13 @@ public:
     void setZoomSpeed(float speed);
     void setMinZoom(float minZ);
 
+    void shake(float intensity, float duration);
+    static void triggerShake(float intensity, float duration);
+    static void setActiveCamera(Camera* cam);
+
 private:
+    static Camera* activeCamera;
+
     sf::View view;
     sf::Vector2f windowSize;
 
@@ -75,6 +81,10 @@ private:
     float positionSpeed; // Factor for lerp exponential decay
     float zoomSpeed;     // Factor for zoom lerp decay
     float zoomStep;      // Zoom increment per scroll unit
+
+    float shakeIntensity;
+    float shakeDuration;
+    float shakeTimer;
 };
 
 #endif // CAMERA_HPP

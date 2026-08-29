@@ -11,6 +11,7 @@
 #include <SFML/Window/Event.hpp>
 #include <memory>
 #include <map>
+#include <optional>
 
 class Player : public Character {
 public:
@@ -21,7 +22,7 @@ public:
 
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
-    void takeDamage(float rawAmount) override;
+    void takeDamage(float rawAmount, bool isCritical = false) override;
     void onWallCollision() override;
 
     /// Public wrapper over the protected notifyStateChanged — lets collaborators
@@ -53,6 +54,9 @@ public:
 
     void setDamage(float dmg);
     float getDamage() const;
+    float getCriticalHitRate() const;
+    void setDebugCriticalRate(std::optional<float> rate);
+    std::optional<float> getDebugCriticalRate() const;
 
     FormType getActiveFormType() const;
     PlayerForm* getActiveForm() const;
@@ -86,6 +90,7 @@ private:
     bool hasPendingAttack = false;
     float attackReleaseTimer = 0.0f;
     sf::Vector2f pendingAttackDir;
+    std::optional<float> debugCritRate;
 };
 
 #endif // PLAYER_HPP

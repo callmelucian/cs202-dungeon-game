@@ -2,7 +2,7 @@
 #include "enemy-state.hpp"
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
 #include <iostream>
 
 Brute::Brute(Player& player) : Enemy("brute", player) {

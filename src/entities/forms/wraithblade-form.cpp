@@ -4,7 +4,8 @@
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/sound-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include <cmath>
 
 WraithbladeForm::WraithbladeForm()
@@ -128,7 +129,7 @@ const std::string& WraithbladeCinderveilState::getVisualKey() {
     return key;
 }
 
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
 
 void WraithbladeCinderveilState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
     if (!lethal && enemy) {
@@ -144,16 +145,10 @@ void WraithbladeCinderveilState::draw(const Player& player, sf::RenderWindow& wi
     SpecialAbilityState::draw(player, window);
 
     float radius = 1.5f * 60.0f; // 90px
-    sf::CircleShape flameAura(radius);
-    flameAura.setOrigin({radius, radius});
-    flameAura.setPosition(player.getPosition());
-
-    // Glowing fiery orange flame aura ring
-    flameAura.setFillColor(sf::Color(255, 80, 20, 35));
-    flameAura.setOutlineColor(sf::Color(255, 120, 30, 220));
-    flameAura.setOutlineThickness(3.0f);
-
-    window.draw(flameAura);
+    // Smooth radial gradient thermal flame air aura radiating outward from the player
+    sf::Color coreColor(255, 140, 30, 120); // Warm gold-orange incandescent core
+    sf::Color edgeColor(255, 50, 10, 180);  // Fiery crimson outward thermal wave
+    AuraRenderer::getInstance().drawAura(window, player.getPosition(), radius, coreColor, edgeColor, 1.1f, 1.4f);
 
     // Emit subtle flame sparkles
     ParticleSystem::getInstance().emitSparkle(player.getPosition(), 2, sf::Color(255, 150, 40, 220), 90.0f);

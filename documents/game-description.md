@@ -511,6 +511,7 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 - **Enemies:** 4× Brute and 2× Soldier.
 - **Collection time:** **10 seconds** base.
+- **Decoy Reliquary Reward:** Defending the decoy reliquary to completion grants Serin a **+20% Max HP buff** (increasing Max HP from 100 to 120 and adding +20 HP) upon entering the Final Chamber / Boss Chamber.
 
 ---
 
@@ -519,7 +520,7 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 ### 13.1 Base Stats
 
 - **Max HP:** 1250
-- **Arena:** circular, 20-unit radius.
+- **Arena:** Unified circular arena floor (20-unit radius), maintained continuously throughout the entire encounter across all 4 combat phases.
 
 ### 13.2 Phase 1 — Baseline
 
@@ -546,9 +547,7 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
   - **Marrow Echo stolen:** +2% Max HP/sec regeneration (25 HP/sec), active
     through Phase 2, Phase 3, *and* Phase 4.
   - **Obsidian Key stolen:** Blink every 6–9 seconds (randomized each
-    trigger) to a new arena position, active through Phase 2 *and* Phase 3
-    (Phase 4's fractured-void layout, §13.5, replaces Blink with its own
-    movement pattern).
+    trigger) to a new arena position, active through Phase 2 *and* Phase 3.
   - **Neither stolen:** Phase 2 plays identically to Phase 1's moveset, just
     at this HP band — no additional modifier, base difficulty only.
 - **Resonance Core transition burst (if collected, §10.1):** upon entering
@@ -562,13 +561,12 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 ### 13.4 Phase 3 — Vault Collapse
 
 - **Trigger:** HP ≤ 50%, runs until HP ≤ 25%.
-- **Arena change:** floor shatters into **6 floating platforms** (3 units
-  radius each), connected by gaps Serin must navigate (Wraithblade/Voidcaster
-  movement unaffected; Ironshell's low Speed of 2.5 units/s makes platform
-  navigation notably riskier, an intentional tension with its tanking role).
-- **Moveset additions on top of Phase 1 cycle:** Malachar adds a **Platform
-  Sunder** attack every 15 seconds — targets Serin's current platform, which
-  collapses 3 seconds after the telegraph, forcing relocation.
+- **Arena:** Single continuous arena floor is maintained throughout the phase.
+- **Moveset additions on top of Phase 1 cycle:** Malachar adds a **Void
+  Sunder** attack every 15 seconds — targets Serin's current arena position
+  with a 3.0-unit radius circular telegraph (3.0s warning), leaving a corrupted
+  void rupture zone that lingers for 12.0 seconds and deals 10 void damage per
+  second to Serin if she stands within it, forcing relocation.
 - **Resonance Core transition burst:** triggers again on the 50% threshold
   crossing (8% of current HP at that moment, doubled if fully intact, per
   §10.1/§13.3's pattern).
@@ -577,13 +575,8 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 ### 13.5 Phase 4 — The Fracture
 
-- **Trigger:** HP ≤ 25%, runs until HP = 0. New phase, added to accommodate
-  the longer 3-level run and give the 5th Echo (Hollow Bell) room to matter
-  structurally even though its own ward expired back in Phase 1 — Phase 4 is
-  where the *cumulative* toll of every other stolen Echo is felt hardest.
-- **Arena change:** the floating platforms from Phase 3 begin shrinking
-  continuously (each platform's radius decreases by 0.1 units/second,
-  floor of 1.5 units), forcing constant repositioning.
+- **Trigger:** HP ≤ 25%, runs until HP = 0.
+- **Arena:** Single continuous arena floor is maintained.
 - **Moveset additions on top of Phase 1 + Phase 3 cycle:** Malachar adds a
   **Soul Lance** — a single high-damage targeted bolt (Damage 30) fired
   every 10 seconds with a 1.0s telegraph (extended to 1.6s if Foretell is
@@ -592,9 +585,8 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
   threshold crossing, identical formula to §13.3/§13.4.
 - **Carried-over Phase 2/3 modifiers (Marrow regen, capped per §13.3) remain
   active** if applicable. Obsidian Key's Blink does **not** carry into Phase
-  4 — the shrinking-platform mechanic is considered its narrative and
-  mechanical replacement (Malachar is now too weak to teleport reliably and
-  relies on the collapsing arena itself to keep Serin off-balance).
+  4 (Malachar is now weakened and channels his remaining power directly into
+  Soul Lance strikes).
 
 ### 13.6 Boss Defeat & Ending Determination
 

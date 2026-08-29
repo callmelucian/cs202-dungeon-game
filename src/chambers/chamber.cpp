@@ -10,7 +10,9 @@
 #include "../entities/effects/slowed-effect.hpp"
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
+#include "../ui/graphics/aura-renderer.hpp"
+#include "../utils/camera.hpp"
 #include "../ui/widgets/floating-text-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "tilemap-loader.hpp"
@@ -250,14 +252,6 @@ void Chamber::onEnemyHit(Enemy* enemy, bool lethal) {
     if (player.getStateMachine().getActiveState()) {
         player.getStateMachine().getActiveState()->onEnemyHit(player, enemy, lethal, *this);
     }
-
-    // Apply Wraithblade knockback if active form is Wraithblade
-    if (!lethal && player.getActiveFormType() == FormType::WRAITHBLADE) {
-        if (enemy->canBeKnockedBack()) {
-            sf::Vector2f dir = Math::normalize(enemy->getPosition() - player.getPosition());
-            enemy->applyKnockback(dir, 1600.0f);
-        }
-    }
 }
 
 void Chamber::completeChamber() {
@@ -404,18 +398,43 @@ int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     int totalHits = 0;
     std::vector<Enemy*> killedEnemies;
 
+    float critRate = player.getCriticalHitRate();
+
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
         if (CollisionSolver::checkCollision(hitbox, enemy->getBounds())) {
             totalHits++;
-            float damage = player.getEffectiveStats().damage;
+            float baseDamage = player.getEffectiveStats().damage;
             if (player.getStateMachine().getActiveState()) {
-                damage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(damage);
+                baseDamage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(baseDamage);
             }
-            
-            enemy->takeDamage(damage);
-            
+
+            // Check Critical Hit (only consider if enemy is not shielded)
+            bool isCrit = false;
+            if (!enemy->isShielded() && critRate > 0.0f) {
+                float roll = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                if (roll < critRate) {
+                    isCrit = true;
+                }
+            }
+
+            float finalDamage = isCrit ? (baseDamage * 2.0f) : baseDamage;
+            enemy->takeDamage(finalDamage, isCrit);
+
+            if (isCrit) {
+                // Visual feedback: Screen White Flash, Camera Shake, and Critical Particle Burst
+                AuraRenderer::getInstance().triggerScreenFlash(sf::Color(255, 255, 255, 210), 0.14f);
+                Camera::triggerShake(7.5f, 0.18f);
+                ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 25, sf::Color(255, 60, 60, 240), 60.0f, 180.0f, 0.2f, 0.6f, 4.5f);
+
+                // Push enemy backward only on critical hit
+                if (enemy->canBeKnockedBack()) {
+                    sf::Vector2f dir = Math::normalize(enemy->getPosition() - player.getPosition());
+                    enemy->applyKnockback(dir, 1600.0f);
+                }
+            }
+
             bool lethal = !enemy->isAlive();
             if (lethal) {
                 killsThisAttack++;
@@ -433,8 +452,6 @@ int Chamber::processPlayerAttack(const Hitbox& hitbox) {
             std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
-
-
 
     return totalHits;
 }

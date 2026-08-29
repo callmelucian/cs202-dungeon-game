@@ -9,14 +9,13 @@
 /**
  * @brief Platform represents a floating platform in the BossChamber.
  */
-struct Platform {
-    int id;
+struct VoidRuptureZone {
     sf::Vector2f center; // Center position in world coordinates
     float radius;        // Radius in grid units
-    bool isWarning;      // Telegraphing sunder attack
-    float sunderTimer;   // Telegraph countdown timer (seconds)
-    bool isSundered;     // Platform collapsed into void
-    float recoveryTimer; // Timer before platform reforms (if applicable)
+    bool isWarning;      // Telegraphing sunder attack (3s warning)
+    float warningTimer;  // Telegraph countdown timer (seconds)
+    bool isActive;       // Active void rupture zone (12s duration)
+    float activeTimer;   // Active countdown timer (seconds)
 };
 
 enum class PhaseTransitionStage {
@@ -28,16 +27,14 @@ enum class PhaseTransitionStage {
 };
 
 /**
- * @brief BossChamber wraps BossMalachar and owns the platform layout,
- * phase state transitions, and arena environmental mechanics.
+ * @brief BossChamber wraps BossMalachar and owns the arena state,
+ * phase state transitions, and Void Sunder ground rupture hazards.
  */
 class BossChamber : public Chamber {
 private:
     std::unique_ptr<BossMalachar> boss;
     int currentPhase;
-    std::vector<Platform> platforms;
-    float shrinkRate;   // Radius reduction in units per second (0.1 in Phase 4)
-    float minRadius;    // Floor radius limit in units (1.5 in Phase 4)
+    std::vector<VoidRuptureZone> ruptureZones;
     float sunderDamageTimer = 0.0f; // Accumulator for 1.0s periodic damage tick
 
     // Phase Transition Sequence Control
@@ -46,9 +43,8 @@ private:
     float fadeAlpha = 0.0f;
     int pendingNewPhase = 1;
 
-    void initPlatforms();
-    void updatePlatforms(float dt);
-    void drawPlatforms(sf::RenderWindow& window);
+    void updateRuptureZones(float dt);
+    void drawRuptureZones(sf::RenderWindow& window);
     void updatePhaseTransitionSequence(float dt);
 
 public:
@@ -74,9 +70,8 @@ public:
     float getFadeAlpha() const { return fadeAlpha; }
 
     void sunderPlatformAt(const sf::Vector2f& pos);
-    void sunderPlatform(int index);
 
-    const std::vector<Platform>& getPlatforms() const;
+    const std::vector<VoidRuptureZone>& getRuptureZones() const { return ruptureZones; }
     BossMalachar* getBoss() const;
     void onBossDefeated();
 };

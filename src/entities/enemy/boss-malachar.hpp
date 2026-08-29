@@ -76,7 +76,7 @@ public:
     void updateState(float dt, Chamber& chamber) override;
     void draw(sf::RenderWindow& window) const override;
     sf::FloatRect getBounds() const override;
-    void takeDamage(float rawAmount) override;
+    void takeDamage(float rawAmount, bool isCritical = false) override;
     void onDeath(Chamber* chamber = nullptr) override;
 
     int getCurrentPhase() const;
@@ -87,6 +87,7 @@ public:
     void clearProjectiles();
 
     bool canBeKnockedBack() const override { return false; }
+    bool isShielded() const override { return !isFrozen(); }
 };
 
 #endif // BOSS_MALACHAR_HPP

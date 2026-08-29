@@ -58,6 +58,8 @@ public:
     void spawnDamage(sf::Vector2f pos, float amount, bool isCritical = false);
     void spawnHeal(sf::Vector2f pos, float amount);
     void spawnStatus(sf::Vector2f pos, const std::string& statusName, sf::Color color);
+    void spawnEchoCollected(sf::Vector2f pos, const std::string& echoName, float power);
+    void spawnEchoStolen(sf::Vector2f pos, const std::string& echoName);
 
 private:
     FloatingTextManager() = default;

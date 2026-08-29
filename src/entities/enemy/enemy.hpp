@@ -31,7 +31,7 @@ public:
 
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
-    void takeDamage(float rawAmount) override;
+    void takeDamage(float rawAmount, bool isCritical = false) override;
     void onWallCollision() override;
 
     virtual void updateState(float dt, Chamber& chamber);
@@ -62,6 +62,7 @@ public:
     void setGuaranteedDrop(const std::string& dropType) { guaranteedDrop = dropType; }
 
     virtual bool canBeKnockedBack() const { return true; }
+    virtual bool isShielded() const { return false; }
 };
 
 #endif // ENEMY_HPP

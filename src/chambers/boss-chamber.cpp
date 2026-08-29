@@ -2,7 +2,9 @@
 #include "tilemap-loader.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/sound-manager.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
+#include "../ui/graphics/aura-renderer.hpp"
+#include "../utils/camera.hpp"
 #include "../ui/widgets/floating-text-manager.hpp"
 #include "../utils/collision-solver.hpp"
 #include "../utils/math-utility.hpp"
@@ -18,57 +20,22 @@
 
 BossChamber::BossChamber(Player& player)
     : Chamber(player),
-      currentPhase(1),
-      shrinkRate(0.1f),
-      minRadius(1.5f)
+      currentPhase(1)
 {
     boss = std::make_unique<BossMalachar>(player);
-    initPlatforms();
 }
 
 void BossChamber::setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid) {
     Chamber::setGrids2D5(tGrid, lGrid);
-    initPlatforms();
-}
-
-void BossChamber::initPlatforms() {
-    platforms.clear();
 
     float cellSize = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
-    float cols = SettingManager::getInstance().getGridCols();
-    float rows = SettingManager::getInstance().getGridRows();
-
-    if (!typeGrid.empty() && !typeGrid[0].empty()) {
-        cols = static_cast<float>(typeGrid[0].size());
-        rows = static_cast<float>(typeGrid.size());
-    }
-
-    sf::Vector2f centerPos = {ox + 9.5f * cellSize, oy + 9.5f * cellSize};
 
     // Position Boss Malachar at the upper-center of the arena floor
     if (boss) {
-        sf::Vector2f bossSpawnPos = {ox + 9.5f * cellSize, oy + 4.5f * cellSize};
+        sf::Vector2f bossSpawnPos = {ox + 10.0f * cellSize, oy + 5.0f * cellSize};
         boss->setPosition(bossSpawnPos);
-    }
-
-    float ringRadius = 5.6f * cellSize;
-
-    for (int i = 0; i < 6; ++i) {
-        float angle = static_cast<float>(i) * (2.0f * M_PI / 6.0f);
-        sf::Vector2f pCenter = centerPos + sf::Vector2f(std::cos(angle) * ringRadius, std::sin(angle) * ringRadius);
-
-        Platform p;
-        p.id = i;
-        p.center = pCenter;
-        p.radius = 2.4f; // 2.4 units radius
-        p.isWarning = false;
-        p.sunderTimer = 0.0f;
-        p.isSundered = false;
-        p.recoveryTimer = 0.0f;
-
-        platforms.push_back(p);
     }
 }
 
@@ -101,31 +68,30 @@ void BossChamber::update(float dt) {
         CollisionSolver::resolveY(*boss, getObstaclesFor(boss.get()), dt);
     }
 
-    // Update platform state ( shrinking in Phase 4, sunder timers )
-    updatePlatforms(dt);
+    // Update void rupture hazards (Sunder attack in Phase 3 & 4)
+    updateRuptureZones(dt);
 
-    // Hazard check: player taking void damage if standing on a sundered (collapsed) platform
-    if (currentPhase >= 3 && player.isAlive()) {
+    // Hazard check: player taking void damage if standing within an active rupture zone
+    if (player.isAlive()) {
         sf::Vector2f playerPos = player.getPosition();
         float cellSize = SettingManager::getInstance().getCellSize();
 
-        // Check if player is on a platform that has collapsed (isSundered)
-        bool onSunderedPlatform = false;
-        for (const auto& p : platforms) {
-            if (p.isSundered) {
-                float dist = Math::distance(playerPos, p.center);
-                if (dist <= p.radius * cellSize) {
-                    onSunderedPlatform = true;
+        bool inRupture = false;
+        for (const auto& z : ruptureZones) {
+            if (z.isActive) {
+                float dist = Math::distance(playerPos, z.center);
+                if (dist <= z.radius * cellSize) {
+                    inRupture = true;
                     break;
                 }
             }
         }
 
-        if (onSunderedPlatform) {
+        if (inRupture) {
             sunderDamageTimer += dt;
             if (sunderDamageTimer >= 1.0f) {
                 sunderDamageTimer -= 1.0f;
-                player.takeDamage(10.0f); // 10 damage tick once per second
+                player.takeDamage(10.0f); // 10 void damage tick per second
             }
         } else {
             sunderDamageTimer = 0.0f;
@@ -179,67 +145,43 @@ void BossChamber::triggerPhaseTransition(int newPhase) {
     std::cout << "[BossChamber] Cinematic Phase Transition Triggered -> Phase " << newPhase << "\n";
 }
 
-void BossChamber::updatePlatforms(float dt) {
-    // Phase 4: Platforms shrink continuously at 0.1 units/sec down to floor 1.5 units
-    if (currentPhase == 4) {
-        for (auto& p : platforms) {
-            if (!p.isSundered && p.radius > minRadius) {
-                p.radius = std::max(minRadius, p.radius - shrinkRate * dt);
+void BossChamber::updateRuptureZones(float dt) {
+    for (auto it = ruptureZones.begin(); it != ruptureZones.end();) {
+        if (it->isWarning) {
+            it->warningTimer -= dt;
+            if (it->warningTimer <= 0.0f) {
+                it->isWarning = false;
+                it->isActive = true;
+                it->activeTimer = 12.0f; // 12 seconds active duration
+                ParticleSystem::getInstance().emitBurst(it->center, 30, sf::Color(160, 40, 220, 220), 40.0f, 100.0f, 0.5f, 1.0f, 4.0f);
+                std::cout << "[BossChamber] Void Sunder rupture zone opened!\n";
             }
-        }
-    }
-
-    // Process platform sunder warnings & recovery (Phase 3 & 4)
-    if (currentPhase >= 3) {
-        for (auto& p : platforms) {
-            if (p.isWarning) {
-                p.sunderTimer -= dt;
-                if (p.sunderTimer <= 0.0f) {
-                    p.isWarning = false;
-                    p.isSundered = true;
-                    p.recoveryTimer = 12.0f; // Platform collapses, recovers after 12s
-                    std::cout << "[BossChamber] Platform " << p.id << " sundered into void!\n";
-                }
-            } else if (p.isSundered) {
-                p.recoveryTimer -= dt;
-                if (p.recoveryTimer <= 0.0f) {
-                    p.isSundered = false;
-                    p.radius = (currentPhase == 4) ? minRadius : 2.4f;
-                    std::cout << "[BossChamber] Platform " << p.id << " reformed.\n";
-                }
+            ++it;
+        } else if (it->isActive) {
+            it->activeTimer -= dt;
+            if (it->activeTimer <= 0.0f) {
+                it = ruptureZones.erase(it);
+                std::cout << "[BossChamber] Void Sunder rupture zone dissipated.\n";
+            } else {
+                ++it;
             }
+        } else {
+            it = ruptureZones.erase(it);
         }
     }
 }
 
 void BossChamber::sunderPlatformAt(const sf::Vector2f& pos) {
-    int closestIdx = -1;
-    float closestDist = 999999.0f;
+    VoidRuptureZone zone;
+    zone.center = pos;
+    zone.radius = 3.0f; // 3.0 units radius
+    zone.isWarning = true;
+    zone.warningTimer = 3.0f; // 3.0s telegraph warning
+    zone.isActive = false;
+    zone.activeTimer = 12.0f;
 
-    for (size_t i = 0; i < platforms.size(); ++i) {
-        if (platforms[i].isSundered) continue;
-
-        float dist = Math::distance(pos, platforms[i].center);
-        if (dist < closestDist) {
-            closestDist = dist;
-            closestIdx = static_cast<int>(i);
-        }
-    }
-
-    if (closestIdx != -1) {
-        sunderPlatform(closestIdx);
-    }
-}
-
-void BossChamber::sunderPlatform(int index) {
-    if (index >= 0 && index < static_cast<int>(platforms.size())) {
-        auto& p = platforms[index];
-        if (!p.isSundered && !p.isWarning) {
-            p.isWarning = true;
-            p.sunderTimer = 3.0f; // 3 seconds telegraph
-            std::cout << "[BossChamber] Platform " << p.id << " targeted for Sunder (3s warning)!\n";
-        }
-    }
+    ruptureZones.push_back(zone);
+    std::cout << "[BossChamber] Malachar cast Void Sunder at (" << pos.x << ", " << pos.y << ") (3s warning)!\n";
 }
 
 int BossChamber::getCurrentPhase() const {
@@ -251,10 +193,6 @@ void BossChamber::setCurrentPhase(int phase) {
         currentPhase = phase;
         triggerPhaseTransition(phase);
     }
-}
-
-const std::vector<Platform>& BossChamber::getPlatforms() const {
-    return platforms;
 }
 
 BossMalachar* BossChamber::getBoss() const {
@@ -302,11 +240,29 @@ int BossChamber::processPlayerAttack(const Hitbox& hitbox) {
     if (boss && boss->isAlive()) {
         if (CollisionSolver::checkCollision(hitbox, boss->getBounds())) {
             hits++;
-            float damage = player.getEffectiveStats().damage;
+            float baseDamage = player.getEffectiveStats().damage;
             if (player.getStateMachine().getActiveState()) {
-                damage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(damage);
+                baseDamage = player.getStateMachine().getActiveState()->modifyOutgoingDamage(baseDamage);
             }
-            boss->takeDamage(damage);
+
+            float critRate = player.getCriticalHitRate();
+            bool isCrit = false;
+            // Only consider critical hit if boss is NOT shielded (i.e. is frozen)
+            if (!boss->isShielded() && critRate > 0.0f) {
+                float roll = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                if (roll < critRate) {
+                    isCrit = true;
+                }
+            }
+
+            float finalDamage = isCrit ? (baseDamage * 2.0f) : baseDamage;
+            boss->takeDamage(finalDamage, isCrit);
+
+            if (isCrit) {
+                AuraRenderer::getInstance().triggerScreenFlash(sf::Color(255, 255, 255, 210), 0.14f);
+                Camera::triggerShake(7.5f, 0.18f);
+                ParticleSystem::getInstance().emitBurst(boss->getPosition(), 25, sf::Color(255, 60, 60, 240), 60.0f, 180.0f, 0.2f, 0.6f, 4.5f);
+            }
 
             bool lethal = !boss->isAlive();
             onEnemyHit(boss.get(), lethal);
@@ -326,14 +282,12 @@ std::vector<sf::FloatRect> BossChamber::getObstaclesFor(const Character* charact
 void BossChamber::drawBackground(sf::RenderWindow& window) {
     Chamber::drawBackground(window);
 
-    // Draw background platform halos and sunder indicators for Phase 3 and 4
-    if (currentPhase >= 3) {
-        drawPlatforms(window);
-    }
+    // Draw Void Sunder ground rupture hazard zones and telegraphs
+    drawRuptureZones(window);
 }
 
 void BossChamber::draw(sf::RenderWindow& window) {
-    // Draw regular chamber components (tilemap, background platforms, items, enemies)
+    // Draw regular chamber components (tilemap, background, items, enemies)
     Chamber::draw(window);
 
     // Draw boss if active
@@ -341,7 +295,7 @@ void BossChamber::draw(sf::RenderWindow& window) {
         boss->draw(window);
     }
 
-    // Draw fade-in overlay effect during island expansion transition
+    // Draw fade-in overlay effect during phase transition
     if (transitionStage == PhaseTransitionStage::FADE_LERP_ISLANDS) {
         float cellSize = SettingManager::getInstance().getCellSize();
         float ox = SettingManager::getInstance().getGridOffsetX();
@@ -357,34 +311,27 @@ void BossChamber::draw(sf::RenderWindow& window) {
     }
 }
 
-void BossChamber::drawPlatforms(sf::RenderWindow& window) {
+void BossChamber::drawRuptureZones(sf::RenderWindow& window) {
     float cellSize = SettingManager::getInstance().getCellSize();
 
-    for (const auto& p : platforms) {
-        float radiusPx = p.radius * cellSize;
-        sf::CircleShape platformShape(radiusPx);
-        platformShape.setOrigin({radiusPx, radiusPx});
-        platformShape.setPosition(p.center);
+    for (const auto& z : ruptureZones) {
+        float radiusPx = z.radius * cellSize;
+        sf::CircleShape zoneShape(radiusPx);
+        zoneShape.setOrigin({radiusPx, radiusPx});
+        zoneShape.setPosition(z.center);
 
-        // Platform fill and outline
-        if (p.isWarning) {
-            // Telegraphing red/orange warning pulse
-            platformShape.setFillColor(sf::Color(220, 60, 60, 160));
-            platformShape.setOutlineColor(sf::Color(255, 120, 0, 255));
-            platformShape.setOutlineThickness(4.0f);
-            window.draw(platformShape);
-        } else if (p.isSundered) {
-            // Collapsed platform void hole overlay
-            platformShape.setFillColor(sf::Color(10, 5, 20, 230));
-            platformShape.setOutlineColor(sf::Color(80, 20, 120, 200));
-            platformShape.setOutlineThickness(3.0f);
-            window.draw(platformShape);
-        } else if (currentPhase == 4) {
-            // Phase 4: show shrinking boundary ring
-            platformShape.setFillColor(sf::Color::Transparent);
-            platformShape.setOutlineColor(sf::Color(140, 100, 220, 180));
-            platformShape.setOutlineThickness(2.0f);
-            window.draw(platformShape);
+        if (z.isWarning) {
+            // Telegraphing red/orange pulsing warning circle
+            zoneShape.setFillColor(sf::Color(220, 60, 60, 120));
+            zoneShape.setOutlineColor(sf::Color(255, 120, 0, 240));
+            zoneShape.setOutlineThickness(3.0f);
+            window.draw(zoneShape);
+        } else if (z.isActive) {
+            // Active dark void rupture pool with purple glowing border
+            zoneShape.setFillColor(sf::Color(15, 5, 25, 210));
+            zoneShape.setOutlineColor(sf::Color(160, 40, 220, 200));
+            zoneShape.setOutlineThickness(3.0f);
+            window.draw(zoneShape);
         }
     }
 }

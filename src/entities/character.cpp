@@ -7,7 +7,7 @@
 #include "animation/character-animator.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../global-settings/asset-manager.hpp"
-#include "../graphics/particle-system.hpp"
+#include "../ui/graphics/particle-system.hpp"
 #include "../ui/widgets/floating-text-manager.hpp"
 #include <random>
 #include "effects/slowed-effect.hpp"
@@ -85,11 +85,15 @@ void Character::update(float deltaTime) {
 
     tickStatusEffects(deltaTime);
 
-    // Update baseline tint from active status effects or frozen state
+    // Update baseline tint from active negative status effects or frozen state (buffs do not tint sprite)
     if (isFrozen()) {
         setTint(sf::Color(100, 220, 255)); // Frost Cyan
-    } else if (!statusEffects.empty()) {
-        setTint(statusEffects.back()->getColor());
+    } else if (hasStatusEffect("Burned")) {
+        setTint(sf::Color(255, 120, 100)); // Slight Red for Burn
+    } else if (hasStatusEffect("Slowed")) {
+        setTint(sf::Color(180, 200, 255)); // Soft blue for Slow
+    } else if (hasStatusEffect("Paralyzed")) {
+        setTint(sf::Color(255, 230, 120)); // Pale gold for Paralyzed
     } else {
         setTint(sf::Color::White);
     }
@@ -160,18 +164,18 @@ void Character::setHealthBar(std::unique_ptr<UI::HealthBar> bar) {
     healthBar = std::move(bar);
 }
 
-void Character::takeDamage(float rawAmount) {
+void Character::takeDamage(float rawAmount, bool isCritical) {
     if (!isAlive()) return;
     float finalDmg = calculateMitigatedDamage(rawAmount);
     baseStats.hp -= finalDmg;
-    std::cout << "[" << getDisplayName() << "] took " << finalDmg << " dmg. HP left: " << baseStats.hp << "\n";
+    std::cout << "[" << getDisplayName() << "] took " << finalDmg << " dmg" << (isCritical ? " (CRIT)" : "") << ". HP left: " << baseStats.hp << "\n";
     
     // Spawn floating damage text above character
     sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
     static std::mt19937 dmgRng(std::random_device{}());
     std::uniform_real_distribution<float> jitter(-10.0f, 10.0f);
     headPos.x += jitter(dmgRng);
-    UI::FloatingTextManager::getInstance().spawnDamage(headPos, finalDmg);
+    UI::FloatingTextManager::getInstance().spawnDamage(headPos, finalDmg, isCritical);
 
     auto observersCopy = observers;
     for (auto observer : observersCopy) {
@@ -301,6 +305,11 @@ void Character::setHp(float hp) {
     baseStats.hp = std::clamp(hp, 0.0f, baseStats.maxHp);
 }
 
+void Character::setMaxHp(float maxHp) {
+    baseStats.maxHp = maxHp;
+    baseStats.hp = std::min(baseStats.hp, baseStats.maxHp);
+}
+
 float Character::getSpeed() const {
     return getEffectiveStats().speed;
 }
@@ -334,8 +343,12 @@ bool Character::isAlive() const {
 }
 
 bool Character::isSlowed() const {
+    return hasStatusEffect("Slowed");
+}
+
+bool Character::hasStatusEffect(const std::string& name) const {
     for (const auto& effect : statusEffects) {
-        if (dynamic_cast<SlowedEffect*>(effect.get())) {
+        if (effect && effect->getName() == name) {
             return true;
         }
     }

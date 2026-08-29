@@ -4,7 +4,8 @@
 #include "../player.hpp"
 #include "../../global-settings/sound-manager.hpp"
 #include "../../global-settings/setting-manager.hpp"
-#include "../../graphics/particle-system.hpp"
+#include "../../ui/graphics/particle-system.hpp"
+#include "../../ui/graphics/aura-renderer.hpp"
 #include <iostream>
 
 
@@ -42,23 +43,19 @@ void Enemy::update(float deltaTime) {
 
 void Enemy::draw(sf::RenderWindow& window) const {
     if (isRealCarrier && isAlive()) {
-        float radius = SettingManager::getInstance().getCellSize() * 0.45f;
-        sf::CircleShape carrierAura(radius);
-        carrierAura.setOrigin({radius, radius});
-        carrierAura.setPosition(getPosition());
-        // Faint luminous yellow/gold glow aura (baseline tell for real carrier per spec §7.2)
-        carrierAura.setFillColor(sf::Color(255, 220, 80, 80));
-        carrierAura.setOutlineColor(sf::Color(255, 240, 150, 220));
-        carrierAura.setOutlineThickness(3.0f);
-        window.draw(carrierAura);
+        float radius = SettingManager::getInstance().getCellSize() * 0.55f;
+        // Smooth radial gradient golden air aura radiating outward from the carrier
+        sf::Color coreColor(255, 230, 110, 110); // Luminous golden core
+        sf::Color edgeColor(240, 170, 30, 160);  // Warm amber air boundary
+        AuraRenderer::getInstance().drawAura(window, getPosition(), radius, coreColor, edgeColor, 0.9f, 1.0f);
     }
     Character::draw(window);
 }
 
 
-void Enemy::takeDamage(float rawAmount) {
+void Enemy::takeDamage(float rawAmount, bool isCritical) {
     if (!isAlive()) return;
-    Character::takeDamage(rawAmount);
+    Character::takeDamage(rawAmount, isCritical);
     SoundManager::getInstance().playSound("enemy-hit");
     
     if (!isAlive()) {

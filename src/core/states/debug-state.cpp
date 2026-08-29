@@ -90,6 +90,23 @@ DebugState::DebugState(StateManager& manager, Player& player)
             damageLabel->setString(ss.str());
         });
 
+    float currentCrit = playerRef.getCriticalHitRate();
+    std::ostringstream critSs;
+    critSs << "Critical Hit Rate: " << static_cast<int>(std::round(currentCrit * 100.0f)) << "%";
+
+    critLabel = widgetBox->createChild<UI::Text>("regular", 20)
+        ->setString(critSs.str())
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained);
+
+    critSlider = widgetBox->createChild<UI::Slider>(0.0f, 1.0f, currentCrit)
+        ->setOnValueChanged([this](float val) {
+            playerRef.setDebugCriticalRate(val);
+            std::ostringstream ss;
+            ss << "Critical Hit Rate: " << static_cast<int>(std::round(val * 100.0f)) << "%";
+            critLabel->setString(ss.str());
+        });
+
     backButton = widgetBox->createChild<UI::Button>("Back to Game", "regular", 25.f)
         ->setOnClick([this]() {
             stateManager.popState();
