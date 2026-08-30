@@ -27,6 +27,7 @@ public:
     EchoLogState(StateManager& manager);
     virtual ~EchoLogState() = default;
 
+    bool isTransparent() const override { return true; }
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;
 

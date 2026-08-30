@@ -18,15 +18,9 @@ ArrowProjectile::ArrowProjectile(sf::Vector2f startPos,
                                  float maxDistance,
                                  float speed,
                                  ArrowHitMode hitMode)
-    : sprite(AssetManager::getInstance().getTexture("arrow"), sf::IntRect({96, 64}, {32, 32})),
-      startPosition(startPos),
-      position(startPos),
-      direction(Math::normalize(direction)),
-      speed(speed),
-      distanceTraveled(0.0f),
-      maxDistance(maxDistance),
-      hitMode(hitMode),
-      active(true)
+    : Projectile(startPos, direction, speed, maxDistance, 10.0f),
+      sprite(AssetManager::getInstance().getTexture("arrow"), sf::IntRect({96, 64}, {32, 32})),
+      hitMode(hitMode)
 {
     sprite.setOrigin(sf::Vector2f(16.0f, 16.0f));
 
@@ -39,9 +33,7 @@ void ArrowProjectile::update(float dt, Chamber& chamber, Player& player) {
     if (!active) return;
 
     sf::Vector2f prevPos = position;
-    float step = speed * dt;
-    position += direction * step;
-    distanceTraveled += step;
+    updateMotion(dt);
     sprite.setPosition(position);
 
     // Emit subtle void sparkle trail
@@ -91,10 +83,11 @@ void ArrowProjectile::update(float dt, Chamber& chamber, Player& player) {
             }
         }
     }
+}
 
-    // 3. Max distance check
-    if (distanceTraveled >= maxDistance) {
-        active = false;
+void ArrowProjectile::draw(sf::RenderTarget& target) const {
+    if (active) {
+        target.draw(sprite);
     }
 }
 
@@ -102,26 +95,6 @@ void ArrowProjectile::draw(sf::RenderWindow& window) const {
     if (active) {
         window.draw(sprite);
     }
-}
-
-bool ArrowProjectile::isActive() const {
-    return active;
-}
-
-void ArrowProjectile::deactivate() {
-    active = false;
-}
-
-sf::Vector2f ArrowProjectile::getPosition() const {
-    return position;
-}
-
-sf::Vector2f ArrowProjectile::getDirection() const {
-    return direction;
-}
-
-float ArrowProjectile::getSpeed() const {
-    return speed;
 }
 
 ArrowHitMode ArrowProjectile::getHitMode() const {

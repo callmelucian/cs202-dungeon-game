@@ -43,6 +43,7 @@ public:
 
     /// Triggers a full-screen flash (e.g. for critical hits)
     void triggerScreenFlash(const sf::Color& color = sf::Color(255, 255, 255, 210), float duration = 0.14f);
+    void clearScreenFlash() { flashTimer = 0.0f; }
     bool hasScreenFlash() const;
     void drawScreenFlash(sf::RenderTarget& target, const sf::Vector2u& windowSize) const;
 

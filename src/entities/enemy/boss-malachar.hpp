@@ -2,23 +2,24 @@
 #define BOSS_MALACHAR_HPP
 
 #include "enemy.hpp"
+#include "../effects/orb-projectile.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 
 class BossChamber;
 
-struct VoidBolt {
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-    float damage;
-    float lifetime;
-    bool active;
+struct TrackingExplosionCircle {
+    sf::Vector2f targetPos;
+    float timer;
+    float maxTimer;
+    float radius;
+    bool exploded;
 };
 
 /**
  * @brief BossMalachar represents the final boss entity of the Ashen Vault.
  * Implements a 4-phase combat cycle with Void Bolt, Summoning Burst, Platform Sunder,
- * Soul Lance attacks, and Echo interactions (Marrow Regen, Obsidian Blink, Resonance Core Burst, Foretell).
+ * Tracking Explosion Circles attack, and Echo interactions (Marrow Regen, Obsidian Blink, Resonance Core Burst, Foretell).
  */
 class BossMalachar : public Enemy {
 private:
@@ -38,13 +39,11 @@ private:
     float blinkTimer;
     float sunderCooldown;
 
-    // Phase 4 Modifiers & Attacks
-    float soulLanceCooldown;
-    bool isSoulLanceCharging;
-    float soulLanceTelegraphTimer;
-    float soulLanceTelegraphMax;
-    sf::Vector2f soulLanceTargetPos;
-    sf::Vector2f soulLanceStartPos;
+    // Phase 4 Tracking Circle Attack
+    float trackingAttackCooldown;
+    int trackingCirclesRemaining;
+    float trackingCircleIntervalTimer;
+    std::vector<TrackingExplosionCircle> trackingCircles;
 
     // Hollow Bell & Foretell modifiers
     bool reflectWardActive;
@@ -56,12 +55,12 @@ private:
     bool pendingResonanceBurst;
 
     // Active projectiles
-    std::vector<VoidBolt> voidBolts;
+    std::vector<OrbProjectile> voidBolts;
 
     void applyRunStateModifiers();
     void resetCycle();
     void updateVoidBoltCycle(float dt, Chamber& chamber);
-    void updateSoulLance(float dt, Chamber& chamber);
+    void updateTrackingAttack(float dt, Chamber& chamber);
     void updateProjectiles(float dt);
     
     void applyMarrowRegen(float dt);
@@ -82,7 +81,8 @@ public:
     int getCurrentPhase() const;
     void transitionPhase(int phase);
     void platformSunder(Chamber& chamber);
-    void soulLance(Chamber& chamber);
+    void startTrackingAttack(Chamber& chamber);
+    void drawTrackingCircles(sf::RenderWindow& window) const;
     void cancelCharging();
     void clearProjectiles();
 

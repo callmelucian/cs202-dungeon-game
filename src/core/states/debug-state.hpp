@@ -15,6 +15,7 @@
 class DebugState : public GameState {
 public:
     DebugState(StateManager& manager, Player& player);
+    bool isTransparent() const override { return true; }
 
 private:
     Player& playerRef;

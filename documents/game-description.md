@@ -243,7 +243,7 @@ Where `hit_penalty%` is **8%** per hit the Echo takes while exposed (see §5.4).
   this heal triggers three times: end of Level 1 Ch.3, end of Level 2 Ch.3, and end
   of Level 3 Ch.3.
 - Entering the Final Chamber, Serin's HP carries over exactly as it stood at the
-  end of Level 3, Chamber 4 (The Sarcophagus Approach).
+  end of Level 3, Chamber 3 (The Hunger Pit).
 
 ### 6.2 Death / Failure State
 
@@ -495,23 +495,26 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 
 #### 11.3.1 Chamber 1 — The Resonance Hall (Protect)
 
-- **Enemies:** 8× Soldier (stealth variant) — HP 30 each, Damage 12/hit.
+- **Enemies (13 total across 4 waves):** 7× Hushed Stalker (Soldier), 4× Mirror Bearer (Sprinter), 2× Void Shunter (Brute).
 - **Collection time:** **12 seconds** base.
 
 #### 11.3.2 Chamber 2 — The Mirror Vault (Prevent)
 
-- **Carriers:** 3× Sprinter — HP 22 each, Speed 6.5 units/s. **1 real, 2 decoys**.
-- **Guards:** 2× Soldier — HP 30 each.
+- **Carriers:** 4× Mirror Bearer (1 real, 3 decoys) — Speed 6.5 units/s.
+- **Blockers & Guards:** 4× Void Shunter (Brute), 4× Hushed Stalker (Soldier).
+- **Total:** 12 enemies.
 
 #### 11.3.3 Chamber 3 — The Hunger Pit (Gauntlet)
 
-- **5 waves, 4× Brute each = 20 total** — HP 60 each, Damage 18/hit, Speed 5.5 units/s when charging.
-
-#### 11.3.4 Chamber 4 — The Sarcophagus Approach (Protect)
-
-- **Enemies:** 4× Brute and 2× Soldier.
-- **Collection time:** **10 seconds** base.
-- **Decoy Reliquary Reward:** Defending the decoy reliquary to completion grants Serin a **+20% Max HP buff** (increasing Max HP from 100 to 120 and adding +20 HP) upon entering the Final Chamber / Boss Chamber.
+- **7 escalating waves (35 enemies total):**
+  - **Wave 1:** 6× Hushed Stalker (Soldier)
+  - **Wave 2:** 6× Mirror Bearer (Sprinter)
+  - **Wave 3:** 3× Void Shunter (Brute)
+  - **Wave 4:** 6× Hushed Stalker (Soldier)
+  - **Wave 5:** 4× Void Shunter (Brute)
+  - **Wave 6:** 6× Mirror Bearer (Sprinter)
+  - **Wave 7:** 4× Void Shunter (Brute)
+- **Brute mechanics:** HP 60, Melee Damage 18/hit, Speed 2.0 units/s. Ranged Attack: 1 targeted orb (10 dmg) every 4.0s; detonates shockwave burst upon death.
 
 ---
 
@@ -576,17 +579,19 @@ single new Echo, the **Hollow Bell**, spread across all three of its chambers
 ### 13.5 Phase 4 — The Fracture
 
 - **Trigger:** HP ≤ 25%, runs until HP = 0.
+- **Visual Appearance:** Malachar retains the Echo-Staff visual appearance (`boss_malachar_staff`) throughout the entire boss encounter.
 - **Arena:** Single continuous arena floor is maintained.
-- **Moveset additions on top of Phase 1 + Phase 3 cycle:** Malachar adds a
-  **Soul Lance** — a single high-damage targeted bolt (Damage 30) fired
-  every 10 seconds with a 1.0s telegraph (extended to 1.6s if Foretell is
-  active per §13.2/§13.3).
+- **Moveset additions on top of Phase 1 + Phase 3 cycle:** Malachar adds **Tracking Explosion Circles** every 10 seconds:
+  - Malachar deploys a sequence of **3 small red tracking circles** (sized to fit a single character), dispatched with a **0.5s delay** between each.
+  - Each circle locks onto the snapshot position of Serin at the exact instant it is cast.
+  - After **1.5 seconds** from deployment, each circle explodes, triggering a camera shake, red particle explosion, and blast audio.
+  - **Area-Proportional Friendly-Fire Damage:** The explosion damages *any* character caught inside the blast (Serin, summoned adds, and Malachar himself). Damage scales proportionally to the character's hitbox area relative to the circle area, capped at a maximum of **40 damage**.
+  - **Freeze Interaction:** Collecting a Freeze Potion while Malachar is in the casting sequence immediately halts the dispatch of any remaining unsent circles. Any circles already etched into the ground complete their 1.5s countdown and explode normally (and can damage the unshielded, frozen boss).
 - **Resonance Core transition burst:** triggers a third time on the 25%
   threshold crossing, identical formula to §13.3/§13.4.
 - **Carried-over Phase 2/3 modifiers (Marrow regen, capped per §13.3) remain
   active** if applicable. Obsidian Key's Blink does **not** carry into Phase
-  4 (Malachar is now weakened and channels his remaining power directly into
-  Soul Lance strikes).
+  4 (Malachar channels his remaining power directly into the tracking convergence attack).
 
 ### 13.6 Boss Defeat & Ending Determination
 

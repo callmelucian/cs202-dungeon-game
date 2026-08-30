@@ -17,6 +17,7 @@ public:
     virtual void update (float deltaTime);
     virtual void draw (sf::RenderWindow& window) const;
     virtual void handleEvents (sf::Event& event);
+    virtual bool isTransparent() const { return false; }
 
 protected:
     StateManager& stateManager;

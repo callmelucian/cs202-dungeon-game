@@ -32,6 +32,7 @@ add_executable(game
     src/core/game-state.cpp
     src/core/states/main-menu-state.cpp
     src/core/states/choose-chamber-state.cpp
+    src/core/states/individual-chamber-state.cpp
     src/core/states/game-play-state.cpp
     src/core/states/pause-state.cpp
     src/core/states/echo-log-state.cpp
@@ -82,7 +83,9 @@ add_executable(game
     src/entities/effects/burned-effect.cpp
     src/entities/effects/speed-up-effect.cpp
     src/entities/effects/critical-boost-effect.cpp
+    src/entities/effects/projectile.cpp
     src/entities/effects/arrow-projectile.cpp
+    src/entities/effects/orb-projectile.cpp
     src/entities/playable-character.cpp
     src/entities/forms/wraithblade-form.cpp
     src/entities/forms/voidcaster-form.cpp

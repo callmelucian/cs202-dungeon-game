@@ -20,14 +20,16 @@ public:
     // Returns the full TilemapRenderData including the walkableGrid bitmask used by the pathfinder.
     TilemapRenderData synthesizeMap(
         const std::vector<std::vector<std::string>>& typeGrid,
-        const std::vector<std::vector<int>>& levelGrid
+        const std::vector<std::vector<int>>& levelGrid,
+        const std::vector<std::vector<std::string>>& bridgeGrid = {}
     );
 
     // Creates a RenderableTileMap from the grids
     RenderableTileMap createRenderableMap(
         const std::vector<std::vector<std::string>>& typeGrid,
         const std::vector<std::vector<int>>& levelGrid,
-        float cellSize, float offsetX, float offsetY
+        float cellSize, float offsetX, float offsetY,
+        const std::vector<std::vector<std::string>>& bridgeGrid = {}
     );
 
     TileType parseTileType(const std::string& typeStr) const;

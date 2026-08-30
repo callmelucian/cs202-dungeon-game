@@ -67,6 +67,16 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
             }
         }
 
+        if (j.contains("bridge-grid") && j["bridge-grid"].is_array()) {
+            for (const auto& row : j["bridge-grid"]) {
+                std::vector<std::string> rowVec;
+                for (const auto& cell : row) {
+                    rowVec.push_back(cell.get<std::string>());
+                }
+                config.bridgeGrid.push_back(rowVec);
+            }
+        }
+
 
         
         if (j.contains("phaseMaps") && j["phaseMaps"].is_object()) {

@@ -1,30 +1,30 @@
 {
     "activeForm": 0,
-    "collectTimeReduction": 0.8999999761581421,
-    "currentChamber": 4,
+    "collectTimeReduction": 1.0,
+    "currentChamber": 2,
     "currentLevel": 1,
     "echoOutcomes": {
-        "0": 1,
+        "0": 0,
         "1": 0,
-        "2": 1,
+        "2": 0,
         "3": 0,
         "4": 0
     },
     "echoPowers": {
-        "0": 100.0,
+        "0": 0.0,
         "1": 0.0,
-        "2": 67.0,
+        "2": 0.0,
         "3": 0.0,
         "4": 0.0
     },
     "echoesStolen": 0,
-    "foretellActive": true,
+    "foretellActive": false,
     "foretellPhase1": false,
     "hasDecoyReliquaryBuff": false,
     "ironshellMomentum": 0.0,
-    "playerHP": 65.0,
+    "playerHP": 100.0,
     "special1MomentumThreshold": 50.0,
     "special2MomentumThreshold": 100.0,
     "voidcasterMomentum": 0.0,
-    "wraithbladeMomentum": 100.0
+    "wraithbladeMomentum": 15.0
 }

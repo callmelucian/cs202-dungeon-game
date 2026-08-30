@@ -24,6 +24,7 @@
 class SettingState : public GameState {
 public:
     SettingState(StateManager& manager);
+    bool isTransparent() const override { return true; }
     void handleEvents(sf::Event& event) override;
 
 private:

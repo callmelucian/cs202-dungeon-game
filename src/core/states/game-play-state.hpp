@@ -40,6 +40,7 @@ class GameplayState : public GameState, public EchoObserver, public ChamberObser
 public:
     GameplayState(StateManager& manager); // Campaign mode
     GameplayState(StateManager& manager, ChamberSelectionType type); // Debug mode
+    virtual ~GameplayState() override;
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) const override;
     void handleEvents(sf::Event& event) override;

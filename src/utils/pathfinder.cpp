@@ -17,7 +17,7 @@ bool Pathfinder::isWalkable(sf::Vector2f position, const std::vector<std::vector
     
     if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
         std::string cell = grid[y][x];
-        return (cell == "L" || cell == "V" || cell == "H" || cell == "S");
+        return (cell == "L" || cell == "V" || cell == "H" || cell == "S" || cell == "E" || cell == "X");
     }
     return false;
 }
@@ -36,7 +36,10 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
     
     if (startY < 0 || startY >= grid.size() || startX < 0 || startX >= grid[0].size()) return {};
     if (targetY < 0 || targetY >= grid.size() || targetX < 0 || targetX >= grid[0].size()) return {};
-    if (grid[targetY][targetX] != "L" && grid[targetY][targetX] != "V" && grid[targetY][targetX] != "H" && grid[targetY][targetX] != "S") {
+    auto isWalkableCell = [](const std::string& cell) {
+        return (cell == "L" || cell == "V" || cell == "H" || cell == "S" || cell == "E" || cell == "X");
+    };
+    if (!isWalkableCell(grid[targetY][targetX])) {
         return {}; // target is unreachable/unwalkable
     }
 
@@ -70,7 +73,7 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
             
             if (ny >= 0 && ny < grid.size() && nx >= 0 && nx < grid[0].size()) {
                 std::string cell = grid[ny][nx];
-                if (!visited[ny][nx] && (cell == "L" || cell == "V" || cell == "H" || cell == "S")) {
+                if (!visited[ny][nx] && isWalkableCell(cell)) {
                     visited[ny][nx] = true;
                     parent[ny][nx] = curr;
                     q.push({nx, ny});

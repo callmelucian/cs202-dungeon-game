@@ -10,30 +10,36 @@ EchoLogState::EchoLogState(StateManager& manager) : GameState(manager) {
 
     const RunState& runState = Game::getInstance().getRunState();
 
-    // Create a vertical layout box centered on screen
+    // Create a spacious, beautiful vertical layout box centered on screen
     layoutBox = root->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
         ->setAlignmentX(UI::AlignmentX::Center)
-        ->setSpacing(10.f)
-        ->setPadding(20.f, 20.f, 30.f, 30.f)
-        ->setColor(sf::Color(18, 14, 28, 240));
+        ->setSpacing(16.f)
+        ->setPadding(26.f, 26.f, 40.f, 40.f)
+        ->setColor(sf::Color(14, 10, 24, 248));
 
-    // Title Text
-    titleText = layoutBox->createChild<UI::Text>("header", 22)
+    // Header Title Section
+    auto titleHeaderBox = layoutBox->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setSpacing(8.f);
+
+    titleText = titleHeaderBox->createChild<UI::Text>("header", 26)
         ->setString("ECHO RESONANCE LOG")
-        ->setFillColor(sf::Color(255, 215, 80));
+        ->setFillColor(sf::Color(255, 220, 85));
 
-    subtitleText = layoutBox->createChild<UI::Text>("regular", 13)
+    subtitleText = titleHeaderBox->createChild<UI::Text>("italic", 16)
         ->setString("Vault Echo Outcomes and Active Combat Modifiers")
-        ->setFillColor(sf::Color(180, 180, 200));
+        ->setFillColor(sf::Color(195, 195, 220));
 
-    // Container for Echo cards
+    // Container for Echo cards with generous spacing
     cardsContainer = layoutBox->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
-        ->setSpacing(6.f)
-        ->setPadding(4.f, 4.f, 4.f, 4.f);
+        ->setSpacing(12.f)
+        ->setPadding(6.f, 6.f, 6.f, 6.f);
 
     struct EchoMeta {
         EchoType type;
@@ -48,60 +54,52 @@ EchoLogState::EchoLogState(StateManager& manager) : GameState(manager) {
     const std::vector<EchoMeta> echoes = {
         {
             EchoType::CLARITY_SHARD,
-            "Clarity Shard",
-            "Level 1 - Chamber 1 (Protect)",
-            "Guards temporal flow. If collected, shortens collection times and foretells Malachar's attacks.",
-            "+10% Faster Echo Collection. Foretell grants +0.6s warning on Malachar's attacks starting in Phase 2.",
-            "+20% Faster Echo Collection. Foretell grants +0.6s warning on Malachar's attacks starting immediately in Phase 1!",
-            "Standard collection speed. Malachar's attacks execute rapidly with no foretell warnings."
+            "CLARITY SHARD",
+            "Level 1 - Chamber 1 [Protect]",
+            "Guards the temporal flow within the Vault.\nIf secured: Shortens collection times and foretells Malachar's incoming attacks.",
+            "+10% Faster Echo Collection speed.\nForetell Warning: Serin receives a 0.6s advance warning on Malachar's attacks starting in Phase 2.",
+            "+20% Faster Echo Collection speed (Fully Intact).\nForetell Warning: Serin receives a 0.6s advance warning on Malachar's attacks immediately in Phase 1!",
+            "Malachar's Distortion:\nMalachar strikes with blinding swiftness. Serin receives no attack foretell warnings."
         },
         {
             EchoType::MARROW,
-            "Marrow Echo",
-            "Level 1 - Chamber 2 (Prevent)",
-            "Pulsating bone essence. If stolen, Malachar gains continuous health regeneration during battle.",
-            "Echo Secured. Malachar is denied all vitality regeneration.",
-            "Echo Secured. Malachar is denied all vitality regeneration.",
-            "Malachar regenerates +2% Max HP/sec (25 HP/s) continuously in Phases 2, 3, and 4!"
+            "MARROW ECHO",
+            "Level 1 - Chamber 2 [Prevent]",
+            "Pulsating bone essence of vital endurance.\nIf stolen: Malachar continuously regenerates health throughout combat.",
+            "Echo Secured:\nMalachar is permanently stripped of all vitality regeneration across all phases.",
+            "Echo Secured (Fully Intact):\nMalachar is permanently stripped of all vitality regeneration across all phases.",
+            "Malachar's Vitality:\nMalachar continuously regenerates +2% Max HP/sec (25 HP/s) during Phases 2, 3, and 4!"
         },
         {
             EchoType::HOLLOW_BELL,
-            "Hollow Bell",
-            "Level 2 - Chamber 1 (Protect)",
-            "Resonating void chime. If collected, lowers Special Ability 1 Momentum cost. If stolen, Malachar gains Reflect Ward.",
-            "Special Ability 1 Momentum threshold reduced from 50 to 42.5 (15% reduction).",
-            "Special Ability 1 Momentum threshold reduced from 50 to 35.0 (30% reduction)!",
-            "Malachar gains a Reflect Ward in Phase 1 that reflects 20% damage every 8 seconds."
+            "HOLLOW BELL",
+            "Level 2 - Chamber 1 [Protect]",
+            "Resonating chime of void resonance.\nIf secured: Reduces Special Ability 1 Momentum cost. If stolen: Malachar activates Reflect Ward.",
+            "Special Ability 1 Momentum cost reduced from 50 to 42.5 (15% reduction).\nAllows Serin to unleash special attacks with less Momentum.",
+            "Special Ability 1 Momentum cost reduced from 50 to 35.0 (30% reduction)!\nAllows Serin to unleash special attacks at a rapid pace.",
+            "Malachar's Ward:\nMalachar gains a Reflect Ward in Phase 1 that reflects 20% of damage received back to Serin every 8s."
         },
         {
             EchoType::RESONANCE_CORE,
-            "Resonance Core",
-            "Level 3 - Chamber 1 (Protect)",
-            "Violent kinetic heart. If collected, deals massive burst damage to Malachar upon phase transitions.",
-            "Deals an 8% Max HP transition burst of damage to Malachar at every phase change.",
-            "Deals a DOUBLE transition burst (16% total HP damage, ~1s apart) to Malachar at every phase change!",
-            "No phase-transition damage dealt to Malachar."
+            "RESONANCE CORE",
+            "Level 3 - Chamber 1 [Protect]",
+            "Violent kinetic heart of explosive resonance.\nIf secured: Deals massive kinetic burst damage to Malachar upon phase transitions.",
+            "Phase Detonation:\nDeals an 8% Max HP transition burst of damage to Malachar whenever he enters a new phase.",
+            "Double Phase Detonation:\nDeals a DOUBLE burst (16% total Max HP damage, ~1s apart) to Malachar upon every phase change!",
+            "Kinetic Energy Lost:\nNo transition burst damage is dealt to Malachar upon phase changes."
         },
         {
             EchoType::OBSIDIAN_KEY,
-            "Obsidian Key",
-            "Level 3 - Chamber 2 (Prevent)",
-            "Fractured dimensional stone. If stolen, Malachar teleports unpredictably across the arena.",
-            "Echo Secured. Malachar is denied the Phase-Shift Blink ability.",
-            "Echo Secured. Malachar is denied the Phase-Shift Blink ability.",
-            "Malachar gains Phase-Shift Blink, teleporting across the arena every 6-9 seconds in Phases 2 & 3!"
+            "OBSIDIAN KEY",
+            "Level 3 - Chamber 2 [Prevent]",
+            "Fractured dimensional stone anchoring spatial coordinates.\nIf stolen: Malachar gains chaotic Phase-Shift teleportation.",
+            "Dimensional Anchor Secured:\nMalachar is denied the Phase-Shift Blink ability and remains tethered to physical space.",
+            "Dimensional Anchor Secured:\nMalachar is denied the Phase-Shift Blink ability and remains tethered to physical space.",
+            "Malachar's Phase-Shift:\nMalachar teleports unpredictably across the arena every 6-9 seconds during Phases 2 and 3!"
         }
     };
 
     for (const auto& meta : echoes) {
-        auto card = cardsContainer->createChild<UI::VerticalBox>()
-            ->setModeX(UI::SizeMode::Fixed)
-            ->setModeY(UI::SizeMode::Contained)
-            ->setFixedWidth(680.f)
-            ->setSpacing(3.f)
-            ->setPadding(6.f, 6.f, 10.f, 10.f)
-            ->setColor(sf::Color(30, 24, 45, 200));
-
         EchoOutcome outcome = EchoOutcome::UNCOLLECTED;
         auto outcomeIt = runState.echoOutcomes.find(meta.type);
         if (outcomeIt != runState.echoOutcomes.end()) {
@@ -115,66 +113,100 @@ EchoLogState::EchoLogState(StateManager& manager) : GameState(manager) {
         }
 
         std::string statusTag = "[ UNRESOLVED ]";
-        sf::Color statusColor = sf::Color(150, 150, 160);
+        sf::Color statusColor = sf::Color(165, 165, 180);
         std::string effectText = meta.previewDesc;
-        sf::Color effectColor = sf::Color(190, 190, 200);
+        sf::Color effectColor = sf::Color(210, 210, 225);
+        sf::Color cardBg = sf::Color(26, 20, 40, 230);
 
         if (outcome == EchoOutcome::COLLECTED) {
             std::ostringstream ss;
             if (power >= 90.0f) {
-                ss << "[ COLLECTED (" << static_cast<int>(std::round(power)) << "% - FULLY INTACT) ]";
+                ss << "[ COLLECTED - " << static_cast<int>(std::round(power)) << "% INTACT ]";
                 statusTag = ss.str();
-                statusColor = sf::Color(80, 240, 140);
+                statusColor = sf::Color(75, 255, 140);
                 effectText = meta.intactDesc;
-                effectColor = sf::Color(120, 255, 170);
+                effectColor = sf::Color(150, 255, 195);
+                cardBg = sf::Color(18, 38, 38, 235);
             } else {
-                ss << "[ COLLECTED (" << static_cast<int>(std::round(power)) << "%) ]";
+                ss << "[ COLLECTED - " << static_cast<int>(std::round(power)) << "% ]";
                 statusTag = ss.str();
-                statusColor = sf::Color(100, 220, 200);
+                statusColor = sf::Color(80, 230, 220);
                 effectText = meta.collectedDesc;
-                effectColor = sf::Color(160, 240, 220);
+                effectColor = sf::Color(170, 245, 235);
+                cardBg = sf::Color(18, 34, 42, 235);
             }
         } else if (outcome == EchoOutcome::STOLEN) {
             statusTag = "[ STOLEN BY MALACHAR ]";
-            statusColor = sf::Color(255, 75, 75);
+            statusColor = sf::Color(255, 80, 80);
             effectText = meta.stolenDesc;
-            effectColor = sf::Color(255, 150, 150);
+            effectColor = sf::Color(255, 170, 170);
+            cardBg = sf::Color(44, 18, 26, 235);
         }
 
+        auto card = cardsContainer->createChild<UI::VerticalBox>()
+            ->setModeX(UI::SizeMode::Fixed)
+            ->setModeY(UI::SizeMode::Contained)
+            ->setFixedWidth(1160.f)
+            ->setSpacing(8.f)
+            ->setPadding(12.f, 12.f, 20.f, 20.f)
+            ->setColor(cardBg);
+
+        // Header Row: Left has Title & Chamber, Right has Status Badge
         auto headerRow = card->createChild<UI::HorizontalBox>()
             ->setModeX(UI::SizeMode::Expanded)
             ->setModeY(UI::SizeMode::Contained)
+            ->setAlignmentY(UI::AlignmentY::Middle)
             ->setDistribution(UI::Distribution::SpaceBetween);
 
-        std::string headerStr = meta.name + " (" + meta.chamber + ")";
-        headerRow->createChild<UI::Text>("header", 14)
-            ->setString(headerStr)
-            ->setFillColor(sf::Color(255, 230, 130));
+        auto titleAndChamber = headerRow->createChild<UI::HorizontalBox>()
+            ->setModeX(UI::SizeMode::Contained)
+            ->setModeY(UI::SizeMode::Contained)
+            ->setAlignmentY(UI::AlignmentY::Middle)
+            ->setSpacing(18.f);
 
-        headerRow->createChild<UI::Text>("regular", 13)
+        titleAndChamber->createChild<UI::Text>("header", 14)
+            ->setString(meta.name)
+            ->setFillColor(sf::Color(255, 235, 130));
+
+        titleAndChamber->createChild<UI::Text>("italic", 15)
+            ->setString(meta.chamber)
+            ->setFillColor(sf::Color(180, 180, 210));
+
+        headerRow->createChild<UI::Text>("bold", 15)
             ->setString(statusTag)
             ->setFillColor(statusColor);
 
-        card->createChild<UI::Text>("regular", 12)
+        // Effect Description Text in regular typography with multi-line end lines for high readability
+        card->createChild<UI::Text>("regular", 15)
             ->setString(effectText)
             ->setFillColor(effectColor);
     }
 
-    // Close button
-    closeButton = layoutBox->createChild<UI::Button>("Close", "regular", 20.f)
+    // Bottom controls
+    auto bottomBox = layoutBox->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setSpacing(8.f);
+
+    closeButton = bottomBox->createChild<UI::Button>("Close", "regular", 22.f)
         ->setModeX(UI::SizeMode::Fixed)
         ->setModeY(UI::SizeMode::Fixed)
-        ->setFixedWidth(160.f)
-        ->setFixedHeight(40.f)
+        ->setFixedWidth(200.f)
+        ->setFixedHeight(48.f)
         ->setOnClick([this]() {
             stateManager.popState();
         });
+
+    bottomBox->createChild<UI::Text>("italic", 14)
+        ->setString("Press [E] or [ESC] to return to game")
+        ->setFillColor(sf::Color(160, 160, 185));
 }
 
 void EchoLogState::draw(sf::RenderWindow& window) const {
-    // Dim background gameplay view
+    // Dim background gameplay view with smooth dark vignette
     sf::RectangleShape backdrop(sf::Vector2f(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
-    backdrop.setFillColor(sf::Color(8, 6, 14, 215));
+    backdrop.setFillColor(sf::Color(8, 6, 14, 230));
     window.draw(backdrop);
 
     GameState::draw(window);

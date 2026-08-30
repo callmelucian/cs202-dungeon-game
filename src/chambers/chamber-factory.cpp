@@ -44,17 +44,11 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
             echoName = "Resonance Core";
             echoType = EchoType::RESONANCE_CORE;
             baseTime = 12.0f; // Spec §11.3.1: 12 seconds base
-        } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
-            echoName = "Sarcophagus Decoy Reliquary";
-            echoType = EchoType::OBSIDIAN_KEY; // Decoy reliquary, outcome not recorded
-            baseTime = 10.0f; // Spec §11.3.4: 10 seconds base
         }
 
         auto protectChamber = std::make_unique<ProtectChamber>(player, echoName, baseTime * timeReduction, echoType);
         if (filepath.find("level-3/chamber-1.json") != std::string::npos) {
             protectChamber->setIsNoiseHall(true);
-        } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
-            protectChamber->setIsReliquaryDecoy(true);
         }
         // Position will be set from grid later
         chamber = std::move(protectChamber);
@@ -94,10 +88,10 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
     }
 
     if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
-        chamber->setGrids2D5(config.typeGrid, config.levelGrid);
+        chamber->setGrids2D5(config.typeGrid, config.levelGrid, config.bridgeGrid);
     }
 
-    if (chamber && !config.waves.empty()) {
+    if (chamber && !config.waves.empty() && config.chamberType != "BossChamber") {
         chamber->setWaves(config.waves);
     }
 
@@ -130,10 +124,17 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
                 float ox = SettingManager::getInstance().getGridOffsetX();
                 float oy = SettingManager::getInstance().getGridOffsetY();
                 
-                // Position exit at the far right end of the corridor
-                float exitX = ox + (cols - 2.5f) * size;
-                float exitY = oy + (rows / 2.0f) * size;
-                preventChamber->setExitPosition({exitX, exitY});
+                if (filepath.find("level-1/chamber-2.json") != std::string::npos) {
+                    // Position exit at the far right end of the Bone Corridor
+                    float exitX = ox + (cols - 2.5f) * size;
+                    float exitY = oy + (rows / 2.0f) * size;
+                    preventChamber->setExitPosition({exitX, exitY});
+                } else {
+                    // Center the exit gate at the heart of the central arena
+                    float exitX = ox + (cols / 2.0f) * size;
+                    float exitY = oy + (rows / 2.0f) * size;
+                    preventChamber->setExitPosition({exitX, exitY});
+                }
             }
         }
     } else if (config.chamberType == "ProtectChamber") {
@@ -204,7 +205,7 @@ std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType
     }
 
     if (!config.typeGrid.empty() && !config.levelGrid.empty()) {
-        chamber->setGrids2D5(config.typeGrid, config.levelGrid);
+        chamber->setGrids2D5(config.typeGrid, config.levelGrid, config.bridgeGrid);
     }
 
     return chamber;

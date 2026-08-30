@@ -6,10 +6,18 @@ void StateManager::draw() const {
     Game &game = Game::getInstance();
     sf::RenderWindow &window = game.getWindow();
 
-    // draw all stacked states from bottom to top so overlays render over game scene
-    for (const auto& state : states) {
-        if (state) {
-            state->draw(window);
+    if (states.empty()) return;
+
+    // Find the lowest state that needs to be drawn (the topmost opaque state)
+    int firstToDraw = static_cast<int>(states.size()) - 1;
+    while (firstToDraw > 0 && states[firstToDraw]->isTransparent()) {
+        firstToDraw--;
+    }
+
+    for (size_t i = static_cast<size_t>(firstToDraw); i < states.size(); ++i) {
+        if (states[i]) {
+            window.setView(window.getDefaultView());
+            states[i]->draw(window);
         }
     }
 }

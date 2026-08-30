@@ -43,7 +43,8 @@ int TilemapLoader::tilePicker(TileType currentType, const std::vector<TileType>&
 
 TilemapRenderData TilemapLoader::synthesizeMap(
     const std::vector<std::vector<std::string>>& typeGrid,
-    const std::vector<std::vector<int>>& levelGrid
+    const std::vector<std::vector<int>>& levelGrid,
+    const std::vector<std::vector<std::string>>& bridgeGrid
 ) {
     TilemapRenderData data;
     if (typeGrid.empty() || typeGrid[0].empty()) return data;
@@ -475,35 +476,48 @@ TilemapRenderData TilemapLoader::synthesizeMap(
         }
     }
 
+    // Helper: returns the bridge type string for a cell (".", "H", "V") from bridgeGrid.
+    // Returns "." if bridgeGrid is absent or cell is out of range.
+    auto getBridge = [&](int br, int bc) -> std::string {
+        if (bridgeGrid.empty() || br < 0 || br >= rows || bc < 0 || bc >= cols) return ".";
+        if (br >= static_cast<int>(bridgeGrid.size()) || bc >= static_cast<int>(bridgeGrid[br].size())) return ".";
+        const std::string& val = bridgeGrid[br][bc];
+        if (val.empty()) return ".";
+        return val;
+    };
+
+    // Emit bridge overlay tiles from bridgeGrid.
+    // The underlying terrain in typeGrid/levelGrid is rendered normally;
+    // bridge sprites are drawn on top at layer = levelGrid[r][c] + 2.
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            TileType tType = parseTileType(typeGrid[r][c]);
-            if (tType == TileType::VerticalBridge || tType == TileType::HorizontalBridge) {
-                RenderTile bridgeTile;
-                bridgeTile.layer = levelGrid[r][c] + 2;
-                bridgeTile.gridRow = r;
-                bridgeTile.gridCol = c;
+            std::string br = getBridge(r, c);
+            if (br == ".") continue;
 
-                if (tType == TileType::VerticalBridge) {
-                    TileQuadInfo quad;
-                    quad.texRect = {tm.verticalBridge.coord[0], tm.verticalBridge.coord[1], tm.verticalBridge.size[0], tm.verticalBridge.size[1]};
-                    quad.renderOffset = sf::Vector2f(0.f, 0.f);
-                    quad.renderSize = sf::Vector2f(static_cast<float>(tm.verticalBridge.size[0]), static_cast<float>(tm.verticalBridge.size[1]));
-                    bridgeTile.quads.push_back(quad);
-                } else if (tType == TileType::HorizontalBridge) {
-                    TileQuadInfo quad;
-                    quad.texRect = {tm.horizontalBridge.coord[0], tm.horizontalBridge.coord[1], tm.horizontalBridge.size[0], tm.horizontalBridge.size[1]};
-                    quad.renderOffset = sf::Vector2f(0.f, 0.f);
-                    quad.renderSize = sf::Vector2f(static_cast<float>(tm.horizontalBridge.size[0]), static_cast<float>(tm.horizontalBridge.size[1]));
-                    bridgeTile.quads.push_back(quad);
-                }
-                data.bridgeTiles.push_back(bridgeTile);
+            RenderTile bridgeTile;
+            bridgeTile.layer = levelGrid[r][c] + 2;
+            bridgeTile.gridRow = r;
+            bridgeTile.gridCol = c;
+
+            if (br == "V") {
+                TileQuadInfo quad;
+                quad.texRect = {tm.verticalBridge.coord[0], tm.verticalBridge.coord[1], tm.verticalBridge.size[0], tm.verticalBridge.size[1]};
+                quad.renderOffset = sf::Vector2f(0.f, 0.f);
+                quad.renderSize = sf::Vector2f(static_cast<float>(tm.verticalBridge.size[0]), static_cast<float>(tm.verticalBridge.size[1]));
+                bridgeTile.quads.push_back(quad);
+            } else if (br == "H") {
+                TileQuadInfo quad;
+                quad.texRect = {tm.horizontalBridge.coord[0], tm.horizontalBridge.coord[1], tm.horizontalBridge.size[0], tm.horizontalBridge.size[1]};
+                quad.renderOffset = sf::Vector2f(0.f, 0.f);
+                quad.renderSize = sf::Vector2f(static_cast<float>(tm.horizontalBridge.size[0]), static_cast<float>(tm.horizontalBridge.size[1]));
+                bridgeTile.quads.push_back(quad);
             }
+            data.bridgeTiles.push_back(bridgeTile);
         }
     }
 
     // Helper: returns true when tile (tr, tc) is a cliff face — a ground-level tile
-    // whose northern neighbour sits at a higher elevation.  These tiles are added to
+    // whose northern neighbour sits at a higher elevation. These tiles are added to
     // elevationObstacles by buildObstaclesFromGrid() and are physically impassable for
     // ground-level characters, so the BFS must agree.
     auto isCliffFace = [&](int tr, int tc) -> bool {
@@ -513,60 +527,60 @@ TilemapRenderData TilemapLoader::synthesizeMap(
 
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
+            std::string bridgeHere = getBridge(r, c);
+            bool hasBridge = (bridgeHere == "H" || bridgeHere == "V");
             TileType ct = parseTileType(typeGrid[r][c]);
 
-            // Void/Water tiles: no connections (mask stays 0).
-            if (ct == TileType::Void || ct == TileType::Water) continue;
+            // Bridge overlay makes any cell walkable regardless of underlying terrain.
+            // Without a bridge: Void/Water tiles have no connections.
+            if (!hasBridge && (ct == TileType::Void || ct == TileType::Water)) continue;
 
             // Cliff face tiles are physically blocked for ground-level characters
             // (mirrors the elevationObstacles rule in buildObstaclesFromGrid).
-            // Leave their mask as 0 so no BFS edge points into or out of them.
-            if (isCliffFace(r, c)) continue;
+            // Bridge overlay overrides this — you can walk onto a bridge even on a cliff face.
+            if (!hasBridge && isCliffFace(r, c)) continue;
 
             uint8_t mask = 0;
 
-            auto canConnect = [&](TileType current, TileType neighbor, int dirIdx) {
-                // dirIdx: 0=Up, 1=Right, 2=Down, 3=Left
-                if (neighbor == TileType::Void || neighbor == TileType::Water) return false;
+            // canConnect checks whether two adjacent cells allow movement in direction dirIdx.
+            // dirIdx: 0=Up, 1=Right, 2=Down, 3=Left
+            auto canConnect = [&](int ar, int ac, int nr, int nc, int dirIdx) -> bool {
+                std::string aBridge = getBridge(ar, ac);
+                std::string nBridge = getBridge(nr, nc);
+                bool aHasBridge = (aBridge == "H" || aBridge == "V");
+                bool nHasBridge = (nBridge == "H" || nBridge == "V");
 
-                // Bridge constraints
-                if (current == TileType::VerticalBridge   && (dirIdx == 1 || dirIdx == 3)) return false;
-                if (current == TileType::HorizontalBridge && (dirIdx == 0 || dirIdx == 2)) return false;
+                TileType aType = parseTileType(typeGrid[ar][ac]);
+                TileType nType = parseTileType(typeGrid[nr][nc]);
 
-                if (neighbor == TileType::VerticalBridge   && (dirIdx == 1 || dirIdx == 3)) return false;
-                if (neighbor == TileType::HorizontalBridge && (dirIdx == 0 || dirIdx == 2)) return false;
+                // Neighbor must be walkable (has bridge or is land/stairs type).
+                if (!nHasBridge && (nType == TileType::Void || nType == TileType::Water)) return false;
+                // Neighbor cliff face is impassable unless it has a bridge.
+                if (!nHasBridge && isCliffFace(nr, nc)) return false;
+
+                // Bridge directional constraints:
+                // Vertical bridge ("V") only allows up/down movement.
+                if (aBridge == "V" && (dirIdx == 1 || dirIdx == 3)) return false;
+                if (aBridge == "H" && (dirIdx == 0 || dirIdx == 2)) return false;
+                if (nBridge == "V" && (dirIdx == 1 || dirIdx == 3)) return false;
+                if (nBridge == "H" && (dirIdx == 0 || dirIdx == 2)) return false;
+
+                // Without bridge: same elevation required (stairs are exceptions).
+                if (!aHasBridge && !nHasBridge) {
+                    if (levelGrid[ar][ac] != levelGrid[nr][nc] && aType != TileType::Stairs && nType != TileType::Stairs) return false;
+                }
 
                 return true;
             };
 
             // Up (dy = -1)
-            if (r > 0 && !isCliffFace(r - 1, c)) {
-                TileType nt = parseTileType(typeGrid[r-1][c]);
-                if (canConnect(ct, nt, 0)) {
-                    if (levelGrid[r][c] == levelGrid[r-1][c] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 1;
-                }
-            }
+            if (r > 0 && canConnect(r, c, r - 1, c, 0)) mask |= 1;
             // Right (dx = +1)
-            if (c < cols - 1 && !isCliffFace(r, c + 1)) {
-                TileType nt = parseTileType(typeGrid[r][c+1]);
-                if (canConnect(ct, nt, 1)) {
-                    if (levelGrid[r][c] == levelGrid[r][c+1] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 2;
-                }
-            }
+            if (c < cols - 1 && canConnect(r, c, r, c + 1, 1)) mask |= 2;
             // Down (dy = +1)
-            if (r < rows - 1 && !isCliffFace(r + 1, c)) {
-                TileType nt = parseTileType(typeGrid[r+1][c]);
-                if (canConnect(ct, nt, 2)) {
-                    if (levelGrid[r][c] == levelGrid[r+1][c] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 4;
-                }
-            }
+            if (r < rows - 1 && canConnect(r, c, r + 1, c, 2)) mask |= 4;
             // Left (dx = -1)
-            if (c > 0 && !isCliffFace(r, c - 1)) {
-                TileType nt = parseTileType(typeGrid[r][c-1]);
-                if (canConnect(ct, nt, 3)) {
-                    if (levelGrid[r][c] == levelGrid[r][c-1] || ct == TileType::Stairs || nt == TileType::Stairs) mask |= 8;
-                }
-            }
+            if (c > 0 && canConnect(r, c, r, c - 1, 3)) mask |= 8;
 
             data.walkableGrid[r][c] = mask;
         }
@@ -575,8 +589,13 @@ TilemapRenderData TilemapLoader::synthesizeMap(
     return data;
 }
 
-RenderableTileMap TilemapLoader::createRenderableMap(const std::vector<std::vector<std::string>>& typeGrid, const std::vector<std::vector<int>>& levelGrid, float cellSize, float offsetX, float offsetY) {
-    TilemapRenderData renderData = synthesizeMap(typeGrid, levelGrid);
+RenderableTileMap TilemapLoader::createRenderableMap(
+    const std::vector<std::vector<std::string>>& typeGrid,
+    const std::vector<std::vector<int>>& levelGrid,
+    float cellSize, float offsetX, float offsetY,
+    const std::vector<std::vector<std::string>>& bridgeGrid
+) {
+    TilemapRenderData renderData = synthesizeMap(typeGrid, levelGrid, bridgeGrid);
     RenderableTileMap map;
     try {
         const sf::Texture& tex = AssetManager::getInstance().getTexture("tile-map");

@@ -15,11 +15,8 @@ private:
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
 
-    UI::Button* playCampaignBtn;
-    UI::Button* testChamberBtn;
-    UI::Button* protectChamberBtn;
-    UI::Button* preventChamberBtn;
-    UI::Button* bossChamberBtn;
+    UI::Button* storyModeBtn;
+    UI::Button* individualChamberBtn;
     UI::Button* backBtn;
 };
 

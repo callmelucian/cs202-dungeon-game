@@ -9,6 +9,8 @@
 #include "../../core/run-state.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/setting-manager.hpp"
+#include "../../global-settings/sound-manager.hpp"
+#include "../../utils/camera.hpp"
 #include "../../ui/graphics/particle-system.hpp"
 #include "../../ui/graphics/aura-renderer.hpp"
 #include "../../ui/widgets/floating-text-manager.hpp"
@@ -20,7 +22,7 @@
 #include <random>
 
 BossMalachar::BossMalachar(Player& player)
-    : Enemy("boss_malachar", player),
+    : Enemy("boss_malachar_staff", player),
       currentPhase(1),
       phaseTimer(0.0f),
       cycleTimer(0.0f),
@@ -32,10 +34,9 @@ BossMalachar::BossMalachar(Player& player)
       summoningBurstFired(false),
       blinkTimer(6.0f),
       sunderCooldown(15.0f),
-      soulLanceCooldown(10.0f),
-      isSoulLanceCharging(false),
-      soulLanceTelegraphTimer(0.0f),
-      soulLanceTelegraphMax(2.0f),
+      trackingAttackCooldown(10.0f),
+      trackingCirclesRemaining(0),
+      trackingCircleIntervalTimer(0.0f),
       reflectWardActive(false),
       reflectWardCooldown(0.0f),
       foretellActive(false),
@@ -104,15 +105,10 @@ void BossMalachar::update(float deltaTime) {
     sf::Vector2f playerPos = getPlayer().getPosition();
     sf::Vector2f dir = playerPos - myPos;
 
-    // Dynamically switch weapon spritesheet based on phase & active attack:
-    // Staff for Void Bolt / spell casting in Phase 1 & 2; Sword for Soul Lance / Sunder in Phase 3 & 4
-    if (isSoulLanceCharging || currentPhase >= 3) {
-        setCharacterKey("boss_malachar_sword");
-    } else {
-        setCharacterKey("boss_malachar_staff");
-    }
+    // Use the echo-staff appearance for Boss Malachar throughout the entire boss fight
+    setCharacterKey("boss_malachar_staff");
 
-    if (isVoidBoltCharging || isSoulLanceCharging) {
+    if (isVoidBoltCharging || trackingCirclesRemaining > 0) {
         if (std::abs(dir.x) >= std::abs(dir.y)) {
             facingString = (dir.x > 0.f) ? "right" : "left";
             isFacingRight = (dir.x > 0.f);
@@ -120,17 +116,13 @@ void BossMalachar::update(float deltaTime) {
             facingString = (dir.y > 0.f) ? "down" : "up";
         }
 
-        if (isVoidBoltCharging) {
-            notifyStateChanged("thrust_oversize-facing-" + facingString);
-        } else if (isSoulLanceCharging) {
-            notifyStateChanged("slash_oversize-facing-" + facingString);
-        }
+        notifyStateChanged("thrust_oversize-facing-" + facingString);
         Character::update(deltaTime);
     } else {
         Enemy::update(deltaTime);
     }
 
-    // Always update in-flight projectiles (purple orbs continue flying even when boss is frozen)
+    // Always update in-flight projectiles and active tracking circles
     updateProjectiles(deltaTime);
 }
 
@@ -187,13 +179,23 @@ void BossMalachar::updateState(float dt, Chamber& chamber) {
         }
     }
 
-    // 8. Phase 4: Soul Lance attack every 10s
-    if (currentPhase == 4) {
-        soulLanceCooldown -= dt;
-        if (soulLanceCooldown <= 0.0f && !isSoulLanceCharging) {
-            soulLance(chamber);
+    // 7. Phase 3 & 4: Platform Sunder attack every 15s
+    if (currentPhase >= 3) {
+        sunderCooldown -= dt;
+        if (sunderCooldown <= 0.0f) {
+            platformSunder(chamber);
+            sunderCooldown = 15.0f;
         }
-        updateSoulLance(dt, chamber);
+    }
+
+    // 8. Phase 4: Tracking Explosion Circles attack every 10s
+    if (currentPhase == 4) {
+        trackingAttackCooldown -= dt;
+        if (trackingAttackCooldown <= 0.0f && trackingCirclesRemaining == 0) {
+            startTrackingAttack(chamber);
+            trackingAttackCooldown = 10.0f;
+        }
+        updateTrackingAttack(dt, chamber);
     }
 
     Enemy::updateState(dt, chamber);
@@ -222,12 +224,18 @@ void BossMalachar::updateVoidBoltCycle(float dt, Chamber& chamber) {
             sf::Vector2f targetPos = getPlayer().getPosition();
             sf::Vector2f dir = Math::normalize(targetPos - myPos);
 
-            VoidBolt bolt;
-            bolt.position = myPos;
-            bolt.velocity = dir * 350.0f; // Speed 350 px/s
-            bolt.damage = 14.0f;
-            bolt.lifetime = 4.0f;
-            bolt.active = true;
+            OrbProjectile bolt(
+                myPos,
+                dir * 350.0f,
+                14.0f,
+                6.5f,
+                15.0f,
+                4.0f,
+                sf::Color(150, 30, 230, 245),
+                sf::Color(240, 180, 255, 255),
+                1.8f,
+                0.25f // 25% chance to inflict Burned status effect
+            );
 
             voidBolts.push_back(bolt);
 
@@ -256,55 +264,93 @@ void BossMalachar::updateVoidBoltCycle(float dt, Chamber& chamber) {
     }
 }
 
-void BossMalachar::updateSoulLance(float dt, Chamber& chamber) {
-    if (!isSoulLanceCharging) return;
+void BossMalachar::startTrackingAttack(Chamber& chamber) {
+    std::cout << "[BossMalachar] Casting Tracking Explosion Circles!\n";
+    trackingCirclesRemaining = 3;
+    trackingCircleIntervalTimer = 0.0f; // First circle dispatched immediately
+}
 
-    soulLanceTargetPos = getPlayer().getPosition();
-    soulLanceTelegraphTimer -= dt;
+void BossMalachar::updateTrackingAttack(float dt, Chamber& chamber) {
+    // 1. Dispatch pending tracking circles (0.5s interval between each)
+    if (trackingCirclesRemaining > 0) {
+        trackingCircleIntervalTimer -= dt;
+        if (trackingCircleIntervalTimer <= 0.0f) {
+            sf::Vector2f targetPos = getPlayer().getPosition();
+            TrackingExplosionCircle circle;
+            circle.targetPos = targetPos;
+            circle.timer = 1.5f;
+            circle.maxTimer = 1.5f;
+            circle.radius = 30.0f; // Sized just to fit a single 1x1 character
+            circle.exploded = false;
 
-    if (soulLanceTelegraphTimer <= 0.0f) {
-        isSoulLanceCharging = false;
+            trackingCircles.push_back(circle);
+            trackingCirclesRemaining--;
+            trackingCircleIntervalTimer = 0.5f;
 
-        // Soul Lance deals 30 damage to player upon impact
-        getPlayer().takeDamage(30.0f);
-        std::cout << "[BossMalachar] Soul Lance struck Serin for 30 damage!\n";
+            SoundManager::getInstance().playSound("fireball");
+            std::cout << "[BossMalachar] Tracking circle sent to (" << targetPos.x << ", " << targetPos.y << ") (1.5s until detonation)!\n";
+        }
+    }
+
+    // 2. Update active ground tracking circles & handle detonation
+    for (auto it = trackingCircles.begin(); it != trackingCircles.end();) {
+        it->timer -= dt;
+        if (it->timer <= 0.0f && !it->exploded) {
+            it->exploded = true;
+            sf::Vector2f center = it->targetPos;
+            float circleRadius = it->radius;
+            float circleArea = 3.14159265f * circleRadius * circleRadius;
+
+            // Visual & Sound effects: Camera shake, red particle burst, explosion SFX
+            Camera::triggerShake(8.0f, 0.22f);
+            ParticleSystem::getInstance().emitBurst(center, 35, sf::Color(255, 45, 45, 235), 50.0f, 160.0f, 0.25f, 0.75f, 5.0f);
+            SoundManager::getInstance().playSound("hit");
+
+            CircleHitbox blastCircle;
+            blastCircle.center = center;
+            blastCircle.radius = circleRadius;
+
+            auto computeDamage = [&](const Character& chara) -> float {
+                sf::FloatRect b = chara.getBounds();
+                float charArea = b.size.x * b.size.y;
+                float ratio = std::clamp(charArea / circleArea, 0.0f, 1.0f);
+                return std::min(40.0f, 40.0f * ratio);
+            };
+
+            // Damage Player if in blast area
+            Player& player = getPlayer();
+            if (player.isAlive() && CollisionSolver::checkCollision(blastCircle, player.getBounds())) {
+                float dmg = computeDamage(player);
+                player.takeDamage(dmg);
+                std::cout << "[BossMalachar] Tracking circle explosion hit Player for " << dmg << " damage!\n";
+            }
+
+            // Damage all Enemies in chamber (friendly fire: hits adds and Boss itself)
+            std::vector<Enemy*> enemies = chamber.getEnemiesRaw();
+            for (Enemy* enemy : enemies) {
+                if (!enemy || !enemy->isAlive()) continue;
+                if (CollisionSolver::checkCollision(blastCircle, enemy->getBounds())) {
+                    float dmg = computeDamage(*enemy);
+                    enemy->takeDamage(dmg);
+                    std::cout << "[BossMalachar] Tracking circle explosion hit " << enemy->getDisplayName() << " for " << dmg << " damage!\n";
+                }
+            }
+
+            it = trackingCircles.erase(it);
+        } else {
+            ++it;
+        }
     }
 }
 
 void BossMalachar::updateProjectiles(float dt) {
-    sf::Vector2f playerPos = getPlayer().getPosition();
-
     for (auto& bolt : voidBolts) {
-        if (!bolt.active) continue;
-
-        bolt.position += bolt.velocity * dt;
-        bolt.lifetime -= dt;
-
-        if (bolt.lifetime <= 0.0f) {
-            bolt.active = false;
-            continue;
-        }
-
-        // Check collision with player (hitbox radius 15px for smaller orb)
-        float dist = Math::distance(bolt.position, playerPos);
-        if (dist < 15.0f) {
-            getPlayer().takeDamage(bolt.damage);
-            bolt.active = false;
-            std::cout << "[BossMalachar] Void Bolt hit Serin for " << bolt.damage << " damage!\n";
-
-            // 25% chance to inflict Burned status effect
-            static std::mt19937 burnRng(std::random_device{}());
-            std::uniform_real_distribution<float> burnDist(0.0f, 1.0f);
-            if (burnDist(burnRng) < 0.25f) {
-                getPlayer().applyStatusEffect(std::make_unique<BurnedEffect>(5.0f, 5.0f));
-                std::cout << "[BossMalachar] Void Bolt inflicted Burned on Serin!\n";
-            }
-        }
+        bolt.update(dt, getPlayer());
     }
 
     // Remove inactive bolts
     voidBolts.erase(
-        std::remove_if(voidBolts.begin(), voidBolts.end(), [](const VoidBolt& b) { return !b.active; }),
+        std::remove_if(voidBolts.begin(), voidBolts.end(), [](const OrbProjectile& b) { return !b.isActive(); }),
         voidBolts.end()
     );
 }
@@ -385,17 +431,6 @@ void BossMalachar::platformSunder(Chamber& chamber) {
     }
 }
 
-void BossMalachar::soulLance(Chamber& chamber) {
-    std::cout << "[BossMalachar] Casting Soul Lance!\n";
-    isSoulLanceCharging = true;
-
-    soulLanceTelegraphMax = foretellActive ? 2.5f : 2.0f;
-    soulLanceTelegraphTimer = soulLanceTelegraphMax;
-    soulLanceStartPos = getPosition();
-    soulLanceTargetPos = getPlayer().getPosition();
-    soulLanceCooldown = 10.0f;
-}
-
 void BossMalachar::takeDamage(float rawAmount, bool isCritical) {
     if (!isAlive()) return;
 
@@ -437,8 +472,46 @@ sf::FloatRect BossMalachar::getBounds() const {
     return sf::FloatRect({pos.x - width / 2.0f, pos.y - height / 2.0f}, {width, height});
 }
 
+void BossMalachar::drawTrackingCircles(sf::RenderWindow& window) const {
+    for (const auto& circle : trackingCircles) {
+        float progress = std::clamp(1.0f - (circle.timer / circle.maxTimer), 0.0f, 1.0f);
+        
+        // 1. Base tracking ground circle
+        sf::CircleShape baseCircle(circle.radius);
+        baseCircle.setOrigin({circle.radius, circle.radius});
+        baseCircle.setPosition(circle.targetPos);
+        baseCircle.setFillColor(sf::Color(255, 30, 30, static_cast<std::uint8_t>(40 + progress * 90.0f)));
+        baseCircle.setOutlineColor(sf::Color(255, 70, 70, 230));
+        baseCircle.setOutlineThickness(2.0f);
+        window.draw(baseCircle);
+
+        // 2. Contracting warning pulse ring inside
+        float innerR = circle.radius * (1.0f - progress);
+        if (innerR > 1.0f) {
+            sf::CircleShape innerRing(innerR);
+            innerRing.setOrigin({innerR, innerR});
+            innerRing.setPosition(circle.targetPos);
+            innerRing.setFillColor(sf::Color::Transparent);
+            innerRing.setOutlineColor(sf::Color(255, 220, 60, static_cast<std::uint8_t>(180 + progress * 75.0f)));
+            innerRing.setOutlineThickness(2.0f);
+            window.draw(innerRing);
+        }
+
+        // 3. Central core danger dot
+        float coreRadius = 4.0f + 2.0f * progress;
+        sf::CircleShape coreDot(coreRadius);
+        coreDot.setOrigin({coreRadius, coreRadius});
+        coreDot.setPosition(circle.targetPos);
+        coreDot.setFillColor(sf::Color(255, 240, 100, 240));
+        window.draw(coreDot);
+    }
+}
+
 void BossMalachar::draw(sf::RenderWindow& window) const {
-    // 0. Draw protective shield barrier (active when not frozen)
+    // 0. Draw ground tracking explosion circles
+    drawTrackingCircles(window);
+
+    // 1. Draw protective shield barrier (active when not frozen)
     if (isAlive() && !isFrozen()) {
         float radius = 58.0f;
         // Smooth radial gradient cyan air shield barrier
@@ -447,7 +520,7 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
         AuraRenderer::getInstance().drawAura(window, getPosition(), radius, coreColor, edgeColor, 0.95f, 1.2f);
     }
 
-    // 1. Draw Void Bolt charge glow around Malachar (purple aura)
+    // 2. Draw Void Bolt charge glow around Malachar (purple aura)
     if (isVoidBoltCharging) {
         float radius = 65.0f;
         // Smooth radial gradient void charging air aura (purple)
@@ -456,43 +529,9 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
         AuraRenderer::getInstance().drawAura(window, getPosition(), radius, coreColor, edgeColor, 1.2f, 2.0f);
     }
 
-    // 2. Draw Soul Lance charging: red aura around boss, aiming laser, and red target orb
-    if (isSoulLanceCharging) {
-        // Red radial charging air aura around Malachar
-        float radius = 65.0f;
-        sf::Color redCore(255, 80, 80, 150);
-        sf::Color redEdge(210, 20, 20, 210);
-        AuraRenderer::getInstance().drawAura(window, getPosition(), radius, redCore, redEdge, 1.25f, 2.2f);
-
-        // Aim line
-        sf::Vertex line[] = {
-            sf::Vertex(getPosition(), sf::Color(255, 40, 40, 230)),
-            sf::Vertex(soulLanceTargetPos, sf::Color(255, 80, 0, 255))
-        };
-        window.draw(line, 2, sf::PrimitiveType::Lines);
-
-        // Glowing red target orb
-        float targetRadius = 16.0f;
-        sf::CircleShape targetMarker(targetRadius);
-        targetMarker.setOrigin({targetRadius, targetRadius});
-        targetMarker.setPosition(soulLanceTargetPos);
-        targetMarker.setFillColor(sf::Color(255, 20, 20, 140));
-        targetMarker.setOutlineColor(sf::Color(255, 100, 100, 240));
-        targetMarker.setOutlineThickness(2.5f);
-        window.draw(targetMarker);
-    }
-
     // 3. Draw active Void Bolts (smaller purple orb)
     for (const auto& bolt : voidBolts) {
-        if (!bolt.active) continue;
-        float radius = 6.5f;
-        sf::CircleShape bShape(radius);
-        bShape.setOrigin({radius, radius});
-        bShape.setPosition(bolt.position);
-        bShape.setFillColor(sf::Color(150, 30, 230, 245));
-        bShape.setOutlineColor(sf::Color(240, 180, 255, 255));
-        bShape.setOutlineThickness(1.8f);
-        window.draw(bShape);
+        bolt.draw(window);
     }
 
     // 4. Draw Malachar sprite scaled 2x larger (2x2 cell size = 1.6 * cellSize)
@@ -515,8 +554,9 @@ void BossMalachar::draw(sf::RenderWindow& window) const {
 
 void BossMalachar::clearProjectiles() {
     voidBolts.clear();
+    trackingCircles.clear();
     isVoidBoltCharging = false;
-    isSoulLanceCharging = false;
+    trackingCirclesRemaining = 0;
 }
 
 void BossMalachar::cancelCharging() {
@@ -524,8 +564,8 @@ void BossMalachar::cancelCharging() {
     voidBoltTelegraphTimer = 0.0f;
     voidBoltsRemaining = 0;
     
-    isSoulLanceCharging = false;
-    soulLanceTelegraphTimer = 0.0f;
+    trackingCirclesRemaining = 0;
+    trackingCircleIntervalTimer = 0.0f;
     
     setVelocity({0.0f, 0.0f});
     std::cout << "[BossMalachar] Attack charging canceled due to Freeze!\n";

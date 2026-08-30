@@ -62,8 +62,6 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
         titleStr = "Level 3 - The Mirror Vault (Obsidian Key)";
     } else if (filepath.find("level-3/chamber-3.json") != std::string::npos) {
         titleStr = "Level 3 - The Hunger Pit (Gauntlet)";
-    } else if (filepath.find("level-3/chamber-4.json") != std::string::npos) {
-        titleStr = "Level 3 - The Sarcophagus Approach (Decoy Reliquary)";
     } else if (filepath.find("mid.json") != std::string::npos) {
         titleStr = "Resting Sanctuary (Free Form Swap)";
     } else if (filepath.find("boss.json") != std::string::npos) {
@@ -95,6 +93,12 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
 
     initPlayerPosition();
     startChamberIntro("Debug Chamber");
+}
+
+GameplayState::~GameplayState() {
+    UI::FloatingTextManager::getInstance().clear();
+    ParticleSystem::getInstance().clear();
+    AuraRenderer::getInstance().clearScreenFlash();
 }
 
 void GameplayState::setupUI() {

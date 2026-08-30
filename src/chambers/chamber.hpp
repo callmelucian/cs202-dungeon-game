@@ -42,9 +42,10 @@ public:
     virtual void spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed = 900.0f, ArrowHitMode hitMode = ArrowHitMode::PIERCING);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
-    virtual void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid);
+    virtual void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid, const std::vector<std::vector<std::string>>& newBridgeGrid = {});
     const std::vector<std::vector<std::string>>& getTypeGrid() const { return typeGrid; }
     const std::vector<std::vector<int>>& getLevelGrid() const { return levelGrid; }
+    const std::vector<std::vector<std::string>>& getBridgeGrid() const { return bridgeGrid; }
     const std::vector<std::vector<uint8_t>>& getWalkableGrid() const { return renderData2D5.walkableGrid; }
     const TilemapRenderData& getRenderData2D5() const { return renderData2D5; }
     
@@ -80,6 +81,7 @@ protected:
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
+    std::vector<std::vector<std::string>> bridgeGrid;
     TilemapRenderData renderData2D5;
     std::vector<sf::FloatRect> baseObstacles;
     std::vector<sf::FloatRect> elevationObstacles;

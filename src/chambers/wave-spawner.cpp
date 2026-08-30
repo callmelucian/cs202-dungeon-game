@@ -35,15 +35,26 @@ void WaveSpawner::update(float dt, Chamber& chamber, Player& player) {
                 float oy = SettingManager::getInstance().getGridOffsetY();
 
                 // Collect all walkable ground cells to ensure enemies never spawn in obstacles
+                const auto& walkableGrid = chamber.getWalkableGrid();
                 const auto& grid = chamber.getTypeGrid();
                 std::vector<sf::Vector2f> walkablePositions;
-                if (!grid.empty()) {
+                if (!walkableGrid.empty()) {
+                    int rows = static_cast<int>(walkableGrid.size());
+                    int cols = static_cast<int>(walkableGrid[0].size());
+                    for (int r = 1; r < rows - 1; ++r) {
+                        for (int c = 1; c < cols - 1; ++c) {
+                            if (walkableGrid[r][c] != 0) {
+                                walkablePositions.push_back({ox + (c + 0.5f) * cell, oy + (r + 0.5f) * cell});
+                            }
+                        }
+                    }
+                } else if (!grid.empty()) {
                     int rows = static_cast<int>(grid.size());
                     int cols = static_cast<int>(grid[0].size());
                     for (int r = 1; r < rows - 1; ++r) {
                         for (int c = 1; c < cols - 1; ++c) {
                             const std::string& cellType = grid[r][c];
-                            if (cellType == "L" || cellType == "V" || cellType == "H" || cellType == "S") {
+                            if (cellType == "L" || cellType == "S" || cellType == "E" || cellType == "X" || cellType == "V" || cellType == "H") {
                                 walkablePositions.push_back({ox + (c + 0.5f) * cell, oy + (r + 0.5f) * cell});
                             }
                         }

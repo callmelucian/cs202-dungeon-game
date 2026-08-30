@@ -117,9 +117,10 @@ void Chamber::spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float ma
 }
 
 
-void Chamber::setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid) {
+void Chamber::setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid, const std::vector<std::vector<std::string>>& newBridgeGrid) {
     typeGrid = newTypeGrid;
     levelGrid = newLevelGrid;
+    bridgeGrid = newBridgeGrid;
     
     float cellSize = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();
@@ -127,12 +128,9 @@ void Chamber::setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGr
 
     // Synthesize the full 2.5D render data (includes the walkableGrid bitmask).
     // Store it so getWalkableGrid() returns the correct graph for the pathfinder.
-    // Previously createRenderableMap() built and then silently discarded this data,
-    // leaving renderData2D5.walkableGrid permanently empty and forcing the pathfinder
-    // to fall back to the flat typeGrid BFS that ignores elevation entirely.
-    renderData2D5 = TilemapLoader::getInstance().synthesizeMap(typeGrid, levelGrid);
+    renderData2D5 = TilemapLoader::getInstance().synthesizeMap(typeGrid, levelGrid, bridgeGrid);
 
-    tileMap = TilemapLoader::getInstance().createRenderableMap(typeGrid, levelGrid, cellSize, ox, oy);
+    tileMap = TilemapLoader::getInstance().createRenderableMap(typeGrid, levelGrid, cellSize, ox, oy, bridgeGrid);
     buildObstaclesFromGrid();
 }
 
@@ -151,17 +149,29 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
     int tx = static_cast<int>((trueCenter.x - ox) / cellSize);
     int ty = static_cast<int>((trueCenter.y - oy) / cellSize);
 
+    auto getBridgeAt = [&](int r, int c) -> std::string {
+        if (bridgeGrid.empty() || r < 0 || r >= static_cast<int>(bridgeGrid.size()) || c < 0 || c >= static_cast<int>(bridgeGrid[r].size())) return ".";
+        const std::string& b = bridgeGrid[r][c];
+        return b.empty() ? "." : b;
+    };
+
     int charLevel = 0; // Default Level 0
     bool isOnStairs = false;
-    if (!levelGrid.empty() && ty >= 0 && ty < levelGrid.size() && tx >= 0 && tx < levelGrid[0].size()) {
+    if (!levelGrid.empty() && ty >= 0 && ty < static_cast<int>(levelGrid.size()) && tx >= 0 && tx < static_cast<int>(levelGrid[0].size())) {
+        std::string br = getBridgeAt(ty, tx);
         if (typeGrid[ty][tx] == "S") {
             isOnStairs = true;
-        } else if (typeGrid[ty][tx] == "V") {
-            if (ty > 0 && typeGrid[ty-1][tx] != "0" && typeGrid[ty-1][tx] != "W") charLevel = levelGrid[ty-1][tx] - 1;
-            else if (ty < levelGrid.size() - 1 && typeGrid[ty+1][tx] != "0" && typeGrid[ty+1][tx] != "W") charLevel = levelGrid[ty+1][tx] - 1;
-        } else if (typeGrid[ty][tx] == "H") {
-            if (tx > 0 && typeGrid[ty][tx-1] != "0" && typeGrid[ty][tx-1] != "W") charLevel = levelGrid[ty][tx-1] - 1;
-            else if (tx < levelGrid[0].size() - 1 && typeGrid[ty][tx+1] != "0" && typeGrid[ty][tx+1] != "W") charLevel = levelGrid[ty][tx+1] - 1;
+        } else if (br == "V" || br == "H") {
+            charLevel = levelGrid[ty][tx] - 1;
+            if (charLevel < 0) {
+                if (br == "V") {
+                    if (ty > 0 && levelGrid[ty-1][tx] > 0) charLevel = levelGrid[ty-1][tx] - 1;
+                    else if (ty < static_cast<int>(levelGrid.size()) - 1 && levelGrid[ty+1][tx] > 0) charLevel = levelGrid[ty+1][tx] - 1;
+                } else if (br == "H") {
+                    if (tx > 0 && levelGrid[ty][tx-1] > 0) charLevel = levelGrid[ty][tx-1] - 1;
+                    else if (tx < static_cast<int>(levelGrid[0].size()) - 1 && levelGrid[ty][tx+1] > 0) charLevel = levelGrid[ty][tx+1] - 1;
+                }
+            }
         } else {
             charLevel = levelGrid[ty][tx] - 1;
         }
@@ -196,6 +206,18 @@ int Chamber::getElevationLevelAt(sf::Vector2f pos) const {
     }
 
     int level = levelGrid[ty][tx] - 1;
+    if (level < 0) {
+        if (!bridgeGrid.empty() && ty < static_cast<int>(bridgeGrid.size()) && tx < static_cast<int>(bridgeGrid[ty].size())) {
+            std::string br = bridgeGrid[ty][tx];
+            if (br == "V") {
+                if (ty > 0 && levelGrid[ty-1][tx] > 0) level = levelGrid[ty-1][tx] - 1;
+                else if (ty < static_cast<int>(levelGrid.size()) - 1 && levelGrid[ty+1][tx] > 0) level = levelGrid[ty+1][tx] - 1;
+            } else if (br == "H") {
+                if (tx > 0 && levelGrid[ty][tx-1] > 0) level = levelGrid[ty][tx-1] - 1;
+                else if (tx < static_cast<int>(levelGrid[0].size()) - 1 && levelGrid[ty][tx+1] > 0) level = levelGrid[ty][tx+1] - 1;
+            }
+        }
+    }
     if (level < 0) level = 0;
     return level;
 }
@@ -308,29 +330,62 @@ void Chamber::buildObstaclesFromGrid() {
     baseObstacles.push_back(sf::FloatRect({ox, oy}, {mapWidth, size})); // Top wall-front row
 
     if (!typeGrid.empty() && !levelGrid.empty()) {
+        auto getBridgeAt = [&](int r, int c) -> std::string {
+            if (bridgeGrid.empty() || r < 0 || r >= rows || c < 0 || c >= cols) return ".";
+            if (r >= static_cast<int>(bridgeGrid.size()) || c >= static_cast<int>(bridgeGrid[r].size())) return ".";
+            const std::string& b = bridgeGrid[r][c];
+            return b.empty() ? "." : b;
+        };
+
+        auto isWalkableTerrain = [&](int r, int c) -> bool {
+            if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
+            std::string br = getBridgeAt(r, c);
+            if (br == "V" || br == "H") return true;
+            std::string t = typeGrid[r][c];
+            return (t == "L" || t == "S" || t == "E" || t == "X");
+        };
+
         for (size_t y = 0; y < rows; ++y) {
             for (size_t x = 0; x < cols; ++x) {
                 sf::FloatRect rect({ox + x * size, oy + y * size}, {size, size});
                 std::string type = typeGrid[y][x];
                 int level = levelGrid[y][x];
+                std::string bridge = getBridgeAt(static_cast<int>(y), static_cast<int>(x));
+                bool hasBridge = (bridge == "V" || bridge == "H");
 
-                // Water and Void are base obstacles
-                if (type == "W" || type == "0") {
-                    baseObstacles.push_back(rect);
-                } else if (type != "S") { // Stairs are ramps connecting levels
-                    // Level 2+ is an obstacle for Level 0 chars (level 1 in grid).
+                if (hasBridge) {
+                    float sideThick = 2.0f;
+                    int iy = static_cast<int>(y);
+                    int ix = static_cast<int>(x);
+                    if (bridge == "V") {
+                        // Vertical bridge: travel is North-South.
+                        // Left guardrail if left cell is impassable
+                        if (!isWalkableTerrain(iy, ix - 1)) {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size}, {sideThick, size}));
+                        }
+                        // Right guardrail if right cell is impassable
+                        if (!isWalkableTerrain(iy, ix + 1)) {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size + size - sideThick, oy + y * size}, {sideThick, size}));
+                        }
+                    } else if (bridge == "H") {
+                        // Horizontal bridge: travel is East-West.
+                        // Top guardrail if top cell is impassable
+                        if (!isWalkableTerrain(iy - 1, ix)) {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size}, {size, sideThick}));
+                        }
+                        // Bottom guardrail if bottom cell is impassable
+                        if (!isWalkableTerrain(iy + 1, ix)) {
+                            baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size + size - sideThick}, {size, sideThick}));
+                        }
+                    }
+
                     if (level > 1) {
                         elevationObstacles.push_back(rect);
-                    }
-                    // A cell below a higher elevation level (y > 0 && levelGrid[y-1][x] > level) is a cliff face!
-                    // Ground-level characters cannot walk onto cliff faces; only stairs ("S") allow elevation changes.
-                    if (y > 0 && levelGrid[y - 1][x] > level) {
-                        elevationObstacles.push_back(rect);
-                    }
-                    // Level 1 is a drop (obstacle) for Level 1 chars (level 2 in grid).
-                    if (level == 1) {
+                    } else if (level == 1) {
                         inverseElevationObstacles.push_back(rect);
                     }
+                } else if (type == "W" || type == "0") {
+                    baseObstacles.push_back(rect);
                 } else if (type == "S") {
                     // Prevent players from walking off the side of the stairs
                     bool isVertical = true; // Assume vertical stairs
@@ -357,6 +412,17 @@ void Chamber::buildObstaclesFromGrid() {
                         if (y == rows - 1 || typeGrid[y+1][x] != "S") {
                             baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size + size - sideThick}, {size, sideThick}));
                         }
+                    }
+                } else { // Land ("L", "E", "X")
+                    if (level > 1) {
+                        elevationObstacles.push_back(rect);
+                    }
+                    // A cell below a higher elevation level is a cliff face!
+                    if (y > 0 && levelGrid[y - 1][x] > level && typeGrid[y - 1][x] != "S") {
+                        elevationObstacles.push_back(rect);
+                    }
+                    if (level == 1) {
+                        inverseElevationObstacles.push_back(rect);
                     }
                 }
             }

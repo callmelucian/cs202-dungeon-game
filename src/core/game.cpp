@@ -36,8 +36,9 @@ Game::Game() : running(false) {
     // load assets via assets manager
     assets.loadFont("header", resolvePath("assets/typeface/press-start/PressStart2P-Regular.ttf"));
     assets.loadFont("regular", resolvePath("assets/typeface/cascadia/CascadiaMono-Regular.ttf"));
-    // assets.loadFont("medium", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Medium.ttf"));
-    // assets.loadFont("semibold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-SemiBold.ttf"));
+    assets.loadFont("medium", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Medium.ttf"));
+    assets.loadFont("semibold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-SemiBold.ttf"));
+    assets.loadFont("pixel-bold", resolvePath("assets/typeface/pixelify-sans/PixelifySans-Bold.ttf"));
     assets.loadFont("bold", resolvePath("assets/typeface/cascadia/CascadiaMono-Bold.ttf"));
     assets.loadFont("italic", resolvePath("assets/typeface/cascadia/CascadiaMono-Italic.ttf"));
     assets.loadFont("bold-italic", resolvePath("assets/typeface/cascadia/CascadiaMono-BoldItalic.ttf"));

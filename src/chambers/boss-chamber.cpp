@@ -25,8 +25,8 @@ BossChamber::BossChamber(Player& player)
     boss = std::make_unique<BossMalachar>(player);
 }
 
-void BossChamber::setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid) {
-    Chamber::setGrids2D5(tGrid, lGrid);
+void BossChamber::setGrids2D5(const std::vector<std::vector<std::string>>& tGrid, const std::vector<std::vector<int>>& lGrid, const std::vector<std::vector<std::string>>& bGrid) {
+    Chamber::setGrids2D5(tGrid, lGrid, bGrid);
 
     float cellSize = SettingManager::getInstance().getCellSize();
     float ox = SettingManager::getInstance().getGridOffsetX();

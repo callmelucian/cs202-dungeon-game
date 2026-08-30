@@ -20,6 +20,7 @@
 class PauseState : public GameState {
 public:
     PauseState(StateManager& manager);
+    bool isTransparent() const override { return true; }
 
 private:
     UI::VerticalBox* layoutBox;

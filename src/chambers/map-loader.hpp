@@ -22,6 +22,7 @@ struct ChamberConfig {
     std::pair<int, int> playerSpawnCell = {-1, -1};
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
+    std::vector<std::vector<std::string>> bridgeGrid;
     std::vector<WaveConfig> waves;
     std::map<int, std::string> phaseMaps;
 };
