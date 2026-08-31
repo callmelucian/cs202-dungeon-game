@@ -1,7 +1,7 @@
 {
-    "activeForm": 0,
+    "activeForm": 1,
     "collectTimeReduction": 1.0,
-    "currentChamber": 5,
+    "currentChamber": 6,
     "currentLevel": 3,
     "echoOutcomes": {
         "0": 0,
@@ -22,9 +22,9 @@
     "foretellPhase1": false,
     "hasDecoyReliquaryBuff": false,
     "ironshellMomentum": 0.0,
-    "playerHP": 69.0,
+    "playerHP": 65.0,
     "special1MomentumThreshold": 50.0,
     "special2MomentumThreshold": 100.0,
-    "voidcasterMomentum": 0.0,
-    "wraithbladeMomentum": 18.0
+    "voidcasterMomentum": 66.0,
+    "wraithbladeMomentum": 0.0
 }

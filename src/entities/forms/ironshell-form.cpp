@@ -12,7 +12,7 @@
 
 IronshellForm::IronshellForm()
     : PlayerForm(FormType::IRONSHELL, "Ironshell",
-                 Stats{100.0f, 100.0f, 6.0f, 2.5f, 35.0f},
+                 Stats{100.0f, 100.0f, 6.0f, 2.5f, 235.0f},
                  1.0f, 1.0f) {}
 
 void IronshellForm::attack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {

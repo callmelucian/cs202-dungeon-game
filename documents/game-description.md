@@ -34,7 +34,7 @@ Momentum meters persist (frozen) while not active.
 |---|---|---|---|---|---|---|
 | Wraithblade | 7.0 | 12 | 15 | Melee (1.5 units) | 2 hits/sec | 20% |
 | Voidcaster | 5.0 | 22 | 5 | Ranged (12 units, single-target) | 1 hit/sec | 20% |
-| Ironshell | 2.5 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec | 20% |
+| Ironshell | 2.5 | 6 | 235 | Melee (1.0 units, cleave) | 1 hit/sec | 20% |
 
 *Defense reduces all incoming damage dealt to Serin while that form is active. See §2.5 for the exact mitigation formula. All forms share a unified HP pool of **100 Max HP**, which does not change on form switch and requires no conversion.
 
@@ -108,7 +108,7 @@ final_damage     = max( 1, round(mitigated_damage) )
 **Worked example:** A Siege Wraith (Damage 10/hit, §11.4) hits Serin —
 - As Wraithblade (Defense 15): `10 × 100/115 = 8.70` → **9 damage**.
 - As Voidcaster (Defense 5): `10 × 100/105 = 9.52` → **10 damage**.
-- As Ironshell (Defense 35): `10 × 100/135 = 7.41` → **7 damage**.
+- As Ironshell (Defense 235): `10 × 100/335 = 2.98` → **3 damage**.
 
 ---
 
