@@ -381,3 +381,7 @@ bool Character::isFrozen() const {
 void Character::setFrozen(bool frozen) {
     isFrozenState = frozen;
 }
+
+bool Character::isAnimationFinished() const {
+    return animator ? animator->isCurrentAnimationFinished() : true;
+}

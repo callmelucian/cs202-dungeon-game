@@ -21,6 +21,7 @@ protected:
     int fragmentDropCount;
     bool isFacingRight = true;
     std::string facingString = "down";
+    bool isAttacking = false;
     bool isRealCarrier;
     bool hitWall;
     std::optional<std::string> guaranteedDrop;
@@ -63,6 +64,13 @@ public:
 
     virtual bool canBeKnockedBack() const { return true; }
     virtual bool isShielded() const { return false; }
+
+    bool getIsAttacking() const { return isAttacking; }
+    void setIsAttacking(bool attacking) { isAttacking = attacking; }
+    const std::string& getFacingString() const { return facingString; }
+    void setFacingString(const std::string& fs) { facingString = fs; }
+    virtual std::string getAttackAnimKey() const { return "slash_oversize-facing-"; }
+    void triggerAttackAnimation();
 };
 
 #endif // ENEMY_HPP

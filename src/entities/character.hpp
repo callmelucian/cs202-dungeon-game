@@ -61,6 +61,7 @@ public:
     sf::Color getTint() const;
     bool isFrozen() const;
     void setFrozen(bool frozen);
+    bool isAnimationFinished() const;
 
 protected:
     void notifyStateChanged(std::string visualKey);

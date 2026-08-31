@@ -4,6 +4,7 @@
 #include "../player.hpp"
 #include "../../utils/math-utility.hpp"
 #include "../../global-settings/setting-manager.hpp"
+#include "../../global-settings/sound-manager.hpp"
 
 void IdleState::onEnter(Enemy& enemy) {
     enemy.setVelocity(sf::Vector2f(0.0f, 0.0f));
@@ -62,25 +63,43 @@ void ChasingState::update(Enemy& enemy, float dt, Chamber& chamber) {
 void AttackingState::onEnter(Enemy& enemy) {
     enemy.setVelocity(sf::Vector2f(0.0f, 0.0f));
     attackTimer = 0.0f; // Reset timer on contact
+
+    // Orient towards player and trigger attack animation
+    sf::Vector2f toPlayer = enemy.getPlayer().getPosition() - enemy.getPosition();
+    if (std::abs(toPlayer.x) >= std::abs(toPlayer.y)) {
+        enemy.setFacingString((toPlayer.x > 0.f) ? "right" : "left");
+    } else {
+        enemy.setFacingString((toPlayer.y > 0.f) ? "down" : "up");
+    }
+    enemy.triggerAttackAnimation();
 }
 
-void AttackingState::onExit(Enemy& enemy) {}
+void AttackingState::onExit(Enemy& enemy) {
+    enemy.setIsAttacking(false);
+}
 
 void AttackingState::update(Enemy& enemy, float dt, Chamber& chamber) {
     // Check if player moved out of contact range
     float dist = Math::distance(enemy.getPosition(), enemy.getPlayer().getPosition());
-    if (dist >= 40.0f) {
+    if (dist >= 50.0f) {
         enemy.changeState(std::make_unique<ChasingState>());
         return;
+    }
+
+    // Keep facing player while in attacking state
+    sf::Vector2f toPlayer = enemy.getPlayer().getPosition() - enemy.getPosition();
+    if (std::abs(toPlayer.x) >= std::abs(toPlayer.y)) {
+        enemy.setFacingString((toPlayer.x > 0.f) ? "right" : "left");
+    } else {
+        enemy.setFacingString((toPlayer.y > 0.f) ? "down" : "up");
     }
     
     attackTimer += dt;
     if (attackTimer >= SettingManager::getInstance().getEnemyAttackTime()) {
         enemy.getPlayer().takeDamage(enemy.getEffectiveStats().damage);
+        SoundManager::getInstance().playSound("swing");
+        enemy.triggerAttackAnimation();
         attackTimer = 0.0f; // Reset timer after attacking
-        
-        // Optional: add a tiny stagger to show attack animation? Let's just keep attacking every 2s
-        // enemy.changeState(std::make_unique<StaggeredState>(0.2f, std::make_unique<AttackingState>()));
     }
 }
 

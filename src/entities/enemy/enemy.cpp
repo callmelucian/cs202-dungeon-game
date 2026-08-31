@@ -23,19 +23,32 @@ Enemy::Enemy(const std::string& characterKey, Player& player)
     }
 }
 
+void Enemy::triggerAttackAnimation() {
+    isAttacking = true;
+    notifyStateChanged(getAttackAnimKey() + facingString);
+}
+
 void Enemy::update(float deltaTime) {
-    sf::Vector2f vel = getVelocity();
-    
-    if (std::abs(vel.x) > 0.01f || std::abs(vel.y) > 0.01f) {
-        if (std::abs(vel.x) >= std::abs(vel.y)) {
-            facingString = (vel.x > 0.f) ? "right" : "left";
-            isFacingRight = (vel.x > 0.f);
-        } else {
-            facingString = (vel.y > 0.f) ? "down" : "up";
+    if (isAttacking) {
+        if (isAnimationFinished()) {
+            isAttacking = false;
         }
-        notifyStateChanged("walk-facing-" + facingString);
-    } else {
-        notifyStateChanged("idle-facing-" + facingString);
+    }
+
+    if (!isAttacking) {
+        sf::Vector2f vel = getVelocity();
+        
+        if (std::abs(vel.x) > 0.01f || std::abs(vel.y) > 0.01f) {
+            if (std::abs(vel.x) >= std::abs(vel.y)) {
+                facingString = (vel.x > 0.f) ? "right" : "left";
+                isFacingRight = (vel.x > 0.f);
+            } else {
+                facingString = (vel.y > 0.f) ? "down" : "up";
+            }
+            notifyStateChanged("walk-facing-" + facingString);
+        } else {
+            notifyStateChanged("idle-facing-" + facingString);
+        }
     }
 
     Character::update(deltaTime);
