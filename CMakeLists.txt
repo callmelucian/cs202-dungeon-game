@@ -110,6 +110,7 @@ add_executable(game
     src/utils/math-utility.cpp
     src/utils/collision-solver.cpp
     src/utils/pathfinder.cpp
+    src/utils/grid-passability.cpp
     src/utils/camera.cpp
 
     # chambers
@@ -125,6 +126,7 @@ add_executable(game
     src/chambers/map-loader.cpp
     src/chambers/tilemap-loader.cpp
     src/chambers/renderable-tilemap.cpp
+    src/chambers/exit-gate.cpp
 )
 
 # Link SFML and JSON libraries

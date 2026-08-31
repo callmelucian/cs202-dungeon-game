@@ -119,6 +119,42 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
     int targetX = std::clamp(static_cast<int>(std::floor((target.x - ox) / size)), 0, cols - 1);
     int targetY = std::clamp(static_cast<int>(std::floor((target.y - oy) / size)), 0, rows - 1);
 
+    // If start cell is unwalkable (mask == 0), resolve to nearest walkable neighbor
+    if (walkableGrid[startY][startX] == 0) {
+        bool resolved = false;
+        for (int r = 1; r <= 2 && !resolved; ++r) {
+            for (int dy = -r; dy <= r && !resolved; ++dy) {
+                for (int dx = -r; dx <= r && !resolved; ++dx) {
+                    int ny = startY + dy;
+                    int nx = startX + dx;
+                    if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && walkableGrid[ny][nx] != 0) {
+                        startX = nx;
+                        startY = ny;
+                        resolved = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // If target cell is unwalkable (mask == 0), resolve to nearest walkable neighbor
+    if (walkableGrid[targetY][targetX] == 0) {
+        bool resolved = false;
+        for (int r = 1; r <= 2 && !resolved; ++r) {
+            for (int dy = -r; dy <= r && !resolved; ++dy) {
+                for (int dx = -r; dx <= r && !resolved; ++dx) {
+                    int ny = targetY + dy;
+                    int nx = targetX + dx;
+                    if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && walkableGrid[ny][nx] != 0) {
+                        targetX = nx;
+                        targetY = ny;
+                        resolved = true;
+                    }
+                }
+            }
+        }
+    }
+
     if (startX == targetX && startY == targetY) {
         return {target};
     }

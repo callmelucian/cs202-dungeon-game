@@ -29,10 +29,13 @@
 #include "../../ui/widgets/boss-health-bar.hpp"
 
 
-enum class ChamberIntroState {
+enum class ChamberTransitionState {
+    FADING_IN,
     TITLE_DISPLAY,
     ZOOMING_IN,
-    PLAYING
+    PLAYING,
+    FADING_OUT,
+    COMPLETED
 };
 
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
@@ -69,8 +72,12 @@ private:
     bool isDebugMode = false;
 
     Camera camera;
-    ChamberIntroState introState = ChamberIntroState::TITLE_DISPLAY;
+    ChamberTransitionState transitionState = ChamberTransitionState::FADING_IN;
     float introTimer = 0.0f;
+    float fadeTimer = 0.0f;
+    float fadeAlpha = 255.0f;
+    const float FADE_DURATION = 2.0f;
+    mutable sf::RectangleShape fadeOverlay;
     
     void setupUI();
     void initPlayerPosition();

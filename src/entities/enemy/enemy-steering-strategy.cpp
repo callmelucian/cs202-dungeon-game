@@ -81,11 +81,48 @@ void SeekStrategy::onWallHit() {
 // ---------------------------------------------------------------------------
 
 sf::Vector2f EvadeStrategy::calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) {
-    // Evade: desired direction is from the Player towards the Enemy (moving away).
+    float cellSize = SettingManager::getInstance().getCellSize();
+    sf::Vector2f exitPos = chamber.getExitPosition();
+
+    // If a valid exit position is set on the chamber (e.g. PreventChamber carrier escape),
+    // carrier navigates toward the exit using pathfinding!
+    if (exitPos.x >= 0.0f) {
+        if (needsReplan || cachedPath.empty()) {
+            cachedPath = Pathfinder::findPath(enemy.getPosition(), exitPos, chamber);
+            lastTargetPos = exitPos;
+            needsReplan = false;
+        }
+
+        float arrivalRadius = cellSize * ARRIVE_RADIUS_FACTOR;
+        while (!cachedPath.empty() &&
+               Math::distance(enemy.getPosition(), cachedPath.front()) < arrivalRadius) {
+            cachedPath.erase(cachedPath.begin());
+        }
+
+        if (!cachedPath.empty()) {
+            sf::Vector2f toWaypoint = cachedPath.front() - enemy.getPosition();
+            float len = Math::length(toWaypoint);
+            if (len > 0.0001f) {
+                return toWaypoint / len;
+            }
+        }
+
+        sf::Vector2f toExit = exitPos - enemy.getPosition();
+        float len = Math::length(toExit);
+        if (len > 0.0001f) {
+            return toExit / len;
+        }
+    }
+
+    // Fallback: Evade from player
     sf::Vector2f toEnemy = enemy.getPosition() - player.getPosition();
     float len = Math::length(toEnemy);
     if (len > 0.0001f) {
         return toEnemy / len;
     }
     return {0.f, 0.f};
+}
+
+void EvadeStrategy::onWallHit() {
+    needsReplan = true;
 }

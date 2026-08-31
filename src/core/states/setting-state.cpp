@@ -24,11 +24,26 @@ static std::string scancodeToString(sf::Keyboard::Scancode sc) {
     return str;
 }
 
+static std::string bindingToString(const ActionBinding& binding) {
+    if (binding.isMouseButton) {
+        switch (binding.mouseButton) {
+            case sf::Mouse::Button::Left: return "L-Mouse";
+            case sf::Mouse::Button::Right: return "R-Mouse";
+            case sf::Mouse::Button::Middle: return "M-Mouse";
+            case sf::Mouse::Button::Extra1: return "Mouse 4";
+            case sf::Mouse::Button::Extra2: return "Mouse 5";
+            default: return "Mouse";
+        }
+    }
+    return scancodeToString(binding.scancode);
+}
+
 static std::string getActionDisplayName(const std::string& action) {
     if (action == "MoveUp") return "Move Up";
     if (action == "MoveDown") return "Move Down";
     if (action == "MoveLeft") return "Move Left";
     if (action == "MoveRight") return "Move Right";
+    if (action == "Dash") return "Dash (Wraith)";
     if (action == "Attack") return "Attack";
     if (action == "Special1") return "Special 1";
     if (action == "Special2") return "Special 2";
@@ -107,20 +122,21 @@ SettingState::SettingState(StateManager& manager) : GameState(manager), pendingR
             stateManager.popState();
         });
 
-    // Right Column: Key Bindings
+    // Right Column: Controls
     keybindBox = columnsBox->createChild<UI::VerticalBox>()
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained)
-        ->setSpacing(8.f)
+        ->setSpacing(10.f)
         ->setDistribution(UI::Distribution::SpaceBetween);
 
     keybindBox->createChild<UI::Text>("header", 20)
-        ->setString("Key Bindings")
+        ->setString("Controls")
         ->setModeX(UI::SizeMode::Contained)
         ->setModeY(UI::SizeMode::Contained);
 
     const std::vector<std::string> actions = {
         "MoveUp", "MoveDown", "MoveLeft", "MoveRight",
+        "Dash",
         "Attack", "Special1", "Special2",
         "SwitchForm1", "SwitchForm2", "SwitchForm3"
     };
@@ -136,8 +152,8 @@ SettingState::SettingState(StateManager& manager) : GameState(manager), pendingR
             ->setFixedWidth(180.f)
             ->setFixedHeight(30.f);
 
-        sf::Keyboard::Scancode sc = settings.getKeyBinding(action);
-        std::string btnText = "[" + scancodeToString(sc) + "]";
+        ActionBinding b = settings.getActionBinding(action);
+        std::string btnText = "[" + bindingToString(b) + "]";
 
         auto btn = row->createChild<UI::Button>(btnText, "regular", 16.f)
             ->setFixedWidth(140.f)
@@ -156,8 +172,8 @@ void SettingState::refreshKeyBindingLabels() {
     SettingManager& settings = SettingManager::getInstance();
     for (auto& [action, btn] : keyButtons) {
         if (btn) {
-            sf::Keyboard::Scancode sc = settings.getKeyBinding(action);
-            btn->setLabelText("[" + scancodeToString(sc) + "]");
+            ActionBinding b = settings.getActionBinding(action);
+            btn->setLabelText("[" + bindingToString(b) + "]");
         }
     }
 }
@@ -166,9 +182,15 @@ void SettingState::handleEvents(sf::Event& event) {
     if (!pendingRebindAction.empty()) {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->scancode != sf::Keyboard::Scancode::Unknown && keyPressed->scancode != sf::Keyboard::Scancode::Escape) {
-                SettingManager::getInstance().setKeyBinding(pendingRebindAction, keyPressed->scancode);
+                SettingManager::getInstance().setActionScancode(pendingRebindAction, keyPressed->scancode);
                 SettingManager::getInstance().saveSettings("settings.json");
             }
+            pendingRebindAction = "";
+            refreshKeyBindingLabels();
+            return;
+        } else if (const auto* mousePressed = event.getIf<sf::Event::MouseButtonPressed>()) {
+            SettingManager::getInstance().setActionMouseButton(pendingRebindAction, mousePressed->button);
+            SettingManager::getInstance().saveSettings("settings.json");
             pendingRebindAction = "";
             refreshKeyBindingLabels();
             return;

@@ -30,11 +30,11 @@ Momentum meters persist (frozen) while not active.
 
 ### 2.1 Base Stats
 
-| Form | Move Speed (units/s) | Base Damage / hit | Defense* | Attack Range | Attack Rate |
-|---|---|---|---|---|---|
-| Wraithblade | 7.0 | 12 | 15 | Melee (1.5 units) | 2 hits/sec |
-| Voidcaster | 5.0 | 22 | 5 | Ranged (12 units, piercing) | 1 hit/sec |
-| Ironshell | 2.5 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec |
+| Form | Move Speed (units/s) | Base Damage / hit | Defense* | Attack Range | Attack Rate | Base Crit Rate |
+|---|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 12 | 15 | Melee (1.5 units) | 2 hits/sec | 20% |
+| Voidcaster | 5.0 | 22 | 5 | Ranged (12 units, single-target) | 1 hit/sec | 20% |
+| Ironshell | 2.5 | 6 | 35 | Melee (1.0 units, cleave) | 1 hit/sec | 20% |
 
 *Defense reduces all incoming damage dealt to Serin while that form is active. See §2.5 for the exact mitigation formula. All forms share a unified HP pool of **100 Max HP**, which does not change on form switch and requires no conversion.
 
@@ -50,16 +50,25 @@ Momentum meters persist (frozen) while not active.
 - Switching has **no stat penalty, no Echo-integrity penalty, and does not interrupt
   an active Protect collection timer** (the timer keeps counting as long as Serin
   remains in the collection radius, regardless of form).
-- Switching **resets the active form's Momentum meter to 0** (see §3.3). The
+- Switching **resets the active form's Momentum meter to 0** during combat chambers (see §3.3).
+  In **Mid-Chambers**, form momentum is **preserved across form switches**. The
   newly-active form's meter resumes from whatever value it was frozen at.
 
-### 2.3 Passive: Ironshell Aura
+### 2.3 Wraithblade Movement: Dash
+
+While Wraithblade is the active form, pressing the **Dash key** (Default: **Right Mouse Button**, configurable in keyboard settings) while moving initiates a swift dash:
+- **Dash Speed:** **2× normal movement speed** ($14.0\text{ units/s}$).
+- **Dash Duration:** **0.5 seconds** per dash.
+- **Dash Cooldown:** Requires at least **2.0 seconds** cooldown between dashes.
+- Requires directional movement to activate.
+
+### 2.4 Passive: Ironshell Aura
 
 While Ironshell is the active form, a persistent aura applies **Slowed** (see §4) to
 all enemies within **4.0 units** of Serin, refreshed continuously (no stacking
 duration — it's reapplied every tick while the enemy remains in range).
 
-### 2.4 Unified HP Pool
+### 2.5 Unified HP Pool
 
 Every form shares the exact same HP pool (Max HP = 100). The current HP is preserved as a flat value when switching forms, and no percentage conversion is required.
 
@@ -110,20 +119,21 @@ final_damage     = max( 1, round(mitigated_damage) )
 - Range: **0–100** per form, independent per form, persists while the form is
   inactive (frozen, does not decay over time).
 - Two unlockable special abilities per form, gated by charge thresholds:
-  - **Special Ability 1**: unlocks at **50 Momentum**.
+  - **Special Ability 1**: unlocks at **50 Momentum** (reduced by Hollow Bell).
   - **Special Ability 2**: unlocks at **100 Momentum**.
-- The player may use Special Ability 1 at any point once Momentum ≥ 50 (it does not
-  require waiting for 100). Using either ability **consumes all current Momentum**
-  (resets to 0) regardless of which ability was used.
+- **Aura Veil Visuals**: Activating Special Ability 1 surrounds the player with a **Gray Aura Veil**. Activating Special Ability 2 surrounds the player with an ominous **Black Aura Veil**.
+- **Momentum Consumption**:
+  - Using **Special Ability 1** consumes **50 Momentum** (or the active `special1Threshold`), deducting it from the meter and preserving any surplus Momentum (e.g. from 100 → 50 remaining).
+  - Using **Special Ability 2** consumes **all current Momentum** (resets to 0).
 - Momentum is also reset to 0 (without granting an ability) when the player **switches
-  away** from that form (§2.2).
+  away** from that form during combat chambers (§2.2). In Mid-Chambers, momentum is preserved.
 
 ### 3.2 Momentum Gain Rates
 
 | Form | Major source | Major gain | Minor source | Minor gain |
 |---|---|---|---|---|
 | Wraithblade | Landing a hit | +6 / hit | Damage taken | +0.4 per HP lost (Wraithblade-equivalent HP) |
-| Voidcaster | Landing a far-range hit | +8 / hit (+4 bonus per additional enemy pierced) | Damage taken | +0.4 per HP lost |
+| Voidcaster | Landing a far-range hit | +8 / hit (+4 if close range) | Damage taken | +0.4 per HP lost |
 | Ironshell | Damage taken | +1.2 per HP lost (Ironshell-equivalent HP) | Landing a hit | +3 / hit |
 
 These rates are tuned so that a form reaches its Special 1 threshold (50) in
@@ -133,11 +143,11 @@ that, rewarding sustained commitment to a form's identity.
 
 ### 3.3 Special Abilities
 
-| Form | Special 1 (50 Momentum) | Special 2 (100 Momentum) |
+| Form | Special 1 (50 Momentum, Gray Aura Veil) | Special 2 (100 Momentum, Black Aura Veil) |
 |---|---|---|
-| **Wraithblade** | **Riftcrush** — Next knockback strike deals **3× base damage** and chains the struck enemy into all enemies within 3 units of the impact point, dealing **1.5× base damage** to each chained target. | **Cinderveil** — For 10 seconds, all Wraithblade hits apply **Burned** (see §4) to the target on top of normal damage. |
-| **Voidcaster** | **Lance of the Hollow** — A single charged shot that **pierces walls/obstacles** and hits every enemy along a straight line across the chamber for **2.5× base damage** each. | **Detonation Field** — For 10 seconds, every Voidcaster shot that lands triggers a small explosion (radius 2.5 units) dealing **0.75× base damage** to all enemies in the blast. |
-| **Ironshell** | **Aegis Pulse** — An outward shockwave (radius 5 units) that **staggers** (1.5s stun, no separate "stagger" status — implemented as a 1.5s application of Paralyzed, see §4) all nearby enemies and instantly knocks out **1 Echo Fragment** from each enemy hit (in addition to normal drop-on-death). | **Veil of Thorns** — For 10 seconds, Serin's aura (range matches the passive Ironshell aura, 4.0 units) applies **Paralyzed** to any enemy that touches it and knocks out 1 Echo Fragment from them immediately (does not require the enemy to die). |
+| **Wraithblade** | **Riftcrush** — Next strike deals **2× base damage** in an expanded circular area (**2× base radius / 3.0 units**), causing a strong screen flash, camera shake, and knocking back enemies radially in all directions. | **Cinderveil** — For 10 seconds, all hits deal **2× damage**, apply **Burned** (see §4) to struck targets, and push enemies back on hit. |
+| **Voidcaster** | **Triple Volley** — For 10 seconds, each attack shoots **3 arrows** with a small angular spread cone (standard single-target laser-like arrows that dissipate upon the first enemy struck). | **Cosmic Laser Burst** — For 10 seconds, each attack shoots **3 piercing laser arrows** with a small angular spread cone that do not die upon hitting enemies, emit red particles, and grant **100% Critical Hit Rate**. |
+| **Ironshell** | **Paralyzing Siphon Aura** — For 10 seconds, Serin emits a 4.0-unit aura veil that applies **Paralyzed** (1.5s) and **Slowed** (1.5s) to nearby enemies, and forces each enemy touching the aura veil to drop **1 Echo Fragment** (once per enemy). | **Glacial Conflagration** — Immediately **freezes** (7s) and applies **Burned** to all enemies in the chamber. |
 
 ---
 
@@ -263,9 +273,10 @@ value.
 **Melee Contact Damage:** Regular enemies deal melee damage every 2.0s while in continuous contact with Serin. The first attack occurs exactly 2.0s after contact is initiated. This prevents instant chip-damage just by brushing past a slower enemy.
 
 ### 6.4 Mid-Chamber Bonus Momentum
-
+ 
 - In a Mid-Chamber, the player may freely switch forms with **no cooldown
   restriction** (Mid-Chambers suspend the 4.0s switch cooldown entirely).
+- Switching forms in a Mid-Chamber **preserves the momentum** of each form (it is not reset to 0 upon switching away).
 - The **last form active when the player exits** the Mid-Chamber receives a flat
   **+15 Momentum** bonus on top of whatever it was frozen at (clamped to 100).
 
@@ -617,11 +628,11 @@ its darkest ending.)
 
 ### 14.1 Form Stat Block (Quick Reference)
 
-| Form | Speed | Max HP | Dmg | Defense | Range | Atk Rate | DPS (sustained) |
-|---|---|---|---|---|---|---|---|
-| Wraithblade | 7.0 | 100 | 12 | 15 | 1.5 (melee) | 2/s | 24 |
-| Voidcaster | 5.0 | 100 | 22 | 5 | 12 (ranged, piercing) | 1/s | 22 |
-| Ironshell | 2.5 | 100 | 6 | 35 | 1.0 (melee, cleave) | 1/s | 6 |
+| Form | Speed | Max HP | Dmg | Defense | Range | Atk Rate | Base Crit Rate | DPS (sustained) |
+|---|---|---|---|---|---|---|---|---|
+| Wraithblade | 7.0 | 100 | 12 | 15 | 1.5 (melee) | 2/s | 20% | 24 |
+| Voidcaster | 5.0 | 100 | 22 | 5 | 12 (ranged, single-target) | 1/s | 20% | 22 |
+| Ironshell | 2.5 | 100 | 6 | 35 | 1.0 (melee, cleave) | 1/s | 20% | 6 |
 
 ### 14.2 Effect Quick Reference
 
@@ -636,11 +647,14 @@ its darkest ending.)
 | Rule | Value |
 |---|---|
 | Switch cooldown | 4.0s (uniform across all form pairs) |
-| Mid-Chamber switching | No cooldown; exiting form gets +15 Momentum |
+| Mid-Chamber switching | No cooldown; form momentum is preserved; exiting form gets +15 Momentum |
 | Special Ability 1 threshold | 50 Momentum (42.5 if Hollow Bell collected, 35 if fully intact — §9.1) |
 | Special Ability 2 threshold | 100 Momentum (unaffected by Hollow Bell) |
-| Momentum on switch-away | Reset to 0 |
-| Momentum on special use | Reset to 0 |
+| Special Ability 1 Momentum cost | Consumes 50 Momentum (or active threshold), preserving any remainder |
+| Special Ability 2 Momentum cost | Consumes all current Momentum (resets to 0) |
+| Special Ability 1 Visual | Gray Aura Veil |
+| Special Ability 2 Visual | Black Aura Veil |
+| Momentum on switch-away | Reset to 0 in combat chambers (preserved in Mid-Chambers) |
 
 ### 14.4 Echo Power Quick Reference
 

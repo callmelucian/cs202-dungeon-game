@@ -2,6 +2,8 @@
 #define SETTING_MANAGER_HPP
 
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
@@ -9,6 +11,12 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+struct ActionBinding {
+    bool isMouseButton = false;
+    sf::Keyboard::Scancode scancode = sf::Keyboard::Scancode::Unknown;
+    sf::Mouse::Button mouseButton = sf::Mouse::Button::Right;
+};
 
 class SettingManager {
 public:
@@ -56,6 +64,14 @@ public:
     sf::Keyboard::Scancode getKeyBinding(const std::string& action) const;
     void setKeyBinding(const std::string& action, sf::Keyboard::Scancode scancode);
 
+    ActionBinding getActionBinding(const std::string& action) const;
+    void setActionBinding(const std::string& action, const ActionBinding& binding);
+    void setActionScancode(const std::string& action, sf::Keyboard::Scancode scancode);
+    void setActionMouseButton(const std::string& action, sf::Mouse::Button button);
+
+    bool matchesEvent(const std::string& action, const sf::Event& event) const;
+    bool isActionActive(const std::string& action) const;
+
 private:
     float musicVolume, sfxVolume;
     float cellSize;
@@ -74,7 +90,7 @@ private:
     unsigned int windowHeight;
     bool fullscreen;
     Difficulty difficulty;
-    std::unordered_map<std::string, sf::Keyboard::Scancode> keyBindings;
+    std::unordered_map<std::string, ActionBinding> keyBindings;
 
     SettingManager();
     SettingManager(const SettingManager&) = delete;

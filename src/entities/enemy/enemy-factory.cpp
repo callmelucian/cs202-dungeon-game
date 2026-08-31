@@ -33,7 +33,7 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, Player& player)
 }
 
 std::unique_ptr<Enemy> EnemyFactory::createEnemy(const std::string& typeName, Player& player) {
-    if (typeName == "SPRINTER_CARRIER" || typeName == "BONE_SPRINTER_CARRIER" || typeName == "CHOIR_HUSK_CARRIER" || typeName == "MIRROR_BEARER_CARRIER") {
+    if (typeName.find("CARRIER") != std::string::npos || typeName == "SPRINTER_CARRIER" || typeName == "BONE_SPRINTER_CARRIER" || typeName == "CHOIR_HUSK_CARRIER" || typeName == "MIRROR_BEARER_CARRIER") {
         return std::make_unique<Sprinter>(player, true);
     }
     return createEnemy(stringToEnemyType(typeName), player);

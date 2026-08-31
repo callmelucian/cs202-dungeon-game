@@ -25,6 +25,7 @@ public:
     const std::string& getVisualKey() override;
     float modifyOutgoingDamage(float baseAmount) override;
     void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
+    float getRemainingDuration() override;
 };
 
 class WraithbladeCinderveilState : public SpecialAbilityState {
@@ -32,8 +33,8 @@ public:
     WraithbladeCinderveilState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
+    float modifyOutgoingDamage(float baseAmount) override;
     void onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) override;
-    void draw(const Player& player, sf::RenderWindow& window) const override;
 };
 
 #endif // WRAITHBLADE_FORM_HPP

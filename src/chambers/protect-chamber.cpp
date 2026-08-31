@@ -9,41 +9,51 @@
 #include "../core/game.hpp"
 #include <iostream>
 
+#include "../global-settings/asset-manager.hpp"
+#include "../ui/graphics/aura-renderer.hpp"
+
 ProtectChamber::ProtectChamber(Player& player, const std::string& echoName, float requiredTime, EchoType echoType)
-    : Chamber(player), collectionTimer(0.0f), requiredCollectionTime(requiredTime), isCollected(false), associatedEcho(echoType) {
+    : Chamber(player), collectionTimer(0.0f), requiredCollectionTime(requiredTime), isCollected(false), associatedEcho(echoType),
+      echoSprite(AssetManager::getInstance().getTexture("items"), sf::IntRect({72, 48}, {24, 24})),
+      floatTimer(0.0f), sparkleTimer(0.0f) {
     echo = std::make_unique<Echo>(echoName, 50.0f); // Starts at 50% power
 
-    echoShape.setRadius(20.0f);
-    echoShape.setOrigin(sf::Vector2f(20.0f, 20.0f));
-    echoShape.setFillColor(sf::Color::Cyan);
+    // echo-fragment-3 sprite setup (1x scale, floating)
+    echoSprite.setOrigin(sf::Vector2f(12.0f, 12.0f));
+    echoSprite.setScale(sf::Vector2f(1.0f, 1.0f));
 
     float cellSize = SettingManager::getInstance().getCellSize();
-    float radiusPx = 2.5f * cellSize;
-    radiusShape.setRadius(radiusPx);
-    radiusShape.setOrigin(sf::Vector2f(radiusPx, radiusPx));
-    radiusShape.setFillColor(sf::Color(0, 255, 255, 30));
-    radiusShape.setOutlineColor(sf::Color::Cyan);
-    radiusShape.setOutlineThickness(2.0f);
+    auraRadius = 2.1f * cellSize;
 }
 
 void ProtectChamber::setEchoPosition(sf::Vector2f pos) {
     echoPosition = pos;
-    echoShape.setPosition(pos);
-    radiusShape.setPosition(pos);
+    echoSprite.setPosition(pos);
     // Prime the bar's sprite positions immediately so they're correct on the
     // first draw (during the chamber intro, before update() has ever run).
-    collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -35.0f));
+    collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -38.0f));
 }
 
 void ProtectChamber::update(float dt) {
     Chamber::update(dt);
+
+    floatTimer += dt;
+    sparkleTimer += dt;
+
+    float floatOffsetY = std::sin(floatTimer * 2.4f) * 5.0f;
+    echoSprite.setPosition(echoPosition + sf::Vector2f(0.0f, floatOffsetY));
+
+    if (!isCollected && sparkleTimer >= 0.2f) {
+        sparkleTimer = 0.0f;
+        ParticleSystem::getInstance().emitSparkle(echoPosition + sf::Vector2f(0.0f, floatOffsetY), 1, sf::Color(210, 140, 255, 180), 16.0f);
+    }
 
     // 2. Update Echo collection
     if (!isCollected) {
         float cellSize = SettingManager::getInstance().getCellSize();
         float distToPlayer = Math::distance(player.getPosition(), echoPosition);
         
-        if (distToPlayer <= 2.5f * cellSize) {
+        if (distToPlayer <= auraRadius) {
             collectionTimer += dt;
             if (collectionTimer >= requiredCollectionTime) {
                 isCollected = true;
@@ -74,7 +84,12 @@ void ProtectChamber::update(float dt) {
                     UI::FloatingTextManager::getInstance().spawnText(notifyPos, "+ SACRED RELIQUARY DEFENDED! (+20% MAX HP)", sf::Color(80, 240, 140), 10, "header", 2.2f);
                     std::cout << "Sarcophagus Reliquary Defended! Granted +20% Max HP buff (" << buffAmount << " HP).\n";
                 }
-                completeChamber();
+                
+                if (exitGate) {
+                    exitGate->setActive(true);
+                }
+                sf::Vector2f gateNotifyPos = (exitPosition.x >= 0.0f) ? (exitPosition + sf::Vector2f(0.0f, -40.0f)) : (player.getPosition() + sf::Vector2f(0.0f, -30.0f));
+                UI::FloatingTextManager::getInstance().spawnText(gateNotifyPos, "EXIT GATE OPENED", sf::Color(100, 255, 200), 12, "header", 3.0f);
             }
         } else {
             // Decay progress if player leaves the circle
@@ -85,7 +100,7 @@ void ProtectChamber::update(float dt) {
         for (Enemy* enemy : getEnemiesRaw()) {
             if (!enemy || !enemy->isAlive()) continue;
             float distToEcho = Math::distance(enemy->getPosition(), echoPosition);
-            if (distToEcho <= 1.5f * cellSize) {
+            if (distToEcho <= 1.2f * cellSize) {
                 if (enemy->getAttackCooldown() <= 0.0f) {
                     onEchoHit(enemy->getEffectiveStats().damage);
                     enemy->setAttackCooldown(2.0f);
@@ -95,15 +110,15 @@ void ProtectChamber::update(float dt) {
 
         // Update Echo collection timer bar (EnemyHealthBar UI)
         collectorTimerBar.setHealth(collectionTimer, requiredCollectionTime);
-        collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -35.0f));
+        collectorTimerBar.setPosition(echoPosition + sf::Vector2f(-29.0f, -38.0f));
         collectorTimerBar.update(dt);
     }
 }
 
 void ProtectChamber::drawBackground(sf::RenderWindow& window) {
     if (!isCollected) {
-        window.draw(radiusShape);
-        window.draw(echoShape);
+        AuraRenderer::getInstance().drawAura(window, echoPosition, auraRadius, sf::Color(190, 80, 255), sf::Color(70, 15, 120), 0.75f, 1.2f);
+        window.draw(echoSprite);
     }
 }
 

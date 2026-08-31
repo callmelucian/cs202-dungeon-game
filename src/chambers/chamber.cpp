@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include "../utils/collision-solver.hpp"
+#include "../utils/grid-passability.hpp"
 #include "../entities/enemy/sprinter.hpp"
 #include "../entities/enemy/soldier.hpp"
 #include "../entities/enemy/brute.hpp"
@@ -19,6 +20,7 @@
 
 Chamber::Chamber(Player& player) : player(player), isCompleted(false) {
     player.setChamber(this);
+    exitGate = std::make_unique<ExitGate>();
 }
 
 void Chamber::setWaves(const std::vector<WaveConfig>& configs) {
@@ -89,6 +91,10 @@ void Chamber::update(float dt) {
     }
 
     checkCollisions(dt);
+
+    if (exitGate) {
+        exitGate->update(dt);
+    }
 }
 
 void Chamber::draw(sf::RenderWindow& window) {
@@ -104,6 +110,10 @@ void Chamber::draw(sf::RenderWindow& window) {
         enemy->draw(window);
     }
     
+    if (exitGate && exitGate->isActive()) {
+        exitGate->draw(window);
+    }
+
     drawForeground(window);
     
     for (const auto& hb : debugHitboxes) {
@@ -112,8 +122,19 @@ void Chamber::draw(sf::RenderWindow& window) {
     debugHitboxes.clear();
 }
 
-void Chamber::spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed, ArrowHitMode hitMode) {
-    activeArrows.emplace_back(startPos, direction, maxDistance, speed, hitMode);
+void Chamber::spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed, ArrowHitMode hitMode, bool isRedLaser) {
+    activeArrows.emplace_back(startPos, direction, maxDistance, speed, hitMode, isRedLaser);
+}
+
+void Chamber::setExitPosition(const sf::Vector2f& pos) {
+    exitPosition = pos;
+    if (exitGate) {
+        exitGate->setPosition(pos);
+    }
+}
+
+sf::Vector2f Chamber::getExitPosition() const {
+    return exitPosition;
 }
 
 
@@ -155,37 +176,39 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
         return b.empty() ? "." : b;
     };
 
-    int charLevel = 0; // Default Level 0
-    bool isOnStairs = false;
-    if (!levelGrid.empty() && ty >= 0 && ty < static_cast<int>(levelGrid.size()) && tx >= 0 && tx < static_cast<int>(levelGrid[0].size())) {
-        std::string br = getBridgeAt(ty, tx);
-        if (typeGrid[ty][tx] == "S") {
-            isOnStairs = true;
-        } else if (br == "V" || br == "H") {
-            charLevel = levelGrid[ty][tx] - 1;
-            if (charLevel < 0) {
-                if (br == "V") {
-                    if (ty > 0 && levelGrid[ty-1][tx] > 0) charLevel = levelGrid[ty-1][tx] - 1;
-                    else if (ty < static_cast<int>(levelGrid.size()) - 1 && levelGrid[ty+1][tx] > 0) charLevel = levelGrid[ty+1][tx] - 1;
-                } else if (br == "H") {
-                    if (tx > 0 && levelGrid[ty][tx-1] > 0) charLevel = levelGrid[ty][tx-1] - 1;
-                    else if (tx < static_cast<int>(levelGrid[0].size()) - 1 && levelGrid[ty][tx+1] > 0) charLevel = levelGrid[ty][tx+1] - 1;
-                }
-            }
-        } else {
-            charLevel = levelGrid[ty][tx] - 1;
-        }
-        if (charLevel < 0) charLevel = 0;
+    if (typeGrid.empty() || levelGrid.empty() || ty < 0 || ty >= static_cast<int>(levelGrid.size()) || tx < 0 || tx >= static_cast<int>(levelGrid[0].size())) {
+        return obs;
     }
 
-    if (isOnStairs) {
-        // On stairs: transitioning between height levels, neither level ground blocks movement
-    } else if (charLevel == 0) {
-        // On ground level: elevated tiles and cliff faces are solid walls.
-        obs.insert(obs.end(), elevationObstacles.begin(), elevationObstacles.end());
-    } else {
-        // On level 1: ground tiles are solid walls, preventing walking off the edge.
-        obs.insert(obs.end(), inverseElevationObstacles.begin(), inverseElevationObstacles.end());
+    bool isOnStairs = (typeGrid[ty][tx] == "S");
+    int charLevel = levelGrid[ty][tx];
+
+    if (!isOnStairs) {
+        GridData gridData{typeGrid, levelGrid, bridgeGrid};
+        int rows = static_cast<int>(typeGrid.size());
+        int cols = static_cast<int>(typeGrid[0].size());
+
+        for (int y = 0; y < rows; ++y) {
+            for (int x = 0; x < cols; ++x) {
+                if (y == ty && x == tx) continue;
+
+                std::string t = typeGrid[y][x];
+                int cellLvl = levelGrid[y][x];
+
+                // If cell (y, x) elevation differs from character's elevation and is not Stairs ("S"),
+                // it is a solid elevation boundary obstacle for the character.
+                if (cellLvl != charLevel && t != "S") {
+                    sf::FloatRect rect({ox + x * cellSize, oy + y * cellSize}, {cellSize, cellSize});
+                    obs.push_back(rect);
+                } else if (GridPassability::isCliffFace(y, x, levelGrid, typeGrid) && t != "S") {
+                    // Cliff face tiles below higher platforms are solid for lower level characters
+                    if (charLevel <= levelGrid[y - 1][x] - 1) {
+                        sf::FloatRect rect({ox + x * cellSize, oy + y * cellSize}, {cellSize, cellSize});
+                        obs.push_back(rect);
+                    }
+                }
+            }
+        }
     }
 
     return obs;

@@ -1,5 +1,6 @@
 #include "player-form.hpp"
 #include "player.hpp"
+#include "../ui/graphics/aura-renderer.hpp"
 #include <algorithm>
 
 // ---- PlayerForm implementation ----
@@ -20,6 +21,10 @@ float PlayerForm::modifyOutgoingDamage(float baseAmount) {
 
 float PlayerForm::modifyIncomingDamage(Player& player, float amount) {
     return amount;
+}
+
+float PlayerForm::modifyCriticalRate(float baseRate) {
+    return baseRate;
 }
 
 void PlayerForm::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {}
@@ -54,8 +59,8 @@ float PlayerForm::getAttackRate() const {
 
 
 // ---- SpecialAbilityState implementation ----
-SpecialAbilityState::SpecialAbilityState(PlayerCombatState* inner, float duration)
-    : innerState(inner), duration(duration), elapsedTime(0.0f) {}
+SpecialAbilityState::SpecialAbilityState(PlayerCombatState* inner, float duration, int abilityTier)
+    : innerState(inner), duration(duration), elapsedTime(0.0f), abilityTier(abilityTier) {}
 
 void SpecialAbilityState::onEnter(Player& player) {
     if (innerState) innerState->onEnter(player);
@@ -82,6 +87,10 @@ float SpecialAbilityState::modifyIncomingDamage(Player& player, float amount) {
     return innerState ? innerState->modifyIncomingDamage(player, amount) : amount;
 }
 
+float SpecialAbilityState::modifyCriticalRate(float baseRate) {
+    return innerState ? innerState->modifyCriticalRate(baseRate) : baseRate;
+}
+
 void SpecialAbilityState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
     if (innerState) innerState->onEnemyHit(player, enemy, lethal, chamber);
 }
@@ -98,6 +107,19 @@ float SpecialAbilityState::getRemainingDuration() {
 void SpecialAbilityState::draw(const Player& player, sf::RenderWindow& window) const {
     if (innerState) {
         innerState->draw(player, window);
+    }
+
+    float auraRadius = 60.0f;
+    if (abilityTier == 1) {
+        // Gray aura veil for Special 1
+        sf::Color grayCore(180, 180, 180, 120);
+        sf::Color grayEdge(100, 100, 100, 180);
+        AuraRenderer::getInstance().drawAura(window, player.getPosition(), auraRadius, grayCore, grayEdge, 1.1f, 1.3f);
+    } else if (abilityTier == 2) {
+        // Black aura veil for Special 2
+        sf::Color blackCore(50, 50, 50, 180);
+        sf::Color blackEdge(10, 10, 10, 240);
+        AuraRenderer::getInstance().drawAura(window, player.getPosition(), auraRadius, blackCore, blackEdge, 1.2f, 1.5f);
     }
 }
 

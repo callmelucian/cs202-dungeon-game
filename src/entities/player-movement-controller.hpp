@@ -53,12 +53,16 @@ public:
     void onWallCollision();
     
     FacingDirection getFacingDirection() const;
+    sf::Vector2f getFacingVector() const;
     std::string getFacingString() const;
     void setFacingFromVector(const sf::Vector2f& dir);
     bool getIsFacingRight() const;
+    sf::Vector2f getLastMoveDir() const { return lastMoveDir; }
+    bool isMoving() const;
 
 private:
     FacingDirection facingDirection = FacingDirection::DOWN;
+    sf::Vector2f lastMoveDir{0.f, 0.f};
 };
 
 #endif // PLAYER_MOVEMENT_CONTROLLER_HPP

@@ -47,6 +47,20 @@ ChamberConfig MapLoader::loadChamber(const std::string& filepath) {
             }
         }
 
+        std::string exitKey = j.contains("exitPosition") ? "exitPosition" : (j.contains("exit") ? "exit" : "");
+        if (!exitKey.empty()) {
+            if (j[exitKey].is_object()) {
+                config.exitPositionX = j[exitKey].value("x", -1.0f);
+                config.exitPositionY = j[exitKey].value("y", -1.0f);
+            } else if (j[exitKey].is_array() && j[exitKey].size() >= 2) {
+                int exitRow = j[exitKey][0].get<int>();
+                int exitCol = j[exitKey][1].get<int>();
+                config.exitPositionCell = {exitRow, exitCol};
+                config.exitPositionX = static_cast<float>(exitCol);
+                config.exitPositionY = static_cast<float>(exitRow);
+            }
+        }
+
         if (j.contains("type-grid") && j["type-grid"].is_array()) {
             for (const auto& row : j["type-grid"]) {
                 std::vector<std::string> rowVec;

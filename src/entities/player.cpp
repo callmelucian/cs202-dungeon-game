@@ -10,6 +10,7 @@
 #include "effects/slowed-effect.hpp"
 #include "../global-settings/sound-manager.hpp"
 #include "../ui/graphics/aura-renderer.hpp"
+#include "../ui/graphics/particle-system.hpp"
 
 Player::Player(PlayableCharacter& character)
     : Character(character.getName()),
@@ -51,18 +52,31 @@ Player::Player(PlayableCharacter& character)
 void Player::handleInput(const sf::Event& event) {
     SettingManager& settings = SettingManager::getInstance();
 
-    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
-        if (keyEvent->scancode == settings.getKeyBinding("SwitchForm1")) {
-            switchForm(FormType::WRAITHBLADE);
-        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm2")) {
-            switchForm(FormType::VOIDCASTER);
-        } else if (keyEvent->scancode == settings.getKeyBinding("SwitchForm3")) {
-            switchForm(FormType::IRONSHELL);
-        } else if (keyEvent->scancode == settings.getKeyBinding("Special1")) {
-            if (currentChamber) triggerSpecial(1, *currentChamber);
-        } else if (keyEvent->scancode == settings.getKeyBinding("Special2")) {
-            if (currentChamber) triggerSpecial(2, *currentChamber);
-        }
+    if (settings.matchesEvent("SwitchForm1", event)) {
+        switchForm(FormType::WRAITHBLADE);
+    } else if (settings.matchesEvent("SwitchForm2", event)) {
+        switchForm(FormType::VOIDCASTER);
+    } else if (settings.matchesEvent("SwitchForm3", event)) {
+        switchForm(FormType::IRONSHELL);
+    } else if (settings.matchesEvent("Special1", event)) {
+        if (currentChamber) triggerSpecial(1, *currentChamber);
+    } else if (settings.matchesEvent("Special2", event)) {
+        if (currentChamber) triggerSpecial(2, *currentChamber);
+    } else if (settings.matchesEvent("Dash", event)) {
+        triggerDash();
+    }
+}
+
+void Player::triggerDash() {
+    if (getActiveFormType() != FormType::WRAITHBLADE) return;
+    if (!canAct()) return;
+    if (dashCooldownTimer > 0.0f) return; // Must be at least 2s from last dash
+
+    if (movementController.isMoving()) {
+        dashTimer = 0.5f;
+        dashCooldownTimer = 2.0f; // 2s cooldown
+        SoundManager::getInstance().playSound("swing");
+        ParticleSystem::getInstance().emitBurst(getPosition(), 15, sf::Color(200, 100, 255, 220), 50.0f, 150.0f, 0.15f, 0.4f, 4.0f);
     }
 }
 
@@ -71,6 +85,19 @@ void Player::triggerAnimation(const std::string& key) {
 }
 
 void Player::update(float deltaTime) {
+    // 1. Update dash timer & particles
+    if (dashTimer > 0.0f) {
+        dashTimer -= deltaTime;
+        if (dashTimer < 0.0f) dashTimer = 0.0f;
+        ParticleSystem::getInstance().emitSparkle(getPosition(), 2, sf::Color(180, 80, 255, 200), 20.0f);
+    }
+
+    // 2. Update dash cooldown timer
+    if (dashCooldownTimer > 0.0f) {
+        dashCooldownTimer -= deltaTime;
+        if (dashCooldownTimer < 0.0f) dashCooldownTimer = 0.0f;
+    }
+
     animController.tickAttackFinished(*this);
     sf::Vector2f dir = movementController.update(*this, deltaTime);
     animController.updateMovementAnim(*this, dir, movementController.getFacingString());
@@ -113,7 +140,7 @@ void Player::update(float deltaTime) {
 }
 
 void Player::draw(sf::RenderWindow& window) const {
-    // 1. Passive Ironshell slow air field
+    // 1. Passive Ironshell slow air field (rendered behind player)
     if (getActiveFormType() == FormType::IRONSHELL && !stateMachine.isInTemporaryState()) {
         float cellSize = SettingManager::getInstance().getCellSize();
         float auraRadius = 4.0f * cellSize;
@@ -123,7 +150,7 @@ void Player::draw(sf::RenderWindow& window) const {
         AuraRenderer::getInstance().drawAura(window, getPosition(), auraRadius, coreColor, edgeColor, 0.45f, 0.8f);
     }
 
-    // 2. Status effect radial aura veils
+    // 2. Status effect radial aura veils (rendered behind player)
     if (hasStatusEffect("SpeedUp")) {
         // Luminous yellow speed air aura veil
         sf::Color yellowCore(255, 235, 90, 130);
@@ -138,11 +165,13 @@ void Player::draw(sf::RenderWindow& window) const {
         AuraRenderer::getInstance().drawAura(window, getPosition(), 48.0f, redCore, redEdge, 1.15f, 1.6f);
     }
 
-    Character::draw(window);
-
+    // 3. Special ability aura veils (rendered behind player)
     if (stateMachine.getActiveState()) {
         stateMachine.getActiveState()->draw(*this, window);
     }
+
+    // 4. Player sprite & health bar (rendered in front of auras)
+    Character::draw(window);
 }
 
 void Player::setDebugCriticalRate(std::optional<float> rate) {
@@ -158,20 +187,17 @@ float Player::getCriticalHitRate() const {
         return *debugCritRate;
     }
 
-    FormType currentForm = getActiveFormType();
-    // Close-combat forms: Wraithblade and Ironshell
-    if (currentForm == FormType::WRAITHBLADE || currentForm == FormType::IRONSHELL) {
-        if (hasStatusEffect("CriticalBoost")) {
-            return 0.50f; // 50% crit rate when boosted by Critical Potion
-        }
-        return 0.20f; // 20% base close-combat crit rate
+    float rate = 0.20f; // Standard 20% base critical hit rate for all forms (including Voidcaster)
+    if (hasStatusEffect("CriticalBoost")) {
+        rate = 0.50f; // 50% crit rate when boosted by Critical Potion
     }
 
-    // Ranged form: Voidcaster
-    if (hasStatusEffect("CriticalBoost")) {
-        return 0.50f;
+    // Delegate to active combat state (e.g. Voidcaster Special 2 gives 100%)
+    if (stateMachine.getActiveState()) {
+        rate = stateMachine.getActiveState()->modifyCriticalRate(rate);
     }
-    return 0.0f;
+
+    return rate;
 }
 
 
@@ -217,9 +243,12 @@ bool Player::switchForm(FormType newForm) {
     if (isSwitchCooldownEnabled && switchCooldownTimer > 0.0f) return false;
 
     hasPendingAttack = false;
+    dashTimer = 0.0f;
 
-    // Reset momentum of form we are switching away from
-    if (activeForm) formMomentum[activeForm->getFormType()] = 0.0f;
+    // Reset momentum of form we are switching away from, unless in Mid-Chamber
+    if (activeForm && !inMidChamber) {
+        formMomentum[activeForm->getFormType()] = 0.0f;
+    }
 
     auto it = forms.find(newForm);
     if (it != forms.end()) {
@@ -268,7 +297,7 @@ void Player::triggerSpecial(int abilityIndex, class Chamber& chamber) {
         if (specialState) {
             stateMachine.enterTemporaryState(std::move(specialState), *this);
         }
-        momentum = 0.0f;
+        momentum = std::max(0.0f, momentum - special1Threshold);
     } else if (abilityIndex == 2 && momentum >= MAX_MOMENTUM) {
         auto specialState = activeForm->createSpecialState(2);
         if (specialState) {
@@ -371,6 +400,14 @@ Stats Player::getEffectiveStats() const {
 
 bool Player::getIsFacingRight() const {
     return movementController.getIsFacingRight();
+}
+
+FacingDirection Player::getFacingDirection() const {
+    return movementController.getFacingDirection();
+}
+
+sf::Vector2f Player::getFacingVector() const {
+    return movementController.getFacingVector();
 }
 
 std::string Player::getFacingString() const {

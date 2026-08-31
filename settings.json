@@ -1,13 +1,14 @@
 {
     "audio": {
         "musicVolume": 0.0,
-        "sfxVolume": 17.23405647277832
+        "sfxVolume": 22.058612823486328
     },
     "gameplay": {
         "difficulty": "Normal"
     },
     "keyBindings": {
         "Attack": 9,
+        "Dash": -101,
         "MoveDown": 18,
         "MoveLeft": 0,
         "MoveRight": 3,

@@ -95,58 +95,43 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
         chamber->setWaves(config.waves);
     }
 
-    // Place it at the bottom-center of the walkable map area.
-    if (config.chamberType == "MidChamber") {
-        auto* midChamber = dynamic_cast<MidChamber*>(chamber.get());
-        if (midChamber) {
-            const auto& typeGrid = chamber->getTypeGrid();
-            if (!typeGrid.empty() && !typeGrid[0].empty()) {
-                int rows = typeGrid.size();
-                int cols = typeGrid[0].size();
-                float size = SettingManager::getInstance().getCellSize();
-                float ox = SettingManager::getInstance().getGridOffsetX();
-                float oy = SettingManager::getInstance().getGridOffsetY();
-                
-                // Position exit at bottom center of the playable area
-                float exitX = ox + (cols / 2.0f) * size;
-                float exitY = oy + (rows - 2) * size;
-                midChamber->setExitPosition({exitX, exitY});
-            }
+    // Set exit position from config if available
+    float size = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+
+    if (config.exitPositionCell.first >= 0 && config.exitPositionCell.second >= 0) {
+        float exitX = ox + (config.exitPositionCell.second + 0.5f) * size;
+        float exitY = oy + (config.exitPositionCell.first + 0.5f) * size;
+        chamber->setExitPosition({exitX, exitY});
+    } else if (config.exitPositionX >= 0.0f && config.exitPositionY >= 0.0f) {
+        chamber->setExitPosition({ox + config.exitPositionX * size, oy + config.exitPositionY * size});
+    } else if (config.chamberType == "MidChamber") {
+        const auto& typeGrid = chamber->getTypeGrid();
+        if (!typeGrid.empty() && !typeGrid[0].empty()) {
+            int rows = typeGrid.size();
+            int cols = typeGrid[0].size();
+            float exitX = ox + (cols / 2.0f) * size;
+            float exitY = oy + (rows - 2) * size;
+            chamber->setExitPosition({exitX, exitY});
         }
     } else if (config.chamberType == "PreventChamber") {
-        auto* preventChamber = dynamic_cast<PreventChamber*>(chamber.get());
-        if (preventChamber) {
-            const auto& typeGrid = chamber->getTypeGrid();
-            if (!typeGrid.empty() && !typeGrid[0].empty()) {
-                int rows = typeGrid.size();
-                int cols = typeGrid[0].size();
-                float size = SettingManager::getInstance().getCellSize();
-                float ox = SettingManager::getInstance().getGridOffsetX();
-                float oy = SettingManager::getInstance().getGridOffsetY();
-                
-                if (filepath.find("level-1/chamber-2.json") != std::string::npos) {
-                    // Position exit at the far right end of the Bone Corridor
-                    float exitX = ox + (cols - 2.5f) * size;
-                    float exitY = oy + (rows / 2.0f) * size;
-                    preventChamber->setExitPosition({exitX, exitY});
-                } else {
-                    // Center the exit gate at the heart of the central arena
-                    float exitX = ox + (cols / 2.0f) * size;
-                    float exitY = oy + (rows / 2.0f) * size;
-                    preventChamber->setExitPosition({exitX, exitY});
-                }
-            }
+        const auto& typeGrid = chamber->getTypeGrid();
+        if (!typeGrid.empty() && !typeGrid[0].empty()) {
+            int rows = typeGrid.size();
+            int cols = typeGrid[0].size();
+            float exitX = ox + (cols / 2.0f) * size;
+            float exitY = oy + (rows / 2.0f) * size;
+            chamber->setExitPosition({exitX, exitY});
         }
-    } else if (config.chamberType == "ProtectChamber") {
+    }
+
+    if (config.chamberType == "ProtectChamber") {
         auto* protectChamber = dynamic_cast<ProtectChamber*>(chamber.get());
         if (protectChamber) {
             const auto& typeGrid = chamber->getTypeGrid();
             bool foundEcho = false;
             if (!typeGrid.empty() && !typeGrid[0].empty()) {
-                float size = SettingManager::getInstance().getCellSize();
-                float ox = SettingManager::getInstance().getGridOffsetX();
-                float oy = SettingManager::getInstance().getGridOffsetY();
-                
                 for (size_t y = 0; y < typeGrid.size(); ++y) {
                     for (size_t x = 0; x < typeGrid[y].size(); ++x) {
                         if (typeGrid[y][x] == "E") {

@@ -892,6 +892,11 @@
   ],
   "waves": [
     {
+      "enemyType": "CHOIR_HUSK_CARRIER",
+      "count": 3,
+      "spawnDelay": 0.5
+    },
+    {
       "enemyType": "RESONANT_CANTOR",
       "count": 1,
       "spawnDelay": 1.0
@@ -1343,5 +1348,9 @@
       "",
       ""
     ]
+  ],
+  "exitPosition": [
+    10,
+    10
   ]
 }

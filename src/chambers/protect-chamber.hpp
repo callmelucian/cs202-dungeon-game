@@ -19,9 +19,11 @@ private:
     // UI Collector Timer using EnemyHealthBar
     UI::EnemyHealthBar collectorTimerBar;
 
-    // Visuals for Echo
-    sf::CircleShape echoShape;
-    sf::CircleShape radiusShape;
+    // Visuals for Echo (using echo-fragment-3 asset and animated aura)
+    sf::Sprite echoSprite;
+    float floatTimer;
+    float sparkleTimer;
+    float auraRadius;
 
 public:
     ProtectChamber(Player& player, const std::string& echoName, float requiredTime, EchoType echoType = EchoType::MARROW);

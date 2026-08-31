@@ -20,8 +20,8 @@ PreventChamber::PreventChamber(Player& player, std::optional<EchoType> echoType)
     exitShape.setOutlineThickness(2.0f);
 }
 
-void PreventChamber::setExitPosition(sf::Vector2f pos) {
-    exitPosition = pos;
+void PreventChamber::setExitPosition(const sf::Vector2f& pos) {
+    Chamber::setExitPosition(pos);
     exitShape.setPosition(pos);
 }
 
@@ -60,7 +60,8 @@ void PreventChamber::update(float dt) {
         }
     }
 
-    if (waveSpawner.isFinished() && enemies.empty() && !isFailed) {
+    if (waveSpawner.isFinished() && enemies.empty() && !isFailed && !wavesCleared) {
+        wavesCleared = true;
         RunState& runState = Game::getInstance().getRunState();
         if (associatedEcho.has_value() && runState.echoOutcomes[*associatedEcho] != EchoOutcome::STOLEN) {
             runState.echoOutcomes[*associatedEcho] = EchoOutcome::COLLECTED;
@@ -78,13 +79,20 @@ void PreventChamber::update(float dt) {
             UI::FloatingTextManager::getInstance().spawnEchoCollected(notifyPos, echoName, 100.0f);
             std::cout << "PreventChamber: All enemies defeated! Echo safely preserved and COLLECTED.\n";
         }
-        completeChamber();
+        
+        if (exitGate) {
+            exitGate->setActive(true);
+        }
+        sf::Vector2f gateNotifyPos = (exitPosition.x >= 0.0f) ? (exitPosition + sf::Vector2f(0.0f, -40.0f)) : (player.getPosition() + sf::Vector2f(0.0f, -30.0f));
+        UI::FloatingTextManager::getInstance().spawnText(gateNotifyPos, "EXIT GATE OPENED", sf::Color(100, 255, 200), 12, "header", 3.0f);
     }
 }
 
 void PreventChamber::drawBackground(sf::RenderWindow& window) {
-    // Draw exit zone
-    window.draw(exitShape);
+    if (!wavesCleared) {
+        // Draw carrier exit zone
+        window.draw(exitShape);
+    }
 }
 
 void PreventChamber::onEnemyHit(Enemy* enemy, bool lethal) {

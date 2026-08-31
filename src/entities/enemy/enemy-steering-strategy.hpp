@@ -55,10 +55,17 @@ public:
     void onWallHit() override;
 };
 
-// Concrete Strategy: Evades by moving directly away from the player
+// Concrete Strategy: Evades towards exit gate if available, or away from the player
 class EvadeStrategy : public EnemySteeringStrategy {
+private:
+    std::vector<sf::Vector2f> cachedPath;
+    bool needsReplan = true;
+    sf::Vector2f lastTargetPos = {-1e9f, -1e9f};
+    static constexpr float ARRIVE_RADIUS_FACTOR = 0.5f;
+
 public:
     sf::Vector2f calculateSteering(Enemy& enemy, const Player& player, const Chamber& chamber) override;
+    void onWallHit() override;
 };
 
 #endif // ENEMY_STEERING_STRATEGY_HPP

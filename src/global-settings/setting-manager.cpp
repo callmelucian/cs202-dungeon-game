@@ -14,6 +14,26 @@ SettingManager& SettingManager::getInstance() {
     return instance;
 }
 
+static int encodeBinding(const ActionBinding& b) {
+    if (b.isMouseButton) {
+        return -100 - static_cast<int>(b.mouseButton);
+    }
+    return static_cast<int>(b.scancode);
+}
+
+static ActionBinding decodeBinding(int val) {
+    ActionBinding b;
+    if (val <= -100) {
+        b.isMouseButton = true;
+        b.mouseButton = static_cast<sf::Mouse::Button>(-(val + 100));
+        b.scancode = sf::Keyboard::Scancode::Unknown;
+    } else {
+        b.isMouseButton = false;
+        b.scancode = static_cast<sf::Keyboard::Scancode>(val);
+    }
+    return b;
+}
+
 void SettingManager::loadDefaults() {
     musicVolume = 50.0f;
     sfxVolume = 50.0f;
@@ -33,16 +53,17 @@ void SettingManager::loadDefaults() {
     fullscreen = false;
     difficulty = Difficulty::Normal;
 
-    keyBindings["MoveUp"] = sf::Keyboard::Scancode::W;
-    keyBindings["MoveDown"] = sf::Keyboard::Scancode::S;
-    keyBindings["MoveLeft"] = sf::Keyboard::Scancode::A;
-    keyBindings["MoveRight"] = sf::Keyboard::Scancode::D;
-    keyBindings["SwitchForm1"] = sf::Keyboard::Scancode::Num1;
-    keyBindings["SwitchForm2"] = sf::Keyboard::Scancode::Num2;
-    keyBindings["SwitchForm3"] = sf::Keyboard::Scancode::Num3;
-    keyBindings["Attack"] = sf::Keyboard::Scancode::J;
-    keyBindings["Special1"] = sf::Keyboard::Scancode::Q;
-    keyBindings["Special2"] = sf::Keyboard::Scancode::E;
+    keyBindings["MoveUp"] = {false, sf::Keyboard::Scancode::W, sf::Mouse::Button::Left};
+    keyBindings["MoveDown"] = {false, sf::Keyboard::Scancode::S, sf::Mouse::Button::Left};
+    keyBindings["MoveLeft"] = {false, sf::Keyboard::Scancode::A, sf::Mouse::Button::Left};
+    keyBindings["MoveRight"] = {false, sf::Keyboard::Scancode::D, sf::Mouse::Button::Left};
+    keyBindings["Dash"] = {true, sf::Keyboard::Scancode::Unknown, sf::Mouse::Button::Right};
+    keyBindings["SwitchForm1"] = {false, sf::Keyboard::Scancode::Num1, sf::Mouse::Button::Left};
+    keyBindings["SwitchForm2"] = {false, sf::Keyboard::Scancode::Num2, sf::Mouse::Button::Left};
+    keyBindings["SwitchForm3"] = {false, sf::Keyboard::Scancode::Num3, sf::Mouse::Button::Left};
+    keyBindings["Attack"] = {false, sf::Keyboard::Scancode::J, sf::Mouse::Button::Left};
+    keyBindings["Special1"] = {false, sf::Keyboard::Scancode::Q, sf::Mouse::Button::Left};
+    keyBindings["Special2"] = {false, sf::Keyboard::Scancode::E, sf::Mouse::Button::Left};
 }
 
 bool SettingManager::loadSettings(const std::string& filepath) {
@@ -100,7 +121,7 @@ bool SettingManager::loadSettings(const std::string& filepath) {
         if (j.contains("keyBindings")) {
             const auto& keys = j["keyBindings"];
             for (auto it = keys.begin(); it != keys.end(); ++it) {
-                keyBindings[it.key()] = static_cast<sf::Keyboard::Scancode>(it.value().get<int>());
+                keyBindings[it.key()] = decodeBinding(it.value().get<int>());
             }
         }
 
@@ -139,8 +160,8 @@ bool SettingManager::saveSettings(const std::string& filepath) {
     j["gameplay"]["difficulty"] = diffStr;
 
     nlohmann::json keys = nlohmann::json::object();
-    for (const auto& [action, scancode] : keyBindings) {
-        keys[action] = static_cast<int>(scancode);
+    for (const auto& [action, binding] : keyBindings) {
+        keys[action] = encodeBinding(binding);
     }
     j["keyBindings"] = keys;
 
@@ -235,14 +256,63 @@ void SettingManager::setDifficulty(Difficulty diff) {
 
 sf::Keyboard::Scancode SettingManager::getKeyBinding(const std::string& action) const {
     auto it = keyBindings.find(action);
-    if (it != keyBindings.end()) {
-        return it->second;
+    if (it != keyBindings.end() && !it->second.isMouseButton) {
+        return it->second.scancode;
     }
     return sf::Keyboard::Scancode::Unknown;
 }
 
 void SettingManager::setKeyBinding(const std::string& action, sf::Keyboard::Scancode scancode) {
-    keyBindings[action] = scancode;
+    keyBindings[action] = ActionBinding{false, scancode, sf::Mouse::Button::Left};
+}
+
+ActionBinding SettingManager::getActionBinding(const std::string& action) const {
+    auto it = keyBindings.find(action);
+    if (it != keyBindings.end()) {
+        return it->second;
+    }
+    return ActionBinding{};
+}
+
+void SettingManager::setActionBinding(const std::string& action, const ActionBinding& binding) {
+    keyBindings[action] = binding;
+}
+
+void SettingManager::setActionScancode(const std::string& action, sf::Keyboard::Scancode scancode) {
+    keyBindings[action] = ActionBinding{false, scancode, sf::Mouse::Button::Left};
+}
+
+void SettingManager::setActionMouseButton(const std::string& action, sf::Mouse::Button button) {
+    keyBindings[action] = ActionBinding{true, sf::Keyboard::Scancode::Unknown, button};
+}
+
+bool SettingManager::matchesEvent(const std::string& action, const sf::Event& event) const {
+    auto it = keyBindings.find(action);
+    if (it == keyBindings.end()) return false;
+
+    const auto& binding = it->second;
+    if (binding.isMouseButton) {
+        if (const auto* mousePress = event.getIf<sf::Event::MouseButtonPressed>()) {
+            return mousePress->button == binding.mouseButton;
+        }
+    } else {
+        if (const auto* keyPress = event.getIf<sf::Event::KeyPressed>()) {
+            return keyPress->scancode == binding.scancode;
+        }
+    }
+    return false;
+}
+
+bool SettingManager::isActionActive(const std::string& action) const {
+    auto it = keyBindings.find(action);
+    if (it == keyBindings.end()) return false;
+
+    const auto& binding = it->second;
+    if (binding.isMouseButton) {
+        return sf::Mouse::isButtonPressed(binding.mouseButton);
+    } else {
+        return sf::Keyboard::isKeyPressed(binding.scancode);
+    }
 }
 
 float SettingManager::getSpeedMultiplier() const {

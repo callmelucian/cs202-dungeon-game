@@ -12,6 +12,7 @@
 #include "../entities/enemy/enemy.hpp"
 #include "../economy/item-manager.hpp"
 #include "../entities/effects/arrow-projectile.hpp"
+#include "exit-gate.hpp"
 
 // Forward declarations for missing components
 class Player;
@@ -39,7 +40,7 @@ public:
     bool isEnemiesFrozen() const { return freezeTimer > 0.0f; }
 
     virtual int processPlayerAttack(const Hitbox& hitbox);
-    virtual void spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed = 900.0f, ArrowHitMode hitMode = ArrowHitMode::PIERCING);
+    virtual void spawnArrow(sf::Vector2f startPos, sf::Vector2f direction, float maxDistance, float speed = 1000.0f, ArrowHitMode hitMode = ArrowHitMode::SINGLE_TARGET, bool isRedLaser = false);
     virtual void onFragmentCollected(float value);
     virtual void onEnemyHit(Enemy* enemy, bool lethal);
     virtual void setGrids2D5(const std::vector<std::vector<std::string>>& newTypeGrid, const std::vector<std::vector<int>>& newLevelGrid, const std::vector<std::vector<std::string>>& newBridgeGrid = {});
@@ -52,6 +53,11 @@ public:
     void setPlayerSpawn(const sf::Vector2f& spawn) { playerSpawn = spawn; }
     sf::Vector2f getPlayerSpawn() const { return playerSpawn; }
     
+    virtual void setExitPosition(const sf::Vector2f& pos);
+    sf::Vector2f getExitPosition() const;
+    ExitGate* getExitGate() { return exitGate.get(); }
+    const ExitGate* getExitGate() const { return exitGate.get(); }
+
     void spawnEnemy(std::unique_ptr<Enemy> enemy);
     void checkCollisions(float dt);
     
@@ -79,6 +85,8 @@ protected:
     std::vector<ArrowProjectile> activeArrows;
     
     sf::Vector2f playerSpawn = {-1.0f, -1.0f};
+    sf::Vector2f exitPosition = {-1.0f, -1.0f};
+    std::unique_ptr<ExitGate> exitGate;
     std::vector<std::vector<std::string>> typeGrid;
     std::vector<std::vector<int>> levelGrid;
     std::vector<std::vector<std::string>> bridgeGrid;

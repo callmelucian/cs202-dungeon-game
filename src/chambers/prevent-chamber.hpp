@@ -9,9 +9,9 @@
 class PreventChamber : public Chamber {
 private:
     std::optional<EchoType> associatedEcho;
-    sf::Vector2f exitPosition;
+    bool wavesCleared = false;
 
-    // Visuals for Exit
+    // Visuals for Carrier Escape Zone
     sf::RectangleShape exitShape;
 
 public:
@@ -22,7 +22,7 @@ public:
     void drawBackground(sf::RenderWindow& window) override;
     void onEnemyHit(Enemy* enemy, bool lethal) override;
 
-    void setExitPosition(sf::Vector2f pos);
+    void setExitPosition(const sf::Vector2f& pos) override;
 };
 
 #endif // PREVENT_CHAMBER_HPP

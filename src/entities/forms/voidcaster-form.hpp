@@ -33,25 +33,19 @@ private:
     void firePendingArrow(Player& player);
 };
 
-class VoidcasterLanceState : public SpecialAbilityState {
+class VoidcasterTripleShotState : public SpecialAbilityState {
 public:
-    VoidcasterLanceState(PlayerCombatState* inner);
+    VoidcasterTripleShotState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
-    float modifyOutgoingDamage(float baseAmount) override;
-    void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
 };
 
-class VoidcasterDetonationFieldState : public SpecialAbilityState {
+class VoidcasterCosmicLaserState : public SpecialAbilityState {
 public:
-    VoidcasterDetonationFieldState(PlayerCombatState* inner);
+    VoidcasterCosmicLaserState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
-    void onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) override;
-    void draw(const Player& player, sf::RenderWindow& window) const override;
-
-private:
-    bool isExplosionActive = false;
+    float modifyCriticalRate(float baseRate) override;
 };
 
 #endif // VOIDCASTER_FORM_HPP

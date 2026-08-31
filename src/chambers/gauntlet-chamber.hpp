@@ -5,6 +5,9 @@
 #include "wave-spawner.hpp"
 
 class GauntletChamber : public Chamber {
+private:
+    bool cleared = false;
+
 public:
     GauntletChamber(Player& player);
     virtual ~GauntletChamber() = default;

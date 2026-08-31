@@ -23,6 +23,7 @@ public:
     virtual void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) = 0;
     virtual float modifyOutgoingDamage(float baseAmount) = 0;
     virtual float modifyIncomingDamage(Player& player, float amount) = 0;
+    virtual float modifyCriticalRate(float baseRate) { return baseRate; }
     virtual void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) = 0;
     virtual void draw(const Player& player, sf::RenderWindow& window) const {}
     virtual Stats getStats() = 0;
@@ -42,6 +43,7 @@ public:
     void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     float modifyOutgoingDamage(float baseAmount) override;
     float modifyIncomingDamage(Player& player, float amount) override;
+    float modifyCriticalRate(float baseRate) override;
     void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) override;
     Stats getStats() override;
     const std::string& getVisualKey() override;
@@ -73,7 +75,7 @@ protected:
 // Decorator pattern base class
 class SpecialAbilityState : public PlayerCombatState {
 public:
-    SpecialAbilityState(PlayerCombatState* inner, float duration);
+    SpecialAbilityState(PlayerCombatState* inner, float duration, int abilityTier = 1);
     virtual ~SpecialAbilityState() = default;
 
     void onEnter(Player& player) override;
@@ -82,6 +84,7 @@ public:
     void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
     float modifyOutgoingDamage(float baseAmount) override;
     float modifyIncomingDamage(Player& player, float amount) override;
+    float modifyCriticalRate(float baseRate) override;
     void onEnemyHit(Player& player, class Enemy* enemy, bool lethal, class Chamber& chamber) override;
     void draw(const Player& player, sf::RenderWindow& window) const override;
     Stats getStats() override;
@@ -89,11 +92,13 @@ public:
 
     virtual StatModifier getStatModifier() const = 0;
     virtual const std::string& getVisualKey() override = 0;
+    int getAbilityTier() const { return abilityTier; }
 
 protected:
     PlayerCombatState* innerState;
     float duration;
     float elapsedTime;
+    int abilityTier;
 };
 
 // Context machine

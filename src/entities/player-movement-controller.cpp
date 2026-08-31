@@ -11,6 +11,7 @@
 sf::Vector2f PlayerMovementController::update(Player& player, float deltaTime) {
     if (!player.canAct()) {
         player.setVelocity(sf::Vector2f(0.f, 0.f));
+        lastMoveDir = sf::Vector2f(0.f, 0.f);
         return sf::Vector2f(0.f, 0.f);
     }
 
@@ -31,12 +32,21 @@ sf::Vector2f PlayerMovementController::update(Player& player, float deltaTime) {
     }
     
     sf::Vector2f moveDir = Math::normalize(inputDir);
+    lastMoveDir = moveDir;
     setFacingFromVector(moveDir);
     
-    float speedToPixels = settings.getCellSize() * settings.getSpeedMultiplier();
+    float speedMultiplier = settings.getSpeedMultiplier();
+    if (player.isDashing()) {
+        speedMultiplier *= 2.0f; // 2x speed during dash
+    }
+    float speedToPixels = settings.getCellSize() * speedMultiplier;
     player.setVelocity(moveDir * player.getSpeed() * speedToPixels);
     
     return moveDir;
+}
+
+bool PlayerMovementController::isMoving() const {
+    return (std::abs(lastMoveDir.x) > 0.001f || std::abs(lastMoveDir.y) > 0.001f);
 }
 
 void PlayerMovementController::onWallCollision() {
@@ -45,6 +55,16 @@ void PlayerMovementController::onWallCollision() {
 
 FacingDirection PlayerMovementController::getFacingDirection() const {
     return facingDirection;
+}
+
+sf::Vector2f PlayerMovementController::getFacingVector() const {
+    switch (facingDirection) {
+        case FacingDirection::UP:    return sf::Vector2f(0.0f, -1.0f);
+        case FacingDirection::DOWN:  return sf::Vector2f(0.0f, 1.0f);
+        case FacingDirection::LEFT:  return sf::Vector2f(-1.0f, 0.0f);
+        case FacingDirection::RIGHT: return sf::Vector2f(1.0f, 0.0f);
+    }
+    return sf::Vector2f(0.0f, 1.0f);
 }
 
 std::string PlayerMovementController::getFacingString() const {

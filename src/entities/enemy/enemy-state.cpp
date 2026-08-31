@@ -15,14 +15,41 @@ void IdleState::update(Enemy& enemy, float dt, Chamber& chamber) {
     enemy.changeState(std::make_unique<ChasingState>());
 }
 
+#include "../../chambers/chamber.hpp"
+
 void ChasingState::onEnter(Enemy& enemy) {}
 void ChasingState::onExit(Enemy& enemy) {}
 
 void ChasingState::update(Enemy& enemy, float dt, Chamber& chamber) {
     if (auto* strategy = enemy.getSteeringStrategy()) {
         sf::Vector2f desiredDirection = strategy->calculateSteering(enemy, enemy.getPlayer(), chamber);
+
+        // Flocking Separation: calculate repulsive force from nearby active enemies
+        sf::Vector2f separation(0.0f, 0.0f);
+        float cellSize = SettingManager::getInstance().getCellSize();
+        float separationRadius = cellSize * 0.95f; // ~35 pixels
+        int neighborCount = 0;
+
+        for (Enemy* other : chamber.getEnemiesRaw()) {
+            if (!other || other == &enemy || !other->isAlive()) continue;
+
+            sf::Vector2f diff = enemy.getPosition() - other->getPosition();
+            float dist = Math::length(diff);
+            if (dist > 0.0001f && dist < separationRadius) {
+                float weight = (separationRadius - dist) / separationRadius;
+                separation += (diff / dist) * weight;
+                neighborCount++;
+            }
+        }
+
+        sf::Vector2f finalDir = desiredDirection;
+        if (neighborCount > 0 && Math::length(separation) > 0.0001f) {
+            sf::Vector2f normSep = Math::normalize(separation);
+            finalDir = Math::normalize(desiredDirection + normSep * 0.45f);
+        }
+
         const float SPEED_TO_PIXELS = SettingManager::getInstance().getCellSize() * SettingManager::getInstance().getSpeedMultiplier();
-        enemy.setVelocity(desiredDirection * enemy.getEffectiveStats().speed * SPEED_TO_PIXELS);
+        enemy.setVelocity(finalDir * enemy.getEffectiveStats().speed * SPEED_TO_PIXELS);
     }
     
     // Check range for attacking

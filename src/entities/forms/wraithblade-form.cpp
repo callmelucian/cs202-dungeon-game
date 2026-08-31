@@ -3,6 +3,7 @@
 #include "../effects/burned-effect.hpp"
 #include "../../chambers/chamber.hpp"
 #include "../../utils/math-utility.hpp"
+#include "../../utils/camera.hpp"
 #include "../../global-settings/sound-manager.hpp"
 #include "../../ui/graphics/particle-system.hpp"
 #include "../../ui/graphics/aura-renderer.hpp"
@@ -26,8 +27,8 @@ void WraithbladeForm::attack(Player& player, sf::Vector2f targetDir, Chamber& ch
     
     // Normalize targetDir
     float len = std::sqrt(targetDir.x * targetDir.x + targetDir.y * targetDir.y);
-    if (len > 0) targetDir /= len;
-    else targetDir = sf::Vector2f(1.0f, 0.0f);
+    if (len > 0.001f) targetDir /= len;
+    else targetDir = player.getFacingVector();
 
     ConeHitbox cone;
     cone.origin = player.getPosition();
@@ -69,7 +70,7 @@ std::string WraithbladeForm::getAttackAnimKey() const {
 
 // ---- WraithbladeRiftcrushState ----
 WraithbladeRiftcrushState::WraithbladeRiftcrushState(PlayerCombatState* inner)
-    : SpecialAbilityState(inner, 1.0f) {}
+    : SpecialAbilityState(inner, 999999.0f, 1) {}
 
 StatModifier WraithbladeRiftcrushState::getStatModifier() const {
     return StatModifier{};
@@ -81,44 +82,53 @@ const std::string& WraithbladeRiftcrushState::getVisualKey() {
 }
 
 float WraithbladeRiftcrushState::modifyOutgoingDamage(float baseAmount) {
-    return baseAmount * 3.0f;
+    return baseAmount * 2.0f;
+}
+
+float WraithbladeRiftcrushState::getRemainingDuration() {
+    return (elapsedTime >= duration) ? 0.0f : 1.0f;
 }
 
 void WraithbladeRiftcrushState::onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) {
     SoundManager::getInstance().playSound("swing");
 
-    // Primary strike in front of player
-    float rangePixels = 90.0f; // 1.5 units * 60 pixels = 90
-    float len = std::sqrt(targetDir.x * targetDir.x + targetDir.y * targetDir.y);
-    if (len > 0) targetDir /= len;
-    else targetDir = sf::Vector2f(1.0f, 0.0f);
+    // Circular melee with 2x base radius: 2 * (1.5 units * 60px) = 180px radius circle centered on player
+    float blastRadius = 3.0f * 60.0f; // 180.0f pixels
+    sf::Vector2f playerPos = player.getPosition();
 
-    // Target detonation center at enemy in range or forward target point
-    sf::Vector2f blastCenter = player.getPosition() + targetDir * (rangePixels * 0.75f);
+    CircleHitbox circleBlast;
+    circleBlast.center = playerPos;
+    circleBlast.radius = blastRadius;
+
+    // Strong screen flash and camera shake
+    AuraRenderer::getInstance().triggerScreenFlash(sf::Color(255, 255, 255, 240), 0.25f);
+    Camera::triggerShake(14.0f, 0.35f);
+
+    // Apply radial 360-degree knockback pushing enemies in all directions away from player
     for (Enemy* enemy : chamber.getEnemiesRaw()) {
         if (enemy && enemy->isAlive()) {
-            if (Math::distance(player.getPosition(), enemy->getPosition()) <= rangePixels + 25.0f) {
-                blastCenter = enemy->getPosition();
-                break;
+            if (CollisionSolver::checkCollision(circleBlast, enemy->getBounds())) {
+                sf::Vector2f dir = enemy->getPosition() - playerPos;
+                if (Math::length(dir) > 0.001f) {
+                    dir = Math::normalize(dir);
+                } else {
+                    dir = sf::Vector2f(1.0f, 0.0f);
+                }
+                enemy->applyKnockback(dir, 1800.0f);
             }
         }
     }
 
-    // Detonate 180px Riftcrush AoE shockwave from target location
-    CircleHitbox bigBlast;
-    bigBlast.center = blastCenter;
-    bigBlast.radius = 180.0f; // 3 units * 60 pixels = 180
-    
-    ParticleSystem::getInstance().emitBurst(blastCenter, 40, sf::Color(180, 50, 255, 220), 50.0f, 200.0f, 0.3f, 0.7f, 6.0f);
-    chamber.processPlayerAttack(bigBlast);
+    ParticleSystem::getInstance().emitBurst(playerPos, 50, sf::Color(200, 200, 200, 240), 80.0f, 240.0f, 0.3f, 0.8f, 6.0f);
+    chamber.processPlayerAttack(circleBlast);
 
-    // Consume the ability instantly so it only works for the "Next strike"
-    elapsedTime = duration; 
+    // Consume ability only after this first strike is performed
+    elapsedTime = duration;
 }
 
 // ---- WraithbladeCinderveilState ----
 WraithbladeCinderveilState::WraithbladeCinderveilState(PlayerCombatState* inner)
-    : SpecialAbilityState(inner, 10.0f) {}
+    : SpecialAbilityState(inner, 10.0f, 2) {}
 
 StatModifier WraithbladeCinderveilState::getStatModifier() const {
     return StatModifier{};
@@ -129,27 +139,28 @@ const std::string& WraithbladeCinderveilState::getVisualKey() {
     return key;
 }
 
-#include "../../ui/graphics/particle-system.hpp"
-
-void WraithbladeCinderveilState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
-    if (!lethal && enemy) {
-        // Cinderveil: All hits apply Burned (0.25 * base damage = 3.0 dmg/sec for 10 seconds)
-        float burnDmgPerSec = player.getEffectiveStats().damage * 0.25f;
-        enemy->applyStatusEffect(std::make_unique<BurnedEffect>(burnDmgPerSec, 10.0f));
-        ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 20, sf::Color(255, 100, 30, 220), 40.0f, 150.0f, 0.2f, 0.5f, 5.0f);
-    }
-    SpecialAbilityState::onEnemyHit(player, enemy, lethal, chamber);
+float WraithbladeCinderveilState::modifyOutgoingDamage(float baseAmount) {
+    return baseAmount * 2.0f;
 }
 
-void WraithbladeCinderveilState::draw(const Player& player, sf::RenderWindow& window) const {
-    SpecialAbilityState::draw(player, window);
+void WraithbladeCinderveilState::onEnemyHit(Player& player, Enemy* enemy, bool lethal, Chamber& chamber) {
+    if (enemy) {
+        // Cinderveil: All hits deal 2x damage (via modifyOutgoingDamage), apply Burned, and push enemies back
+        if (!lethal) {
+            float burnDmgPerSec = player.getEffectiveStats().damage * 0.25f;
+            enemy->applyStatusEffect(std::make_unique<BurnedEffect>(burnDmgPerSec, 10.0f));
+            ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 20, sf::Color(255, 100, 30, 220), 40.0f, 150.0f, 0.2f, 0.5f, 5.0f);
+        }
 
-    float radius = 1.5f * 60.0f; // 90px
-    // Smooth radial gradient thermal flame air aura radiating outward from the player
-    sf::Color coreColor(255, 140, 30, 120); // Warm gold-orange incandescent core
-    sf::Color edgeColor(255, 50, 10, 180);  // Fiery crimson outward thermal wave
-    AuraRenderer::getInstance().drawAura(window, player.getPosition(), radius, coreColor, edgeColor, 1.1f, 1.4f);
-
-    // Emit subtle flame sparkles
-    ParticleSystem::getInstance().emitSparkle(player.getPosition(), 2, sf::Color(255, 150, 40, 220), 90.0f);
+        if (enemy->canBeKnockedBack()) {
+            sf::Vector2f dir = enemy->getPosition() - player.getPosition();
+            if (Math::length(dir) > 0.001f) {
+                dir = Math::normalize(dir);
+            } else {
+                dir = player.getFacingVector();
+            }
+            enemy->applyKnockback(dir, 1600.0f);
+        }
+    }
+    SpecialAbilityState::onEnemyHit(player, enemy, lethal, chamber);
 }

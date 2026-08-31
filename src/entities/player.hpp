@@ -46,6 +46,8 @@ public:
     void setSwitchCooldownEnabled(bool enabled);
     float getSwitchCooldownTimer() const;
     bool getIsFacingRight() const;
+    FacingDirection getFacingDirection() const;
+    sf::Vector2f getFacingVector() const;
     std::string getFacingString() const;
     void setFacingFromVector(const sf::Vector2f& dir);
     
@@ -57,6 +59,10 @@ public:
     float getCriticalHitRate() const;
     void setDebugCriticalRate(std::optional<float> rate);
     std::optional<float> getDebugCriticalRate() const;
+
+    void triggerDash();
+    bool isDashing() const { return dashTimer > 0.0f; }
+    float getDashTimer() const { return dashTimer; }
 
     FormType getActiveFormType() const;
     PlayerForm* getActiveForm() const;
@@ -86,6 +92,8 @@ private:
     bool isSwitchCooldownEnabled;
     bool inMidChamber = false;
     float special1Threshold = 50.0f;
+    float dashTimer = 0.0f;
+    float dashCooldownTimer = 0.0f;
 
     bool hasPendingAttack = false;
     float attackReleaseTimer = 0.0f;

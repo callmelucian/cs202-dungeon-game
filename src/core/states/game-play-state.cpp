@@ -15,6 +15,7 @@
 #include "choose-chamber-state.hpp"
 #include "../game.hpp"
 #include "../../global-settings/save-load-manager.hpp"
+#include "../../global-settings/sound-manager.hpp"
 #include <cmath>
 
 GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebugMode(false) {
@@ -233,8 +234,10 @@ void GameplayState::startChamberIntro(const std::string& titleStr) {
         chamberTitleText->setString(titleStr);
     }
 
-    introState = ChamberIntroState::TITLE_DISPLAY;
     introTimer = 0.0f;
+    fadeTimer = 0.0f;
+    fadeAlpha = 255.0f;
+    transitionState = ChamberTransitionState::FADING_IN;
 }
 
 
@@ -255,16 +258,28 @@ void GameplayState::update(float deltaTime) {
 
     sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
 
-    if (introState == ChamberIntroState::TITLE_DISPLAY) {
+    if (transitionState == ChamberTransitionState::FADING_IN) {
+        fadeTimer += deltaTime;
+        fadeAlpha = std::max(0.0f, 255.0f * (1.0f - fadeTimer / FADE_DURATION));
+        camera.update(0.0f, mapBounds); // Camera stays frozen at zoomed out view
+
+        if (fadeTimer >= FADE_DURATION) {
+            fadeAlpha = 0.0f;
+            transitionState = ChamberTransitionState::TITLE_DISPLAY;
+            introTimer = 0.0f;
+        }
+        GameState::update(deltaTime);
+        return; // Skip player and enemy updates during initial fade-in
+    } else if (transitionState == ChamberTransitionState::TITLE_DISPLAY) {
         introTimer += deltaTime;
         camera.update(0.0f, mapBounds); // Camera stays frozen at zoomed out view
 
-        if (introTimer >= 2.0f) {
+        if (introTimer >= 1.5f) {
             if (titleContainer && chamberTitleText) {
                 titleContainer->setColor(sf::Color::Transparent);
                 chamberTitleText->setString("");
             }
-            introState = ChamberIntroState::ZOOMING_IN;
+            transitionState = ChamberTransitionState::ZOOMING_IN;
             if (player) {
                 float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
                                             gridHeight / static_cast<float>(settings.getWindowHeight()));
@@ -274,7 +289,7 @@ void GameplayState::update(float deltaTime) {
         }
         GameState::update(deltaTime);
         return; // Skip player and enemy updates so characters remain frozen!
-    } else if (introState == ChamberIntroState::ZOOMING_IN) {
+    } else if (transitionState == ChamberTransitionState::ZOOMING_IN) {
         if (player) {
             float maxZoomOut = std::max(gridWidth / static_cast<float>(settings.getWindowWidth()), 
                                         gridHeight / static_cast<float>(settings.getWindowHeight()));
@@ -282,7 +297,7 @@ void GameplayState::update(float deltaTime) {
             camera.update(deltaTime, mapBounds);
 
             if (std::abs(camera.getCurrentZoom() - camera.getTargetZoom()) < 0.03f) {
-                introState = ChamberIntroState::PLAYING;
+                transitionState = ChamberTransitionState::PLAYING;
                 // Return immediately — game logic (chamber update, player movement) runs
                 // from the NEXT frame so that completeChamber() cannot fire on the same
                 // tick the intro ends.
@@ -292,6 +307,39 @@ void GameplayState::update(float deltaTime) {
         }
         GameState::update(deltaTime);
         return; // Skip player and enemy updates while camera zooms in!
+    } else if (transitionState == ChamberTransitionState::FADING_OUT) {
+        fadeTimer += deltaTime;
+        fadeAlpha = std::min(255.0f, (fadeTimer / FADE_DURATION) * 255.0f);
+        
+        if (player) {
+            player->setVelocity({0.0f, 0.0f});
+            player->setKnockbackVelocity({0.0f, 0.0f});
+            player->update(deltaTime);
+        }
+
+        if (activeChamber) {
+            activeChamber->update(deltaTime);
+        }
+        ParticleSystem::getInstance().update(deltaTime);
+        AuraRenderer::getInstance().update(deltaTime);
+        UI::FloatingTextManager::getInstance().update(deltaTime);
+
+        if (player && hud) {
+            hud->updatePlayerState(*player);
+        }
+
+        if (player) {
+            camera.setTargetCenter(player->getPosition());
+            camera.update(deltaTime, mapBounds);
+        }
+
+        GameState::update(deltaTime);
+
+        if (fadeTimer >= FADE_DURATION) {
+            transitionState = ChamberTransitionState::COMPLETED;
+            onChamberCompleted();
+        }
+        return;
     }
     // 1. Update player logic (including real-time WASD movement)
     Game::getInstance().setActiveWorldView(camera.getView());
@@ -366,6 +414,19 @@ void GameplayState::update(float deltaTime) {
     AuraRenderer::getInstance().update(deltaTime);
     UI::FloatingTextManager::getInstance().update(deltaTime);
 
+    // Check if player entered an active exit gate (bounding box overlap >= 50%)
+    if (transitionState == ChamberTransitionState::PLAYING && activeChamber && activeChamber->getExitGate() && player) {
+        if (activeChamber->getExitGate()->checkPlayerOverlap(*player, 0.5f)) {
+            std::cout << "GameplayState: Player entered Exit Gate (overlap >= 50%). Starting fade out...\n";
+            transitionState = ChamberTransitionState::FADING_OUT;
+            fadeTimer = 0.0f;
+            fadeAlpha = 0.0f;
+            player->setVelocity({0.0f, 0.0f});
+            player->setKnockbackVelocity({0.0f, 0.0f});
+            SoundManager::getInstance().playSound("echo-collect");
+        }
+    }
+
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
     if (player && hud) {
         hud->updatePlayerState(*player);
@@ -429,10 +490,19 @@ void GameplayState::draw(sf::RenderWindow& window) const {
     // Restore UI View for HUD
     window.setView(uiView);
     GameState::draw(window);
+
+    // Draw full-screen fade transition overlay on top of everything
+    if (fadeAlpha > 0.0f) {
+        SettingManager& settings = SettingManager::getInstance();
+        fadeOverlay.setSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
+        fadeOverlay.setPosition({0.0f, 0.0f});
+        fadeOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<uint8_t>(std::clamp(fadeAlpha, 0.0f, 255.0f))));
+        window.draw(fadeOverlay);
+    }
 }
 
 void GameplayState::handleEvents(sf::Event& event) {
-    if (introState != ChamberIntroState::PLAYING) {
+    if (transitionState != ChamberTransitionState::PLAYING) {
         // Pass events to UI components (e.g. pause/quit buttons) but skip player gameplay inputs
         GameState::handleEvents(event);
         return;
@@ -452,12 +522,12 @@ void GameplayState::handleEvents(sf::Event& event) {
                     sf::Vector2f mouseWorldPos = window.mapPixelToCoords({mouseEvent->position.x, mouseEvent->position.y}, camera.getView());
                     dir = mouseWorldPos - player->getPosition();
                     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-                    if (len != 0.0f) dir /= len;
-                    else dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
+                    if (len > 0.001f) dir /= len;
+                    else dir = player->getFacingVector();
                 } else {
                     dir = player->getVelocity();
-                    if (dir.x == 0 && dir.y == 0) {
-                        dir = sf::Vector2f(player->getIsFacingRight() ? 1.0f : -1.0f, 0.0f);
+                    if (std::abs(dir.x) < 0.001f && std::abs(dir.y) < 0.001f) {
+                        dir = player->getFacingVector();
                     } else {
                         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
                         dir /= len;

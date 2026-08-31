@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 #include "../global-settings/asset-manager.hpp"
+#include "../utils/grid-passability.hpp"
 
 using json = nlohmann::json;
 
@@ -520,67 +521,20 @@ TilemapRenderData TilemapLoader::synthesizeMap(
     // whose northern neighbour sits at a higher elevation. These tiles are added to
     // elevationObstacles by buildObstaclesFromGrid() and are physically impassable for
     // ground-level characters, so the BFS must agree.
-    auto isCliffFace = [&](int tr, int tc) -> bool {
-        if (tr <= 0 || tr >= rows || tc < 0 || tc >= cols) return false;
-        return levelGrid[tr - 1][tc] > levelGrid[tr][tc];
-    };
+    GridData gridData{typeGrid, levelGrid, bridgeGrid};
 
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            std::string bridgeHere = getBridge(r, c);
-            bool hasBridge = (bridgeHere == "H" || bridgeHere == "V");
-            TileType ct = parseTileType(typeGrid[r][c]);
-
-            // Bridge overlay makes any cell walkable regardless of underlying terrain.
-            // Without a bridge: Void/Water tiles have no connections.
-            if (!hasBridge && (ct == TileType::Void || ct == TileType::Water)) continue;
-
-            // Cliff face tiles are physically blocked for ground-level characters
-            // (mirrors the elevationObstacles rule in buildObstaclesFromGrid).
-            // Bridge overlay overrides this — you can walk onto a bridge even on a cliff face.
-            if (!hasBridge && isCliffFace(r, c)) continue;
-
             uint8_t mask = 0;
 
-            // canConnect checks whether two adjacent cells allow movement in direction dirIdx.
-            // dirIdx: 0=Up, 1=Right, 2=Down, 3=Left
-            auto canConnect = [&](int ar, int ac, int nr, int nc, int dirIdx) -> bool {
-                std::string aBridge = getBridge(ar, ac);
-                std::string nBridge = getBridge(nr, nc);
-                bool aHasBridge = (aBridge == "H" || aBridge == "V");
-                bool nHasBridge = (nBridge == "H" || nBridge == "V");
-
-                TileType aType = parseTileType(typeGrid[ar][ac]);
-                TileType nType = parseTileType(typeGrid[nr][nc]);
-
-                // Neighbor must be walkable (has bridge or is land/stairs type).
-                if (!nHasBridge && (nType == TileType::Void || nType == TileType::Water)) return false;
-                // Neighbor cliff face is impassable unless it has a bridge.
-                if (!nHasBridge && isCliffFace(nr, nc)) return false;
-
-                // Bridge directional constraints:
-                // Vertical bridge ("V") only allows up/down movement.
-                if (aBridge == "V" && (dirIdx == 1 || dirIdx == 3)) return false;
-                if (aBridge == "H" && (dirIdx == 0 || dirIdx == 2)) return false;
-                if (nBridge == "V" && (dirIdx == 1 || dirIdx == 3)) return false;
-                if (nBridge == "H" && (dirIdx == 0 || dirIdx == 2)) return false;
-
-                // Without bridge: same elevation required (stairs are exceptions).
-                if (!aHasBridge && !nHasBridge) {
-                    if (levelGrid[ar][ac] != levelGrid[nr][nc] && aType != TileType::Stairs && nType != TileType::Stairs) return false;
-                }
-
-                return true;
-            };
-
-            // Up (dy = -1)
-            if (r > 0 && canConnect(r, c, r - 1, c, 0)) mask |= 1;
-            // Right (dx = +1)
-            if (c < cols - 1 && canConnect(r, c, r, c + 1, 1)) mask |= 2;
-            // Down (dy = +1)
-            if (r < rows - 1 && canConnect(r, c, r + 1, c, 2)) mask |= 4;
-            // Left (dx = -1)
-            if (c > 0 && canConnect(r, c, r, c - 1, 3)) mask |= 8;
+            // Up (dy = -1, dir 0)
+            if (r > 0 && GridPassability::canConnect(r, c, r - 1, c, 0, gridData)) mask |= 1;
+            // Right (dx = +1, dir 1)
+            if (c < cols - 1 && GridPassability::canConnect(r, c, r, c + 1, 1, gridData)) mask |= 2;
+            // Down (dy = +1, dir 2)
+            if (r < rows - 1 && GridPassability::canConnect(r, c, r + 1, c, 2, gridData)) mask |= 4;
+            // Left (dx = -1, dir 3)
+            if (c > 0 && GridPassability::canConnect(r, c, r, c - 1, 3, gridData)) mask |= 8;
 
             data.walkableGrid[r][c] = mask;
         }

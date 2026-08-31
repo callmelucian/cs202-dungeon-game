@@ -13,28 +13,25 @@ public:
     std::string getAttackAnimKey() const override;
 };
 
-class IronshellAegisPulseState : public SpecialAbilityState {
-public:
-    IronshellAegisPulseState(PlayerCombatState* inner);
-    void onEnter(Player& player) override;
-    StatModifier getStatModifier() const override;
-    const std::string& getVisualKey() override;
-    void onAttack(Player& player, sf::Vector2f targetDir, Chamber& chamber) override;
-    void draw(const Player& player, sf::RenderWindow& window) const override;
-};
-
 #include <unordered_set>
 
-class IronshellVeilOfThornsState : public SpecialAbilityState {
+class IronshellParalyzingAuraState : public SpecialAbilityState {
 public:
-    IronshellVeilOfThornsState(PlayerCombatState* inner);
+    IronshellParalyzingAuraState(PlayerCombatState* inner);
     StatModifier getStatModifier() const override;
     const std::string& getVisualKey() override;
     void update(Player& player, float dt) override;
-    void draw(const Player& player, sf::RenderWindow& window) const override;
 
 private:
     std::unordered_set<class Enemy*> affectedEnemies;
+};
+
+class IronshellGlacialConflagrationState : public SpecialAbilityState {
+public:
+    IronshellGlacialConflagrationState(PlayerCombatState* inner);
+    void onEnter(Player& player) override;
+    StatModifier getStatModifier() const override;
+    const std::string& getVisualKey() override;
 };
 
 #endif // IRONSHELL_FORM_HPP
