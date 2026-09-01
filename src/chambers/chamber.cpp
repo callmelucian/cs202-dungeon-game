@@ -53,9 +53,11 @@ void Chamber::update(float dt) {
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
-            (*it)->onDeath(this);
-            if (dropsFragments) {
-                itemManager.spawnEnemyDrops((*it).get(), player, *this);
+            if (!(*it)->getHasEscaped()) {
+                (*it)->onDeath(this);
+                if (dropsFragments) {
+                    itemManager.spawnEnemyDrops((*it).get(), player, *this);
+                }
             }
             it = enemies.erase(it);
         } else {
@@ -193,14 +195,16 @@ std::vector<sf::FloatRect> Chamber::getObstaclesFor(const Character* character) 
                 if (y == ty && x == tx) continue;
 
                 std::string t = typeGrid[y][x];
+                std::string br = getBridgeAt(y, x);
+                bool isBridge = (br == "V" || br == "H");
                 int cellLvl = levelGrid[y][x];
 
-                // If cell (y, x) elevation differs from character's elevation and is not Stairs ("S"),
+                // If cell (y, x) elevation differs from character's elevation and is not Stairs ("S") or Bridge,
                 // it is a solid elevation boundary obstacle for the character.
-                if (cellLvl != charLevel && t != "S") {
+                if (cellLvl != charLevel && t != "S" && !isBridge) {
                     sf::FloatRect rect({ox + x * cellSize, oy + y * cellSize}, {cellSize, cellSize});
                     obs.push_back(rect);
-                } else if (GridPassability::isCliffFace(y, x, levelGrid, typeGrid) && t != "S") {
+                } else if (GridPassability::isCliffFace(y, x, levelGrid, typeGrid) && t != "S" && !isBridge) {
                     // Cliff face tiles below higher platforms are solid for lower level characters
                     if (charLevel <= levelGrid[y - 1][x] - 1) {
                         sf::FloatRect rect({ox + x * cellSize, oy + y * cellSize}, {cellSize, cellSize});
@@ -243,6 +247,30 @@ int Chamber::getElevationLevelAt(sf::Vector2f pos) const {
     }
     if (level < 0) level = 0;
     return level;
+}
+
+bool Chamber::isStairsAt(sf::Vector2f pos) const {
+    if (typeGrid.empty() || typeGrid[0].empty()) return false;
+
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+
+    int tx = static_cast<int>((pos.x - ox) / cellSize);
+    int ty = static_cast<int>((pos.y - oy) / cellSize);
+
+    if (ty < 0 || ty >= static_cast<int>(typeGrid.size()) || tx < 0 || tx >= static_cast<int>(typeGrid[0].size())) {
+        return false;
+    }
+
+    return (typeGrid[ty][tx] == "S");
+}
+
+bool Chamber::isOnStairs(const Character* character) const {
+    if (!character) return false;
+    sf::FloatRect bounds = character->getBounds();
+    sf::Vector2f trueCenter = {bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f};
+    return isStairsAt(trueCenter);
 }
 
 std::vector<sf::FloatRect> Chamber::getArrowSolidObstacles(sf::Vector2f shooterPos) const {
@@ -400,12 +428,6 @@ void Chamber::buildObstaclesFromGrid() {
                         if (!isWalkableTerrain(iy + 1, ix)) {
                             baseObstacles.push_back(sf::FloatRect({ox + x * size, oy + y * size + size - sideThick}, {size, sideThick}));
                         }
-                    }
-
-                    if (level > 1) {
-                        elevationObstacles.push_back(rect);
-                    } else if (level == 1) {
-                        inverseElevationObstacles.push_back(rect);
                     }
                 } else if (type == "W" || type == "0") {
                     baseObstacles.push_back(rect);

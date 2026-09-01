@@ -205,6 +205,10 @@ void Player::setChamber(Chamber* chamber) {
     this->currentChamber = chamber;
 }
 
+bool Player::isOnStairs() const {
+    return currentChamber && currentChamber->isOnStairs(this);
+}
+
 void Player::applySlowAura(std::vector<Enemy*>& enemies) {
     float cellSize = SettingManager::getInstance().getCellSize();
     float auraRadius = 4.0f * cellSize;

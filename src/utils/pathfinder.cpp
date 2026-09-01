@@ -1,6 +1,7 @@
 #include "pathfinder.hpp"
 #include "../global-settings/setting-manager.hpp"
 #include "../chambers/chamber.hpp"
+#include "math-utility.hpp"
 #include <queue>
 #include <cmath>
 #include <algorithm>
@@ -211,7 +212,9 @@ std::vector<sf::Vector2f> Pathfinder::findPath(sf::Vector2f start, sf::Vector2f 
     }
 
     std::reverse(path.begin(), path.end());
-    if (!path.empty()) path.erase(path.begin());
+    if (!path.empty() && Math::distance(start, path.front()) < 8.0f) {
+        path.erase(path.begin());
+    }
 
     if (!path.empty()) {
         path.back() = target;

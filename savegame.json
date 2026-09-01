@@ -8,23 +8,23 @@
         "1": 0,
         "2": 0,
         "3": 0,
-        "4": 0
+        "4": 1
     },
     "echoPowers": {
         "0": 0.0,
         "1": 0.0,
         "2": 0.0,
         "3": 0.0,
-        "4": 0.0
+        "4": 100.0
     },
     "echoesStolen": 0,
     "foretellActive": false,
     "foretellPhase1": false,
     "hasDecoyReliquaryBuff": false,
     "ironshellMomentum": 0.0,
-    "playerHP": 65.0,
+    "playerHP": 100.0,
     "special1MomentumThreshold": 50.0,
     "special2MomentumThreshold": 100.0,
-    "voidcasterMomentum": 66.0,
+    "voidcasterMomentum": 56.0,
     "wraithbladeMomentum": 0.0
 }

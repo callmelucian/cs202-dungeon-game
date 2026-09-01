@@ -38,6 +38,7 @@ public:
 
     void setChamber(class Chamber* chamber);
     class Chamber* getChamber() const { return currentChamber; }
+    bool isOnStairs() const;
     void applySlowAura(std::vector<class Enemy*>& enemies);
     
     void setInMidChamber(bool value);

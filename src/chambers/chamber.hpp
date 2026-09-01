@@ -70,6 +70,8 @@ public:
     virtual std::vector<sf::FloatRect> getObstaclesFor(const Character* character) const;
     std::vector<sf::FloatRect> getArrowSolidObstacles(sf::Vector2f shooterPos = sf::Vector2f(0.0f, 0.0f)) const;
     int getElevationLevelAt(sf::Vector2f pos) const;
+    bool isStairsAt(sf::Vector2f pos) const;
+    bool isOnStairs(const Character* character) const;
     virtual std::vector<Enemy*> getEnemiesRaw() const;
     ItemManager& getItemManager() { return itemManager; }
     const WaveSpawner& getWaveSpawner() const { return waveSpawner; }

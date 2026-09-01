@@ -39,6 +39,9 @@ sf::Vector2f PlayerMovementController::update(Player& player, float deltaTime) {
     if (player.isDashing()) {
         speedMultiplier *= 2.0f; // 2x speed during dash
     }
+    if (player.isOnStairs()) {
+        speedMultiplier *= 0.65f; // Slower movement on stairs for realistic climbing feel
+    }
     float speedToPixels = settings.getCellSize() * speedMultiplier;
     player.setVelocity(moveDir * player.getSpeed() * speedToPixels);
     

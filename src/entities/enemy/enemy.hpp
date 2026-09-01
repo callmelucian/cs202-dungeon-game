@@ -23,6 +23,7 @@ protected:
     std::string facingString = "down";
     bool isAttacking = false;
     bool isRealCarrier;
+    bool hasEscaped = false;
     bool hitWall;
     std::optional<std::string> guaranteedDrop;
 
@@ -52,6 +53,9 @@ public:
     
     void setIsRealCarrier(bool real);
     bool getIsRealCarrier() const;
+
+    bool getHasEscaped() const { return hasEscaped; }
+    void setHasEscaped(bool escaped) { hasEscaped = escaped; }
 
     UI::EnemyHealthBar* getEnemyHealthBar();
     const UI::EnemyHealthBar* getEnemyHealthBar() const;

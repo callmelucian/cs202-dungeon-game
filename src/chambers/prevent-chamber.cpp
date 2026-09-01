@@ -53,8 +53,8 @@ void PreventChamber::update(float dt) {
                     UI::FloatingTextManager::getInstance().spawnEchoStolen(notifyPos, echoName);
                 }
                 
-                // Carrier escapes with the Echo — drops 0 fragments on exit gate
-                enemy->addBonusFragments(-enemy->getFragmentDropCount());
+                // Carrier escapes through exit gate — no item/fragment drops
+                enemy->setHasEscaped(true);
                 enemy->setHp(0.0f); // Escaped carrier removed, chamber continues!
             }
         }

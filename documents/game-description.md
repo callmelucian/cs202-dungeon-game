@@ -62,20 +62,24 @@ While Wraithblade is the active form, pressing the **Dash key** (Default: **Righ
 - **Dash Cooldown:** Requires at least **2.0 seconds** cooldown between dashes.
 - Requires directional movement to activate.
 
-### 2.4 Passive: Ironshell Aura
+### 2.4 Stairs Movement Modifier
+
+When walking on stairs (elevation transition tiles `S`), Serin's movement speed is reduced to **65% of normal movement speed** (a $35\%$ reduction) across all forms to convey a realistic physical climbing feel.
+
+### 2.5 Passive: Ironshell Aura
 
 While Ironshell is the active form, a persistent aura applies **Slowed** (see §4) to
 all enemies within **4.0 units** of Serin, refreshed continuously (no stacking
 duration — it's reapplied every tick while the enemy remains in range).
 
-### 2.5 Unified HP Pool
+### 2.6 Unified HP Pool
 
 Every form shares the exact same HP pool (Max HP = 100). The current HP is preserved as a flat value when switching forms, and no percentage conversion is required.
 
 Example: Serin is Wraithblade at 50/100 HP (50%) and switches to Ironshell →
 HP remains exactly 50/100 HP.
 
-### 2.5 Damage Mitigation Formula
+### 2.7 Damage Mitigation Formula
 
 Every point of Defense gives diminishing-returns mitigation (armor-style scaling), so
 Ironshell's high Defense meaningfully reduces damage without ever making Serin
