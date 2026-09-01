@@ -501,7 +501,6 @@ void Chamber::freezeAllEnemies(float duration) {
             ParticleSystem::getInstance().emitBurst(enemy->getPosition(), 15, sf::Color(100, 220, 255, 200), 20.0f, 60.0f, 0.5f, 1.0f, 3.0f);
         }
     }
-    std::cout << "[Chamber] All enemies frozen for " << duration << " seconds!\n";
 }
 
 int Chamber::processPlayerAttack(const Hitbox& hitbox) {
@@ -560,7 +559,6 @@ int Chamber::processPlayerAttack(const Hitbox& hitbox) {
     if (player.getActiveFormType() == FormType::VOIDCASTER && killsThisAttack > 1) {
         for (size_t i = 1; i < killedEnemies.size(); ++i) {
             killedEnemies[i]->addBonusFragments(1);
-            std::cout << "Voidcaster pierce-kill! +1 Bonus Fragment queued.\n";
         }
     }
 

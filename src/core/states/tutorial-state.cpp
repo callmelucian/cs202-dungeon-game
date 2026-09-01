@@ -13,7 +13,6 @@
 #include "../../utils/math-utility.hpp"
 #include <cmath>
 #include <algorithm>
-#include <iostream>
 
 TutorialState::TutorialState(StateManager& manager)
     : GameState(manager)
@@ -118,6 +117,47 @@ void TutorialState::setupUI() {
     camera.init({static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())}, 0.5f);
 
     setupModalDialog();
+}
+
+void TutorialState::setupObjectiveModal() {
+    objectiveModal = std::make_unique<UI::Container>();
+    objectiveModal->setRoot(true);
+    objectiveModal->setModeX(UI::SizeMode::Expanded)
+        ->setModeY(UI::SizeMode::Expanded)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setAlignmentY(UI::AlignmentY::Middle)
+        ->setColor(sf::Color(0, 0, 0, 255));
+
+    auto* centerBox = objectiveModal->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setSpacing(45.f)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+
+    // Single white text in regular font with margin bottom for spacing
+    centerBox->createChild<UI::Text>("regular", 22)
+        ->setString("Objective: Learn movement, form switching, combat actions, and abilities.")
+        ->setFillColor(sf::Color::White)
+        ->setMarginBottom(40.f);
+
+    // Continue button
+    centerBox->createChild<UI::Button>("Continue", "regular", 20)
+        ->setModeX(UI::SizeMode::Fixed)
+        ->setFixedWidth(200.f)
+        ->setModeY(UI::SizeMode::Fixed)
+        ->setFixedHeight(48.f)
+        ->setOnClick([this]() {
+            proceedFromObjective();
+        });
+}
+
+void TutorialState::proceedFromObjective() {
+    if (objectivePhase != ObjectivePhase::FADING_OUT) {
+        SoundManager::getInstance().playSound("menu-nav");
+        objectivePhase = ObjectivePhase::FADING_OUT;
+        objectiveTimer = 0.0f;
+    }
 }
 
 void TutorialState::setupModalDialog() {
@@ -302,10 +342,14 @@ void TutorialState::startTutorialIntro() {
         chamberTitleText->setString("Tutorial - Controls & Forms Training Grounds");
     }
 
+    setupObjectiveModal();
+    objectivePhase = ObjectivePhase::FADING_IN;
+    objectiveTimer = 0.0f;
+    objectiveAlpha = 0.0f;
     introTimer = 0.0f;
     fadeTimer = 0.0f;
     fadeAlpha = 255.0f;
-    transitionState = TutorialTransitionState::FADING_IN;
+    transitionState = TutorialTransitionState::OBJECTIVE_DISPLAY;
 }
 
 void TutorialState::update(float deltaTime) {
@@ -326,7 +370,33 @@ void TutorialState::update(float deltaTime) {
     sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
 
     // Handle Transitions
-    if (transitionState == TutorialTransitionState::FADING_IN) {
+    if (transitionState == TutorialTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectivePhase == ObjectivePhase::FADING_IN) {
+            objectiveTimer += deltaTime;
+            objectiveAlpha = std::min(255.0f, (objectiveTimer / OBJECTIVE_FADE_DURATION) * 255.0f);
+            if (objectiveTimer >= OBJECTIVE_FADE_DURATION) {
+                objectiveAlpha = 255.0f;
+                objectivePhase = ObjectivePhase::DISPLAY;
+            }
+        } else if (objectivePhase == ObjectivePhase::FADING_OUT) {
+            objectiveTimer += deltaTime;
+            objectiveAlpha = std::max(0.0f, 255.0f * (1.0f - objectiveTimer / OBJECTIVE_FADE_DURATION));
+            if (objectiveTimer >= OBJECTIVE_FADE_DURATION) {
+                objectiveAlpha = 0.0f;
+                transitionState = TutorialTransitionState::FADING_IN;
+                fadeTimer = 0.0f;
+                fadeAlpha = 255.0f;
+            }
+        }
+
+        if (objectiveModal) {
+            objectiveModal->computeSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
+            objectiveModal->setPosition({0.f, 0.f});
+            objectiveModal->update(deltaTime);
+        }
+        GameState::update(deltaTime);
+        return;
+    } else if (transitionState == TutorialTransitionState::FADING_IN) {
         fadeTimer += deltaTime;
         fadeAlpha = std::max(0.0f, 255.0f * (1.0f - fadeTimer / FADE_DURATION));
         camera.update(0.0f, mapBounds);
@@ -422,7 +492,6 @@ void TutorialState::update(float deltaTime) {
     // 4. Check Exit Gate on Island 8
     if (transitionState == TutorialTransitionState::PLAYING && activeChamber && activeChamber->getExitGate() && player) {
         if (activeChamber->getExitGate()->checkPlayerOverlap(*player, 0.5f)) {
-            std::cout << "Tutorial: Player reached final exit gate! Finishing tutorial...\n";
             transitionState = TutorialTransitionState::FADING_OUT;
             fadeTimer = 0.0f;
             fadeAlpha = 0.0f;
@@ -486,13 +555,27 @@ void TutorialState::draw(sf::RenderWindow& window) const {
     window.setView(uiView);
     GameState::draw(window);
 
+    // Draw Objective Modal Dialog
+    if (transitionState == TutorialTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectiveModal) {
+            objectiveModal->draw(window);
+        }
+        if (objectiveAlpha < 255.0f) {
+            SettingManager& settings = SettingManager::getInstance();
+            fadeOverlay.setSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
+            fadeOverlay.setPosition({0.0f, 0.0f});
+            fadeOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<uint8_t>(std::clamp(255.0f - objectiveAlpha, 0.0f, 255.0f))));
+            window.draw(fadeOverlay);
+        }
+    }
+
     // Draw Modal Dialog on top of HUD
     if (isModalOpen && modalRoot) {
         modalRoot->draw(window);
     }
 
     // Full screen fade transition
-    if (fadeAlpha > 0.0f) {
+    if (fadeAlpha > 0.0f && transitionState != TutorialTransitionState::OBJECTIVE_DISPLAY) {
         SettingManager& settings = SettingManager::getInstance();
         fadeOverlay.setSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
         fadeOverlay.setPosition({0.0f, 0.0f});
@@ -502,6 +585,23 @@ void TutorialState::draw(sf::RenderWindow& window) const {
 }
 
 void TutorialState::handleEvents(sf::Event& event) {
+    if (transitionState == TutorialTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectivePhase != ObjectivePhase::FADING_OUT) {
+            if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+                if (keyEvent->scancode == sf::Keyboard::Scancode::Enter || 
+                    keyEvent->scancode == sf::Keyboard::Scancode::Space ||
+                    keyEvent->scancode == sf::Keyboard::Scancode::Escape) {
+                    proceedFromObjective();
+                    return;
+                }
+            }
+            if (objectiveModal) {
+                objectiveModal->handleEvent(event);
+            }
+        }
+        return;
+    }
+
     if (isModalOpen) {
         if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
             if (keyEvent->scancode == sf::Keyboard::Scancode::Enter || 
@@ -587,7 +687,6 @@ void TutorialState::handleEvents(sf::Event& event) {
 }
 
 void TutorialState::onChamberCompleted() {
-    std::cout << "Tutorial Completed! Returning to Main Menu...\n";
     stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
 }
 

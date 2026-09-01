@@ -3,6 +3,7 @@
 #include "game-play-state.hpp"
 #include "main-menu-state.hpp"
 #include "../game.hpp"
+#include "../../global-settings/save-load-manager.hpp"
 
 ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manager) {
     root->setAlignmentY(UI::AlignmentY::Middle);
@@ -42,6 +43,7 @@ ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manage
             runState = RunState{}; // Fresh baseline run
             runState.currentLevel = 1;
             runState.currentChamber = 1;
+            SaveLoadManager::getInstance().saveGame(runState);
             stateManager.pushState(std::make_unique<GameplayState>(stateManager));
         });
 

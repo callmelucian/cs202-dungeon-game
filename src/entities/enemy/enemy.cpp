@@ -6,8 +6,6 @@
 #include "../../global-settings/setting-manager.hpp"
 #include "../../ui/graphics/particle-system.hpp"
 #include "../../ui/graphics/aura-renderer.hpp"
-#include <iostream>
-
 
 Enemy::Enemy(const std::string& characterKey, Player& player)
     : Character(characterKey), 
@@ -91,7 +89,6 @@ void Enemy::onWallCollision() {
         if (!hitWall) {
             addBonusFragments(1);
             setHitWall(true);
-            std::cout << "Enemy knocked into wall! +1 Bonus Fragment queued.\n";
         }
     }
 }

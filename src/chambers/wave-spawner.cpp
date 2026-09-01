@@ -2,7 +2,6 @@
 #include "chamber.hpp"
 #include "../entities/enemy/enemy-factory.hpp"
 #include "../global-settings/setting-manager.hpp"
-#include <iostream>
 #include <random>
 
 void WaveSpawner::setWaves(const std::vector<WaveConfig>& waveConfigs) {
@@ -83,7 +82,6 @@ void WaveSpawner::update(float dt, Chamber& chamber, Player& player) {
     } 
     // If all enemies of this wave have spawned and no active enemies remain in the chamber, advance wave
     else if (chamber.getEnemiesRaw().empty()) {
-        std::cout << "WaveSpawner: Wave " << (currentWaveIndex + 1) << " cleared!\n";
         currentWaveIndex++;
     }
 }

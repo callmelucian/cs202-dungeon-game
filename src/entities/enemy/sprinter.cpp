@@ -2,7 +2,6 @@
 #include "enemy-state.hpp"
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
-#include <iostream>
 
 Sprinter::Sprinter(Player& player, bool isCarrier) : Enemy("sprinter", player), isCarrier(isCarrier) {
     baseStats.maxHp = 15.0f;
@@ -24,9 +23,4 @@ Sprinter::Sprinter(Player& player, bool isCarrier) : Enemy("sprinter", player), 
 }
 
 void Sprinter::onDeath(Chamber* chamber) {
-    if (isCarrier) {
-        std::cout << "Sprinter Carrier died and dropped " << fragmentDropCount << " Fragment(s)!\n";
-    } else {
-        std::cout << "Sprinter died.\n";
-    }
 }

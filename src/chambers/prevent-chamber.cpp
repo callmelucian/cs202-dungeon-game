@@ -7,7 +7,6 @@
 #include "../entities/enemy/enemy-state.hpp"
 #include "../ui/widgets/floating-text-manager.hpp"
 #include "../core/game.hpp"
-#include <iostream>
 
 PreventChamber::PreventChamber(Player& player, std::optional<EchoType> echoType)
     : Chamber(player), associatedEcho(echoType) {
@@ -33,7 +32,6 @@ void PreventChamber::update(float dt) {
         // Check if carrier reached exit
         if (enemy->getIsRealCarrier() && enemy->isAlive()) {
             if (Math::distance(enemy->getPosition(), exitPosition) <= 0.5f * cellSize) {
-                std::cout << "Carrier reached the exit! Echo STOLEN.\n";
                 SoundManager::getInstance().playSound("enemy-hit");
                 ParticleSystem::getInstance().emitBurst(exitPosition, 30, sf::Color(255, 50, 50, 200), 40.0f, 120.0f, 0.3f, 0.8f, 5.0f);
                 RunState& runState = Game::getInstance().getRunState();
@@ -77,7 +75,6 @@ void PreventChamber::update(float dt) {
 
             sf::Vector2f notifyPos = player.getPosition() + sf::Vector2f(0.0f, -50.0f);
             UI::FloatingTextManager::getInstance().spawnEchoCollected(notifyPos, echoName, 100.0f);
-            std::cout << "PreventChamber: All enemies defeated! Echo safely preserved and COLLECTED.\n";
         }
         
         if (exitGate) {
@@ -101,6 +98,5 @@ void PreventChamber::onEnemyHit(Enemy* enemy, bool lethal) {
     if (!lethal && enemy->getIsRealCarrier()) {
         // Trigger 0.5s stagger on real carrier
         enemy->changeState(std::make_unique<StaggeredState>(0.5f, std::make_unique<ChasingState>()));
-        std::cout << "Real Carrier hit! Staggered.\n";
     }
 }

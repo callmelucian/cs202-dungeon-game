@@ -1,7 +1,6 @@
 #include "item-manager.hpp"
 #include "../entities/player.hpp"
 #include "../chambers/chamber.hpp"
-#include <iostream>
 
 void ItemManager::update(float dt, Player& player, Chamber& chamber) {
     sf::Vector2f playerPos = player.getPosition();
@@ -24,9 +23,6 @@ void ItemManager::spawnFragments(sf::Vector2f position, int count) {
     for (int i = 0; i < count; ++i) {
         items.push_back(std::make_unique<EchoFragment>(position, 1.0f));
     }
-    if (count > 0) {
-        std::cout << "ItemManager: Spawned " << count << " EchoFragments at (" << position.x << ", " << position.y << ")\n";
-    }
 }
 
 void ItemManager::spawnEnemyFragments(Enemy* enemy, Player& player) {
@@ -37,7 +33,6 @@ void ItemManager::spawnEnemyFragments(Enemy* enemy, Player& player) {
     // Ironshell Multiplier: Double drops if killed while Slowed
     if (player.getActiveFormType() == FormType::IRONSHELL && enemy->isSlowed()) {
         count *= 2;
-        std::cout << "Ironshell killed a Slowed enemy! Doubling fragments to: " << count << "\n";
     }
     
     spawnFragments(enemy->getPosition(), count);
@@ -58,35 +53,26 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
         const std::string& dropType = *enemy->getGuaranteedDrop();
         if (dropType == "FREEZE_POTION") {
             items.push_back(std::make_unique<FreezePotion>(pos));
-            std::cout << "[ItemManager] Guaranteed Freeze Potion spawned from enemy death!\n";
         } else if (dropType == "SPEED_POTION") {
             items.push_back(std::make_unique<SpeedPotion>(pos));
-            std::cout << "[ItemManager] Guaranteed Speed-Up Potion spawned from enemy death!\n";
         } else if (dropType == "CRITICAL_POTION") {
             items.push_back(std::make_unique<CriticalPotion>(pos));
-            std::cout << "[ItemManager] Guaranteed Critical Hit Potion spawned from enemy death!\n";
         } else if (dropType == "ANTIDOTE") {
             items.push_back(std::make_unique<AntidotePotion>(pos));
-            std::cout << "[ItemManager] Guaranteed Antidote spawned from enemy death!\n";
         } else if (dropType == "HEALTH_POTION") {
             items.push_back(std::make_unique<HealthPotion>(pos));
-            std::cout << "[ItemManager] Guaranteed Healer spawned from enemy death!\n";
         } else if (dropType == "RANDOM_NON_FREEZE") {
             // Equal 1/4 distribution among Speed, Critical, Antidote, and Healer for Boss Chamber 2nd add
             std::uniform_int_distribution<int> pickDist(0, 3);
             int pick = pickDist(rng);
             if (pick == 0) {
                 items.push_back(std::make_unique<SpeedPotion>(pos));
-                std::cout << "[ItemManager] Boss Add 2 Drop: Speed-Up Potion spawned!\n";
             } else if (pick == 1) {
                 items.push_back(std::make_unique<CriticalPotion>(pos));
-                std::cout << "[ItemManager] Boss Add 2 Drop: Critical Hit Potion spawned!\n";
             } else if (pick == 2) {
                 items.push_back(std::make_unique<AntidotePotion>(pos));
-                std::cout << "[ItemManager] Boss Add 2 Drop: Antidote spawned!\n";
             } else {
                 items.push_back(std::make_unique<HealthPotion>(pos));
-                std::cout << "[ItemManager] Boss Add 2 Drop: Healer spawned!\n";
             }
         }
     } else {
@@ -102,19 +88,14 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
                 int itemType = itemDist(rng);
                 if (itemType == 0) {
                     items.push_back(std::make_unique<FreezePotion>(pos));
-                    std::cout << "[ItemManager] 25% Drop: Freeze Potion dropped!\n";
                 } else if (itemType == 1) {
                     items.push_back(std::make_unique<SpeedPotion>(pos));
-                    std::cout << "[ItemManager] 25% Drop: Speed-Up Potion dropped!\n";
                 } else if (itemType == 2) {
                     items.push_back(std::make_unique<CriticalPotion>(pos));
-                    std::cout << "[ItemManager] 25% Drop: Critical Hit Potion dropped!\n";
                 } else if (itemType == 3) {
                     items.push_back(std::make_unique<AntidotePotion>(pos));
-                    std::cout << "[ItemManager] 25% Drop: Antidote dropped!\n";
                 } else {
                     items.push_back(std::make_unique<HealthPotion>(pos));
-                    std::cout << "[ItemManager] 25% Drop: Healer dropped!\n";
                 }
             }
         }
@@ -127,7 +108,6 @@ void ItemManager::spawnEnemyDrops(Enemy* enemy, Player& player, Chamber& chamber
             for (int i = 0; i < 3; ++i) {
                 items.push_back(std::make_unique<HealthPotion>(pos));
             }
-            std::cout << "[ItemManager] Gauntlet Chamber final enemy defeated! Dropped 3 bonus Healers at (" << pos.x << ", " << pos.y << ")!\n";
         }
     }
 

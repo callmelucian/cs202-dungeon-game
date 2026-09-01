@@ -15,6 +15,7 @@
 #include <memory>
 
 enum class TutorialTransitionState {
+    OBJECTIVE_DISPLAY,
     FADING_IN,
     TITLE_DISPLAY,
     ZOOMING_IN,
@@ -24,7 +25,7 @@ enum class TutorialTransitionState {
 };
 
 // TutorialState: Dedicated game state for the tutorial mode.
-// Orchestrates the 7-island training grounds, UI HUD, camera tracking,
+// Orchestrates the 8-island training grounds, UI HUD, camera tracking,
 // form explanation modal dialog, and seamless completion flow back to Main Menu.
 class TutorialState : public GameState, public ChamberObserver {
 public:
@@ -44,7 +45,13 @@ private:
     std::unique_ptr<TutorialChamber> activeChamber;
 
     Camera camera;
-    TutorialTransitionState transitionState = TutorialTransitionState::FADING_IN;
+    TutorialTransitionState transitionState = TutorialTransitionState::OBJECTIVE_DISPLAY;
+    enum class ObjectivePhase { FADING_IN, DISPLAY, FADING_OUT };
+    ObjectivePhase objectivePhase = ObjectivePhase::FADING_IN;
+    float objectiveTimer = 0.0f;
+    float objectiveAlpha = 0.0f;
+    const float OBJECTIVE_FADE_DURATION = 0.8f;
+
     float introTimer = 0.0f;
     float fadeTimer = 0.0f;
     float fadeAlpha = 255.0f;
@@ -62,6 +69,9 @@ private:
     UI::Container* titleContainer = nullptr;
     UI::Text* chamberTitleText = nullptr;
 
+    // Objective modal dialog
+    std::unique_ptr<UI::Container> objectiveModal;
+
     // Island 4 Modal Form Guide Dialog
     std::unique_ptr<UI::Container> modalRoot;
     UI::VerticalBox* modalCard = nullptr;
@@ -69,6 +79,8 @@ private:
     bool isModalOpen = false;
 
     void setupUI();
+    void setupObjectiveModal();
+    void proceedFromObjective();
     void setupModalDialog();
     void initPlayerPosition();
     void startTutorialIntro();

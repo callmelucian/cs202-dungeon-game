@@ -3,7 +3,6 @@
 #include "../effects/burned-effect.hpp"
 #include "../../utils/math-utility.hpp"
 #include <random>
-#include <iostream>
 
 OrbProjectile::OrbProjectile(sf::Vector2f startPos,
                              sf::Vector2f velocity,
@@ -47,7 +46,6 @@ void OrbProjectile::update(float dt, Player& player) {
                 std::uniform_real_distribution<float> burnDist(0.0f, 1.0f);
                 if (burnDist(burnRng) < burnChance) {
                     player.applyStatusEffect(std::make_unique<BurnedEffect>(5.0f, 5.0f));
-                    std::cout << "[OrbProjectile] Applied Burned status to Serin!\n";
                 }
             }
 

@@ -110,5 +110,5 @@ void IndividualChamberState::startChamber(int level, int chamberIndex) {
         runState.foretellActive = true;
     }
 
-    stateManager.pushState(std::make_unique<GameplayState>(stateManager));
+    stateManager.pushState(std::make_unique<GameplayState>(stateManager, true));
 }

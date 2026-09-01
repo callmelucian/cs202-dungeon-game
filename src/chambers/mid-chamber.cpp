@@ -2,7 +2,6 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../entities/player.hpp"
 #include "../utils/math-utility.hpp"
-#include <iostream>
 
 MidChamber::MidChamber(Player& player) : Chamber(player) {
     player.setInMidChamber(true);

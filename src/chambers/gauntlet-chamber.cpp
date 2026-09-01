@@ -3,7 +3,6 @@
 #include "../global-settings/setting-manager.hpp"
 #include "../utils/math-utility.hpp"
 #include "../core/game.hpp"
-#include <iostream>
 
 #include "../ui/widgets/floating-text-manager.hpp"
 
@@ -18,7 +17,6 @@ void GauntletChamber::update(float dt) {
         cleared = true;
         float healAmount = player.getEffectiveStats().maxHp * 0.25f;
         player.heal(healAmount);
-        std::cout << "GauntletChamber: Chamber cleared! Granted +25% MaxHP heal (" << healAmount << " HP).\n";
         
         if (exitGate) {
             exitGate->setActive(true);

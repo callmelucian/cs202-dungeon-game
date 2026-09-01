@@ -4,7 +4,6 @@
 #include "animation/character-animator.hpp"
 #include <algorithm>
 #include <map>
-#include <iostream>
 #include <string>
 #include "../chambers/chamber.hpp"
 #include "effects/slowed-effect.hpp"

@@ -10,7 +10,6 @@
 #include "../utils/math-utility.hpp"
 #include "../entities/player.hpp"
 #include <cmath>
-#include <iostream>
 #include <algorithm>
 #include <cstdint>
 
@@ -123,7 +122,6 @@ void BossChamber::updatePhaseTransitionSequence(float dt) {
     } else if (transitionStage == PhaseTransitionStage::ZOOM_IN) {
         if (transitionTimer <= 0.0f) {
             transitionStage = PhaseTransitionStage::NONE;
-            std::cout << "[BossChamber] Cinematic Phase Transition Complete. Game unfreezes and resumes!\n";
         }
     }
 }
@@ -142,7 +140,6 @@ void BossChamber::triggerPhaseTransition(int newPhase) {
     debugHitboxes.clear();
 
     SoundManager::getInstance().playSound("boss-phase");
-    std::cout << "[BossChamber] Cinematic Phase Transition Triggered -> Phase " << newPhase << "\n";
 }
 
 void BossChamber::updateRuptureZones(float dt) {
@@ -154,14 +151,12 @@ void BossChamber::updateRuptureZones(float dt) {
                 it->isActive = true;
                 it->activeTimer = 12.0f; // 12 seconds active duration
                 ParticleSystem::getInstance().emitBurst(it->center, 30, sf::Color(160, 40, 220, 220), 40.0f, 100.0f, 0.5f, 1.0f, 4.0f);
-                std::cout << "[BossChamber] Void Sunder rupture zone opened!\n";
             }
             ++it;
         } else if (it->isActive) {
             it->activeTimer -= dt;
             if (it->activeTimer <= 0.0f) {
                 it = ruptureZones.erase(it);
-                std::cout << "[BossChamber] Void Sunder rupture zone dissipated.\n";
             } else {
                 ++it;
             }
@@ -181,7 +176,6 @@ void BossChamber::sunderPlatformAt(const sf::Vector2f& pos) {
     zone.activeTimer = 12.0f;
 
     ruptureZones.push_back(zone);
-    std::cout << "[BossChamber] Malachar cast Void Sunder at (" << pos.x << ", " << pos.y << ") (3s warning)!\n";
 }
 
 int BossChamber::getCurrentPhase() const {
@@ -215,7 +209,6 @@ void BossChamber::onEnemyHit(Enemy* enemy, bool lethal) {
 }
 
 void BossChamber::onBossDefeated() {
-    std::cout << "[BossChamber] Boss defeated! Chamber completed.\n";
     completeChamber();
 }
 
@@ -228,7 +221,6 @@ void BossChamber::freezeAllEnemies(float duration) {
         sf::Vector2f headPos = boss->getPosition() + sf::Vector2f(0.0f, -50.0f);
         UI::FloatingTextManager::getInstance().spawnStatus(headPos, "FROZEN", sf::Color(100, 220, 255));
         ParticleSystem::getInstance().emitBurst(boss->getPosition(), 40, sf::Color(100, 220, 255, 220), 40.0f, 100.0f, 0.6f, 1.2f, 5.0f);
-        std::cout << "[BossChamber] Boss Malachar frozen in place for " << duration << " seconds!\n";
     }
 }
 

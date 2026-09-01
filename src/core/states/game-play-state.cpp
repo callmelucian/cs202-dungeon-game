@@ -18,7 +18,9 @@
 #include "../../global-settings/sound-manager.hpp"
 #include <cmath>
 
-GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebugMode(false) {
+GameplayState::GameplayState(StateManager& manager, bool isIndividualMode)
+    : GameState(manager), isDebugMode(false), isIndividualMode(isIndividualMode)
+{
     drawBackground = false;
     setupUI();
     
@@ -45,33 +47,47 @@ GameplayState::GameplayState(StateManager& manager) : GameState(manager), isDebu
 
     std::string filepath = MapLoader::getChamberFilepath(runState.currentLevel, runState.currentChamber);
     std::string titleStr;
+    std::string objectiveStr;
+
     if (filepath.find("level-1/chamber-1.json") != std::string::npos) {
         titleStr = "Level 1 - The Drowned Archive (Clarity Shard)";
+        objectiveStr = "Protect the Clarity Shard from approaching enemy waves until time expires.";
     } else if (filepath.find("level-1/chamber-2.json") != std::string::npos) {
         titleStr = "Level 1 - The Bone Corridor (Marrow Echo)";
+        objectiveStr = "Defend the Marrow Echo against corrupted enemies and prevent its destruction.";
     } else if (filepath.find("level-1/chamber-3.json") != std::string::npos) {
         titleStr = "Level 1 - The Collapsed Barracks (Gauntlet)";
+        objectiveStr = "Survive and eliminate all enemy waves to unseal the exit portal.";
     } else if (filepath.find("level-2/chamber-1.json") != std::string::npos) {
         titleStr = "Level 2 - The Drowned Choir (Hollow Bell)";
+        objectiveStr = "Protect the Hollow Bell Echo from waves of dark horrors until time runs out.";
     } else if (filepath.find("level-2/chamber-2.json") != std::string::npos) {
         titleStr = "Level 2 - The Choir Loft (Prevent)";
+        objectiveStr = "Prevent corrupted enemies from escaping into the upper rift.";
     } else if (filepath.find("level-2/chamber-3.json") != std::string::npos) {
         titleStr = "Level 2 - The Silent Nave (Gauntlet)";
+        objectiveStr = "Defeat all incoming enemy waves in the nave to open the exit portal.";
     } else if (filepath.find("level-3/chamber-1.json") != std::string::npos) {
         titleStr = "Level 3 - The Resonance Hall (Resonance Core)";
+        objectiveStr = "Guard the Resonance Core from assault until resonance stabilizes.";
     } else if (filepath.find("level-3/chamber-2.json") != std::string::npos) {
         titleStr = "Level 3 - The Mirror Vault (Obsidian Key)";
+        objectiveStr = "Defend the Obsidian Key from incoming enemy waves.";
     } else if (filepath.find("level-3/chamber-3.json") != std::string::npos) {
         titleStr = "Level 3 - The Hunger Pit (Gauntlet)";
+        objectiveStr = "Survive the relentless onslaught in the pit to unseal the gate.";
     } else if (filepath.find("mid.json") != std::string::npos) {
         titleStr = "Resting Sanctuary (Free Form Swap)";
+        objectiveStr = "Rest safely and freely customize character forms.";
     } else if (filepath.find("boss.json") != std::string::npos) {
         titleStr = "The Heart of the Ashen Vault (Boss: Malachar)";
+        objectiveStr = "Defeat Lord Malachar and claim the core of the Ashen Vault.";
     } else {
         ChamberConfig cfg = MapLoader::loadChamber(filepath);
         titleStr = "Level " + std::to_string(runState.currentLevel) + " - Chamber " + std::to_string(runState.currentChamber);
+        objectiveStr = "Defeat all enemies and complete chamber objectives.";
     }
-    startChamberIntro(titleStr);
+    startChamberIntro(titleStr, objectiveStr);
 }
 
 GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) : GameState(manager), isDebugMode(true) {
@@ -93,7 +109,7 @@ GameplayState::GameplayState(StateManager& manager, ChamberSelectionType type) :
     }
 
     initPlayerPosition();
-    startChamberIntro("Debug Chamber");
+    startChamberIntro("Debug Chamber", "> Test mechanics, combat, and enemy interactions.");
 }
 
 GameplayState::~GameplayState() {
@@ -187,16 +203,57 @@ void GameplayState::setupUI() {
         }
         player->setHp(runState.playerHP);
         player->switchForm(runState.activeForm);
-        player->gainMomentum(runState.wraithbladeMomentum, FormType::WRAITHBLADE);
-        player->gainMomentum(runState.voidcasterMomentum, FormType::VOIDCASTER);
-        player->gainMomentum(runState.ironshellMomentum, FormType::IRONSHELL);
+        player->setMomentum(runState.wraithbladeMomentum, FormType::WRAITHBLADE);
+        player->setMomentum(runState.voidcasterMomentum, FormType::VOIDCASTER);
+        player->setMomentum(runState.ironshellMomentum, FormType::IRONSHELL);
         player->setSpecial1Threshold(runState.special1MomentumThreshold);
     }
 
     camera.init({static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())}, 0.5f);
 }
 
-void GameplayState::startChamberIntro(const std::string& titleStr) {
+void GameplayState::setupObjectiveModal(const std::string& /*titleStr*/, const std::string& objectiveStr) {
+    objectiveModal = std::make_unique<UI::Container>();
+    objectiveModal->setRoot(true);
+    objectiveModal->setModeX(UI::SizeMode::Expanded)
+        ->setModeY(UI::SizeMode::Expanded)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setAlignmentY(UI::AlignmentY::Middle)
+        ->setColor(sf::Color(0, 0, 0, 255));
+
+    auto* centerBox = objectiveModal->createChild<UI::VerticalBox>()
+        ->setModeX(UI::SizeMode::Contained)
+        ->setModeY(UI::SizeMode::Contained)
+        ->setAlignmentX(UI::AlignmentX::Center)
+        ->setSpacing(45.f)
+        ->setPadding(20.f, 20.f, 20.f, 20.f);
+
+    // Single white text in regular font with margin bottom for spacing
+    centerBox->createChild<UI::Text>("regular", 22)
+        ->setString("Objective: " + objectiveStr)
+        ->setFillColor(sf::Color::White)
+        ->setMarginBottom(40.f);
+
+    // Continue button
+    centerBox->createChild<UI::Button>("Continue", "regular", 20)
+        ->setModeX(UI::SizeMode::Fixed)
+        ->setFixedWidth(200.f)
+        ->setModeY(UI::SizeMode::Fixed)
+        ->setFixedHeight(48.f)
+        ->setOnClick([this]() {
+            proceedFromObjective();
+        });
+}
+
+void GameplayState::proceedFromObjective() {
+    if (objectivePhase != ObjectivePhase::FADING_OUT) {
+        SoundManager::getInstance().playSound("menu-nav");
+        objectivePhase = ObjectivePhase::FADING_OUT;
+        objectiveTimer = 0.0f;
+    }
+}
+
+void GameplayState::startChamberIntro(const std::string& titleStr, const std::string& objectiveStr) {
     SettingManager& settings = SettingManager::getInstance();
 
     float gridMinX = settings.getGridOffsetX();
@@ -220,11 +277,6 @@ void GameplayState::startChamberIntro(const std::string& titleStr) {
     camera.setTargetZoom(maxZoomOut, maxZoomOut);
     camera.snapToTarget();
 
-    // Prime the player's animator to the correct first-frame texture rect
-    // so it doesn't flash the full spritesheet on the very first draw.
-    // NOTE: We deliberately do NOT call activeChamber->update(0.f) here —
-    // doing so would run completion checks (e.g. enemies.empty()) before
-    // any enemies have been wave-spawned, causing chambers to complete prematurely.
     if (player) {
         player->update(0.f);
     }
@@ -234,10 +286,14 @@ void GameplayState::startChamberIntro(const std::string& titleStr) {
         chamberTitleText->setString(titleStr);
     }
 
+    setupObjectiveModal(titleStr, objectiveStr);
+    objectivePhase = ObjectivePhase::FADING_IN;
+    objectiveTimer = 0.0f;
+    objectiveAlpha = 0.0f;
     introTimer = 0.0f;
     fadeTimer = 0.0f;
     fadeAlpha = 255.0f;
-    transitionState = ChamberTransitionState::FADING_IN;
+    transitionState = ChamberTransitionState::OBJECTIVE_DISPLAY;
 }
 
 
@@ -258,7 +314,33 @@ void GameplayState::update(float deltaTime) {
 
     sf::FloatRect mapBounds({gridMinX, gridMinY}, {gridWidth, gridHeight});
 
-    if (transitionState == ChamberTransitionState::FADING_IN) {
+    if (transitionState == ChamberTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectivePhase == ObjectivePhase::FADING_IN) {
+            objectiveTimer += deltaTime;
+            objectiveAlpha = std::min(255.0f, (objectiveTimer / OBJECTIVE_FADE_DURATION) * 255.0f);
+            if (objectiveTimer >= OBJECTIVE_FADE_DURATION) {
+                objectiveAlpha = 255.0f;
+                objectivePhase = ObjectivePhase::DISPLAY;
+            }
+        } else if (objectivePhase == ObjectivePhase::FADING_OUT) {
+            objectiveTimer += deltaTime;
+            objectiveAlpha = std::max(0.0f, 255.0f * (1.0f - objectiveTimer / OBJECTIVE_FADE_DURATION));
+            if (objectiveTimer >= OBJECTIVE_FADE_DURATION) {
+                objectiveAlpha = 0.0f;
+                transitionState = ChamberTransitionState::FADING_IN;
+                fadeTimer = 0.0f;
+                fadeAlpha = 255.0f;
+            }
+        }
+
+        if (objectiveModal) {
+            objectiveModal->computeSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
+            objectiveModal->setPosition({0.f, 0.f});
+            objectiveModal->update(deltaTime);
+        }
+        GameState::update(deltaTime);
+        return;
+    } else if (transitionState == ChamberTransitionState::FADING_IN) {
         fadeTimer += deltaTime;
         fadeAlpha = std::max(0.0f, 255.0f * (1.0f - fadeTimer / FADE_DURATION));
         camera.update(0.0f, mapBounds); // Camera stays frozen at zoomed out view
@@ -417,7 +499,6 @@ void GameplayState::update(float deltaTime) {
     // Check if player entered an active exit gate (bounding box overlap >= 50%)
     if (transitionState == ChamberTransitionState::PLAYING && activeChamber && activeChamber->getExitGate() && player) {
         if (activeChamber->getExitGate()->checkPlayerOverlap(*player, 0.5f)) {
-            std::cout << "GameplayState: Player entered Exit Gate (overlap >= 50%). Starting fade out...\n";
             transitionState = ChamberTransitionState::FADING_OUT;
             fadeTimer = 0.0f;
             fadeAlpha = 0.0f;
@@ -486,13 +567,27 @@ void GameplayState::draw(sf::RenderWindow& window) const {
 
     // Draw floating text in world space (visible on top of the white flash!)
     UI::FloatingTextManager::getInstance().draw(window);
-
+    
     // Restore UI View for HUD
     window.setView(uiView);
     GameState::draw(window);
 
+    // Draw objective modal on top of HUD when in OBJECTIVE_DISPLAY
+    if (transitionState == ChamberTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectiveModal) {
+            objectiveModal->draw(window);
+        }
+        if (objectiveAlpha < 255.0f) {
+            SettingManager& settings = SettingManager::getInstance();
+            fadeOverlay.setSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
+            fadeOverlay.setPosition({0.0f, 0.0f});
+            fadeOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<uint8_t>(std::clamp(255.0f - objectiveAlpha, 0.0f, 255.0f))));
+            window.draw(fadeOverlay);
+        }
+    }
+
     // Draw full-screen fade transition overlay on top of everything
-    if (fadeAlpha > 0.0f) {
+    if (fadeAlpha > 0.0f && transitionState != ChamberTransitionState::OBJECTIVE_DISPLAY) {
         SettingManager& settings = SettingManager::getInstance();
         fadeOverlay.setSize(sf::Vector2f(static_cast<float>(settings.getWindowWidth()), static_cast<float>(settings.getWindowHeight())));
         fadeOverlay.setPosition({0.0f, 0.0f});
@@ -502,6 +597,23 @@ void GameplayState::draw(sf::RenderWindow& window) const {
 }
 
 void GameplayState::handleEvents(sf::Event& event) {
+    if (transitionState == ChamberTransitionState::OBJECTIVE_DISPLAY) {
+        if (objectivePhase != ObjectivePhase::FADING_OUT) {
+            if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+                if (keyEvent->scancode == sf::Keyboard::Scancode::Enter || 
+                    keyEvent->scancode == sf::Keyboard::Scancode::Space ||
+                    keyEvent->scancode == sf::Keyboard::Scancode::Escape) {
+                    proceedFromObjective();
+                    return;
+                }
+            }
+            if (objectiveModal) {
+                objectiveModal->handleEvent(event);
+            }
+        }
+        return;
+    }
+
     if (transitionState != ChamberTransitionState::PLAYING) {
         // Pass events to UI components (e.g. pause/quit buttons) but skip player gameplay inputs
         GameState::handleEvents(event);
@@ -562,7 +674,10 @@ void GameplayState::onEchoPowerChanged(float /*power*/) {
 }
 
 void GameplayState::onChamberCompleted() {
-    std::cout << "GameplayState: Chamber Completed!\n";
+    if (isIndividualMode) {
+        stateManager.popState();
+        return;
+    }
     if (player) {
         RunState& runState = Game::getInstance().getRunState();
         runState.playerHP = player->getHp();
@@ -570,9 +685,6 @@ void GameplayState::onChamberCompleted() {
         runState.wraithbladeMomentum = player->getMomentum(FormType::WRAITHBLADE);
         runState.voidcasterMomentum = player->getMomentum(FormType::VOIDCASTER);
         runState.ironshellMomentum = player->getMomentum(FormType::IRONSHELL);
-        
-        // BUG-20: Auto-save game progress on chamber completion
-        SaveLoadManager::getInstance().saveGame(runState);
     }
     if (isDebugMode) {
         stateManager.changeState(std::make_unique<ChooseChamberState>(stateManager));
@@ -583,14 +695,17 @@ void GameplayState::onChamberCompleted() {
         if (!nextPath.empty()) {
             // Next chamber in same level
             runState.currentChamber++;
+            SaveLoadManager::getInstance().saveGame(runState);
         } else {
             // Check if there's a next level
             std::string nextLevelPath = MapLoader::getChamberFilepath(runState.currentLevel + 1, 1);
             if (!nextLevelPath.empty()) {
                 runState.currentLevel++;
                 runState.currentChamber = 1;
+                SaveLoadManager::getInstance().saveGame(runState);
             } else {
                 // Game completely over! (Win)
+                std::remove("savegame.json");
                 int stolenCount = 0;
                 for (const auto& [type, outcome] : runState.echoOutcomes) {
                     if (outcome == EchoOutcome::STOLEN) {
@@ -608,9 +723,6 @@ void GameplayState::onChamberCompleted() {
                     ending = EndingType::ENDING_C_WARNING;
                 }
 
-                std::cout << "Campaign completed with " << stolenCount << " stolen Echo(es). Transitioning to Ending "
-                          << (ending == EndingType::ENDING_A_SHATTER ? "A (Shatter)" : (ending == EndingType::ENDING_B_RETREAT ? "B (Retreat)" : "C (Warning)")) << "\n";
-
                 stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, ending));
                 return;
             }
@@ -620,7 +732,10 @@ void GameplayState::onChamberCompleted() {
 }
 
 void GameplayState::onChamberFailed() {
-    std::cout << "GameplayState: Chamber Failed! Transitioning to GameOverState (Retry)...\n";
+    if (isIndividualMode) {
+        stateManager.popState();
+        return;
+    }
     stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, std::nullopt));
 }
 
@@ -634,13 +749,26 @@ void GameplayState::initPlayerPosition() {
 
     if (activeChamber) {
         sf::Vector2f cfgSpawn = activeChamber->getPlayerSpawn();
-        if (cfgSpawn.x >= 0.0f && cfgSpawn.y >= 0.0f) {
-            spawnX = cfgSpawn.x;
-            spawnY = cfgSpawn.y;
-        } else {
-            const auto& grid = activeChamber->getTypeGrid();
+        const auto& grid = activeChamber->getTypeGrid();
+        bool validSpawn = false;
+
+        if (cfgSpawn.x >= 0.0f && cfgSpawn.y >= 0.0f && !grid.empty()) {
+            int r = static_cast<int>(cfgSpawn.y);
+            int c = static_cast<int>(cfgSpawn.x);
+            if (r >= 0 && r < static_cast<int>(grid.size()) &&
+                c >= 0 && c < static_cast<int>(grid[r].size())) {
+                const std::string& t = grid[r][c];
+                if (t == "L" || t == "S" || t == "V" || t == "H" || t == "E" || t == "X") {
+                    spawnX = cfgSpawn.x;
+                    spawnY = cfgSpawn.y;
+                    validSpawn = true;
+                }
+            }
+        }
+
+        if (!validSpawn) {
             bool found = false;
-            // Search for the first walkable ground tile (type 0)
+            // Search for the first walkable ground tile ("L")
             for (size_t y = 1; y < grid.size() && !found; ++y) {
                 for (size_t x = 1; x < grid[y].size() && !found; ++x) {
                     if (grid[y][x] == "L") {

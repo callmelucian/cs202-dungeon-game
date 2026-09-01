@@ -15,7 +15,6 @@
 #include "../../ui/graphics/aura-renderer.hpp"
 #include "../../ui/widgets/floating-text-manager.hpp"
 #include "../effects/burned-effect.hpp"
-#include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
@@ -65,7 +64,6 @@ void BossMalachar::applyRunStateModifiers() {
         if (runState.echoOutcomes[EchoType::HOLLOW_BELL] == EchoOutcome::STOLEN) {
             reflectWardActive = true;
             reflectWardCooldown = 0.0f;
-            std::cout << "[BossMalachar] Hollow Bell Stolen: Reflect Ward ACTIVE for Phase 1!\n";
         } else {
             reflectWardActive = false;
         }
@@ -83,10 +81,6 @@ void BossMalachar::applyRunStateModifiers() {
     } else {
         foretellActive = (runState.echoOutcomes[EchoType::CLARITY_SHARD] == EchoOutcome::COLLECTED) 
                       || runState.foretellActive;
-    }
-
-    if (foretellActive) {
-        std::cout << "[BossMalachar] Foretell ACTIVE: Extended telegraphs enabled!\n";
     }
 }
 
@@ -153,7 +147,6 @@ void BossMalachar::updateState(float dt, Chamber& chamber) {
             pendingResonanceBurst = false;
             float secondBurst = baseStats.hp * 0.08f;
             baseStats.hp = std::max(0.0f, baseStats.hp - secondBurst);
-            std::cout << "[BossMalachar] Second Resonance Core burst dealt " << secondBurst << " damage to Malachar!\n";
         }
     }
 
@@ -169,15 +162,6 @@ void BossMalachar::updateState(float dt, Chamber& chamber) {
 
     // 6. Fixed 12-second repeating cycle (Void Bolt & Summoning Burst)
     updateVoidBoltCycle(dt, chamber);
-
-    // 7. Phase 3 & 4: Platform Sunder attack every 15s
-    if (currentPhase >= 3) {
-        sunderCooldown -= dt;
-        if (sunderCooldown <= 0.0f) {
-            platformSunder(chamber);
-            sunderCooldown = 15.0f;
-        }
-    }
 
     // 7. Phase 3 & 4: Platform Sunder attack every 15s
     if (currentPhase >= 3) {
@@ -259,13 +243,10 @@ void BossMalachar::updateVoidBoltCycle(float dt, Chamber& chamber) {
 
         chamber.spawnEnemy(std::move(w1));
         chamber.spawnEnemy(std::move(w2));
-
-        std::cout << "[BossMalachar] Summoning Burst: Spawned 2 Sprinters (1 Freeze Potion + 1 Randomized Potion guaranteed drops)!\n";
     }
 }
 
 void BossMalachar::startTrackingAttack(Chamber& chamber) {
-    std::cout << "[BossMalachar] Casting Tracking Explosion Circles!\n";
     trackingCirclesRemaining = 3;
     trackingCircleIntervalTimer = 0.0f; // First circle dispatched immediately
 }
@@ -288,7 +269,6 @@ void BossMalachar::updateTrackingAttack(float dt, Chamber& chamber) {
             trackingCircleIntervalTimer = 0.5f;
 
             SoundManager::getInstance().playSound("fireball");
-            std::cout << "[BossMalachar] Tracking circle sent to (" << targetPos.x << ", " << targetPos.y << ") (1.5s until detonation)!\n";
         }
     }
 
@@ -322,7 +302,6 @@ void BossMalachar::updateTrackingAttack(float dt, Chamber& chamber) {
             if (player.isAlive() && CollisionSolver::checkCollision(blastCircle, player.getBounds())) {
                 float dmg = computeDamage(player);
                 player.takeDamage(dmg);
-                std::cout << "[BossMalachar] Tracking circle explosion hit Player for " << dmg << " damage!\n";
             }
 
             // Damage all Enemies in chamber (friendly fire: hits adds and Boss itself)
@@ -332,7 +311,6 @@ void BossMalachar::updateTrackingAttack(float dt, Chamber& chamber) {
                 if (CollisionSolver::checkCollision(blastCircle, enemy->getBounds())) {
                     float dmg = computeDamage(*enemy);
                     enemy->takeDamage(dmg);
-                    std::cout << "[BossMalachar] Tracking circle explosion hit " << enemy->getDisplayName() << " for " << dmg << " damage!\n";
                 }
             }
 
@@ -386,7 +364,6 @@ void BossMalachar::performBlink(Chamber& chamber) {
         ParticleSystem::getInstance().emitBurst(getPosition(), 20, sf::Color(140, 40, 220, 220), 40.0f, 90.0f, 0.2f, 0.6f, 3.0f);
         setPosition(newPos);
         ParticleSystem::getInstance().emitBurst(newPos, 20, sf::Color(140, 40, 220, 220), 40.0f, 90.0f, 0.2f, 0.6f, 3.0f);
-        std::cout << "[BossMalachar] Blinked to new arena location (" << newPos.x << ", " << newPos.y << ")!\n";
     }
 }
 
@@ -395,7 +372,6 @@ void BossMalachar::resonanceCoreBurst() {
     if (runState.echoOutcomes[EchoType::RESONANCE_CORE] == EchoOutcome::COLLECTED) {
         float burstDamage = baseStats.hp * 0.08f;
         baseStats.hp = std::max(0.0f, baseStats.hp - burstDamage);
-        std::cout << "[BossMalachar] Resonance Core transition burst dealt " << burstDamage << " damage to Malachar!\n";
 
         // Double burst (~1s apart) only if Resonance Core was collected fully intact (>= 90%)
         if (runState.echoPowers.count(EchoType::RESONANCE_CORE) && runState.echoPowers[EchoType::RESONANCE_CORE] >= 90.0f) {
@@ -413,7 +389,6 @@ int BossMalachar::getCurrentPhase() const {
 
 void BossMalachar::transitionPhase(int phase) {
     currentPhase = phase;
-    std::cout << "[BossMalachar] Transitioning to Phase " << currentPhase << "!\n";
     
     // Update RunState modifiers for new phase
     applyRunStateModifiers();
@@ -423,7 +398,6 @@ void BossMalachar::transitionPhase(int phase) {
 }
 
 void BossMalachar::platformSunder(Chamber& chamber) {
-    std::cout << "[BossMalachar] Casting Platform Sunder!\n";
     BossChamber* bossChamber = dynamic_cast<BossChamber*>(&chamber);
     if (bossChamber) {
         sf::Vector2f playerPos = getPlayer().getPosition();
@@ -439,7 +413,6 @@ void BossMalachar::takeDamage(float rawAmount, bool isCritical) {
         sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -50.0f);
         UI::FloatingTextManager::getInstance().spawnStatus(headPos, "SHIELDED", sf::Color(140, 200, 255));
         ParticleSystem::getInstance().emitBurst(getPosition(), 15, sf::Color(140, 200, 255, 220), 30.0f, 80.0f, 0.2f, 0.5f, 3.0f);
-        std::cout << "[BossMalachar] Attack deflected! Boss is SHIELDED (can only be attacked while frozen)!\n";
         return;
     }
 
@@ -448,15 +421,12 @@ void BossMalachar::takeDamage(float rawAmount, bool isCritical) {
         reflectWardCooldown = 8.0f;
         float reflectedDmg = rawAmount * 0.20f;
         getPlayer().takeDamage(reflectedDmg);
-        std::cout << "[BossMalachar] Hollow Bell Reflect Ward triggered! Reflected " 
-                  << reflectedDmg << " damage back to Serin!\n";
     }
 
     Enemy::takeDamage(rawAmount, isCritical);
 }
 
 void BossMalachar::onDeath(Chamber* chamber) {
-    std::cout << "[BossMalachar] Malachar has been defeated!\n";
     BossChamber* bossChamber = dynamic_cast<BossChamber*>(chamber);
     if (bossChamber) {
         bossChamber->onBossDefeated();
@@ -568,5 +538,4 @@ void BossMalachar::cancelCharging() {
     trackingCircleIntervalTimer = 0.0f;
     
     setVelocity({0.0f, 0.0f});
-    std::cout << "[BossMalachar] Attack charging canceled due to Freeze!\n";
 }

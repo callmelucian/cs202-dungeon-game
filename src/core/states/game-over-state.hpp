@@ -6,7 +6,6 @@
 #include "../state-manager.hpp"
 #include "../game.hpp"
 #include "../../global-settings/setting-manager.hpp"
-#include <iostream>
 #include <memory>
 
 // UI Framework

@@ -2,7 +2,6 @@
 #include "enemy-state.hpp"
 #include "enemy-steering-strategy.hpp"
 #include "../player.hpp"
-#include <iostream>
 
 Soldier::Soldier(Player& player) : Enemy("soldier", player) {
     baseStats.maxHp = 22.0f;
@@ -15,5 +14,4 @@ Soldier::Soldier(Player& player) : Enemy("soldier", player) {
 }
 
 void Soldier::onDeath(Chamber* chamber) {
-    std::cout << "Soldier defeated.\n";
 }

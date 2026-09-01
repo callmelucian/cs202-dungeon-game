@@ -6,7 +6,6 @@
 #include "../../ui/graphics/aura-renderer.hpp"
 #include "../../global-settings/sound-manager.hpp"
 #include "../../utils/math-utility.hpp"
-#include <iostream>
 #include <algorithm>
 
 Brute::Brute(Player& player)
@@ -81,6 +80,5 @@ void Brute::draw(sf::RenderWindow& window) const {
 }
 
 void Brute::onDeath(Chamber* chamber) {
-    std::cout << "Brute destroyed! Emitting shockwave...\n";
     ParticleSystem::getInstance().emitBurst(getPosition(), 45, sf::Color(220, 100, 50, 220), 80.0f, 200.0f, 0.4f, 1.0f, 8.0f);
 }

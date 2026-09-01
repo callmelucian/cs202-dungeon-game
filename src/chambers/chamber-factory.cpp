@@ -14,8 +14,6 @@
 #include "../core/game.hpp"
 
 std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberIndex, Player& player) {
-    std::cout << "Creating Chamber - Level: " << level << ", Index: " << chamberIndex << "\n";
-    
     std::string filepath = MapLoader::getChamberFilepath(level, chamberIndex);
     if (filepath.empty()) {
         std::cerr << "Warning: No filepath found for Level " << level << ", Chamber " << chamberIndex << ". Falling back to TestChamber.\n";
@@ -153,8 +151,6 @@ std::unique_ptr<Chamber> ChamberFactory::createChamber(int level, int chamberInd
 }
 
 std::unique_ptr<Chamber> ChamberFactory::createDebugChamber(ChamberSelectionType type, Player& player) {
-    std::cout << "Creating Debug Chamber\n";
-    
     std::unique_ptr<Chamber> chamber;
     
     if (type == ChamberSelectionType::PREVENT) {

@@ -4,7 +4,6 @@
 #include "../player.hpp"
 #include "../../ui/graphics/particle-system.hpp"
 #include "../../global-settings/sound-manager.hpp"
-#include <iostream>
 
 DummyEnemy::DummyEnemy(Player& player, 
                        const std::string& textureKey, 
@@ -33,7 +32,6 @@ DummyEnemy::DummyEnemy(Player& player,
 }
 
 void DummyEnemy::onDeath(Chamber* /*chamber*/) {
-    std::cout << "Tutorial Dummy defeated!\n";
     SoundManager::getInstance().playSound("enemy-hit");
     ParticleSystem::getInstance().emitBurst(getPosition(), 20, sf::Color(255, 220, 100, 220), 40.0f, 120.0f, 0.2f, 0.6f, 3.5f);
 }

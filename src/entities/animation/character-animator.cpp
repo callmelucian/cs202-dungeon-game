@@ -2,7 +2,6 @@
 #include "../../global-settings/animation-manager.hpp"
 #include "../../global-settings/asset-manager.hpp"
 
-#include <iostream>
 #include <cmath>
 
 // ---- CharacterAnimator implementation ----

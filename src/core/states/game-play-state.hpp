@@ -13,7 +13,6 @@
 #include "../../chambers/chamber.hpp"
 #include "../../chambers/chamber-factory.hpp"
 #include "../../economy/echo.hpp"
-#include <iostream>
 #include <vector>
 #include <memory>
 
@@ -30,6 +29,7 @@
 
 
 enum class ChamberTransitionState {
+    OBJECTIVE_DISPLAY,
     FADING_IN,
     TITLE_DISPLAY,
     ZOOMING_IN,
@@ -41,7 +41,7 @@ enum class ChamberTransitionState {
 // GameplayState: Manages the active game session, processing entity updates, level progression, and combat logic.
 class GameplayState : public GameState, public EchoObserver, public ChamberObserver {
 public:
-    GameplayState(StateManager& manager); // Campaign mode
+    GameplayState(StateManager& manager, bool isIndividualMode = false); // Campaign or Individual mode
     GameplayState(StateManager& manager, ChamberSelectionType type); // Debug mode
     virtual ~GameplayState() override;
     void update(float deltaTime) override;
@@ -63,6 +63,9 @@ private:
     UI::Container* titleContainer = nullptr;
     UI::Text* chamberTitleText = nullptr;
 
+    // Objective modal dialog
+    std::unique_ptr<UI::Container> objectiveModal;
+
     UI::HUD* hud;
     UI::BossHealthBar* bossHealthBar = nullptr;
 
@@ -70,9 +73,16 @@ private:
     std::unique_ptr<Player> player;
     std::unique_ptr<Chamber> activeChamber;
     bool isDebugMode = false;
+    bool isIndividualMode = false;
 
     Camera camera;
-    ChamberTransitionState transitionState = ChamberTransitionState::FADING_IN;
+    ChamberTransitionState transitionState = ChamberTransitionState::OBJECTIVE_DISPLAY;
+    enum class ObjectivePhase { FADING_IN, DISPLAY, FADING_OUT };
+    ObjectivePhase objectivePhase = ObjectivePhase::FADING_IN;
+    float objectiveTimer = 0.0f;
+    float objectiveAlpha = 0.0f;
+    const float OBJECTIVE_FADE_DURATION = 0.8f;
+
     float introTimer = 0.0f;
     float fadeTimer = 0.0f;
     float fadeAlpha = 255.0f;
@@ -80,8 +90,10 @@ private:
     mutable sf::RectangleShape fadeOverlay;
     
     void setupUI();
+    void setupObjectiveModal(const std::string& titleStr, const std::string& objectiveStr);
+    void proceedFromObjective();
     void initPlayerPosition();
-    void startChamberIntro(const std::string& titleStr);
+    void startChamberIntro(const std::string& titleStr, const std::string& objectiveStr);
 };
 
 #endif // GAME_PLAY_STATE

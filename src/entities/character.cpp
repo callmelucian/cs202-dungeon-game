@@ -168,7 +168,6 @@ void Character::takeDamage(float rawAmount, bool isCritical) {
     if (!isAlive()) return;
     float finalDmg = calculateMitigatedDamage(rawAmount);
     baseStats.hp -= finalDmg;
-    std::cout << "[" << getDisplayName() << "] took " << finalDmg << " dmg" << (isCritical ? " (CRIT)" : "") << ". HP left: " << baseStats.hp << "\n";
     
     // Spawn floating damage text above character
     sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
@@ -191,7 +190,6 @@ void Character::takeDamage(float rawAmount, bool isCritical) {
 void Character::heal(float amount) {
     if (!isAlive()) return;
     baseStats.hp = std::min(baseStats.hp + amount, baseStats.maxHp);
-    std::cout << "[" << getDisplayName() << "] healed " << amount << " HP. HP now: " << baseStats.hp << "\n";
 
     sf::Vector2f headPos = getPosition() + sf::Vector2f(0.0f, -35.0f);
     UI::FloatingTextManager::getInstance().spawnHeal(headPos, amount);
@@ -236,7 +234,6 @@ void Character::clearNegativeStatusEffects() {
         setTint(sf::Color::White);
     }
     ParticleSystem::getInstance().emitBurst(getPosition(), 30, sf::Color(50, 255, 120, 220), 50.0f, 120.0f, 0.4f, 0.9f, 5.0f);
-    std::cout << "[" << getDisplayName() << "] Antidote applied! Purged all negative status effects.\n";
 }
 
 void Character::addObserver(CharacterObserver* observer) {
@@ -250,7 +247,6 @@ void Character::removeObserver(CharacterObserver* observer) {
 }
 
 void Character::notifyStateChanged(std::string visualKey) {
-    // std::cerr << "NOTIFY " << visualKey << std::endl;
     auto observersCopy = observers;
     for (auto observer : observersCopy) {
         if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {

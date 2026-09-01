@@ -7,7 +7,6 @@
 #include "../ui/graphics/particle-system.hpp"
 #include "../ui/widgets/floating-text-manager.hpp"
 #include "../core/game.hpp"
-#include <iostream>
 
 #include "../global-settings/asset-manager.hpp"
 #include "../ui/graphics/aura-renderer.hpp"
@@ -59,7 +58,6 @@ void ProtectChamber::update(float dt) {
                 isCollected = true;
                 SoundManager::getInstance().playSound("echo-collect");
                 ParticleSystem::getInstance().emitGlow(echoPosition, 40, sf::Color(255, 255, 200, 200), 50.0f);
-                std::cout << "Echo Collected! Final Power: " << echo->getPower() << "%\n";
 
                 RunState& runState = Game::getInstance().getRunState();
                 if (!isReliquaryDecoy) {
@@ -82,7 +80,6 @@ void ProtectChamber::update(float dt) {
                     player.heal(buffAmount);
                     sf::Vector2f notifyPos = player.getPosition() + sf::Vector2f(0.0f, -50.0f);
                     UI::FloatingTextManager::getInstance().spawnText(notifyPos, "+ SACRED RELIQUARY DEFENDED! (+20% MAX HP)", sf::Color(80, 240, 140), 10, "header", 2.2f);
-                    std::cout << "Sarcophagus Reliquary Defended! Granted +20% Max HP buff (" << buffAmount << " HP).\n";
                 }
                 
                 if (exitGate) {
@@ -142,7 +139,6 @@ int ProtectChamber::processPlayerAttack(const Hitbox& hitbox) {
             float oy = SettingManager::getInstance().getGridOffsetY();
             stalker->setPosition({ox + 3.0f * cell, oy + 3.0f * cell});
             spawnEnemy(std::move(stalker));
-            std::cout << "Resonance Hall Noise! Spawned Hushed Stalker (" << noiseStalkerCount << "/12).\n";
         }
     }
     return totalHits;
@@ -152,7 +148,6 @@ void ProtectChamber::onEnemyHit(Enemy* enemy, bool lethal) {
     if (lethal && enemy && isNoiseHall) {
         if (enemy->isSlowed()) {
             itemManager.spawnFragments(enemy->getPosition(), 2);
-            std::cout << "Slowed Hushed Stalker killed silently! Dropped 2 fragments without noise.\n";
         }
     }
     Chamber::onEnemyHit(enemy, lethal);
@@ -162,11 +157,9 @@ void ProtectChamber::onEchoHit(float rawDamage) {
     if (!echo || isCollected) return;
     if (checkIronshellRedirect()) {
         player.takeDamage(rawDamage);
-        std::cout << "Ironshell absorbed Echo hit! Damage redirected to Serin.\n";
     } else {
         // 8% penalty per hit on Echo
         echo->takeDamage(8.0f);
-        std::cout << "Echo hit! Power reduced to " << echo->getPower() << "%\n";
     }
 }
 
@@ -181,7 +174,6 @@ void ProtectChamber::onFragmentCollected(float value) {
     
     if (echo) {
         echo->addPower(powerGain);
-        std::cout << "ProtectChamber: Echo Power increased by " << powerGain << "%. New Power: " << echo->getPower() << "%\n";
     }
 }
 
