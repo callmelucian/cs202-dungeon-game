@@ -70,13 +70,12 @@ void Player::handleInput(const sf::Event& event) {
 void Player::triggerDash() {
     if (getActiveFormType() != FormType::WRAITHBLADE) return;
     if (!canAct()) return;
-    if (dashCooldownTimer > 0.0f) return; // Must be at least 2s from last dash
+    if (dashCooldownTimer > 0.0f) return; // Must be at least 1s from last dash
 
     if (movementController.isMoving()) {
         dashTimer = 0.5f;
-        dashCooldownTimer = 2.0f; // 2s cooldown
+        dashCooldownTimer = 1.0f; // 1s cooldown
         SoundManager::getInstance().playSound("swing");
-        ParticleSystem::getInstance().emitBurst(getPosition(), 15, sf::Color(200, 100, 255, 220), 50.0f, 150.0f, 0.15f, 0.4f, 4.0f);
     }
 }
 
@@ -85,11 +84,10 @@ void Player::triggerAnimation(const std::string& key) {
 }
 
 void Player::update(float deltaTime) {
-    // 1. Update dash timer & particles
+    // 1. Update dash timer
     if (dashTimer > 0.0f) {
         dashTimer -= deltaTime;
         if (dashTimer < 0.0f) dashTimer = 0.0f;
-        ParticleSystem::getInstance().emitSparkle(getPosition(), 2, sf::Color(180, 80, 255, 200), 20.0f);
     }
 
     // 2. Update dash cooldown timer

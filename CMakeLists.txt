@@ -39,6 +39,7 @@ add_executable(game
     src/core/states/game-over-state.cpp
     src/core/states/setting-state.cpp
     src/core/states/debug-state.cpp
+    src/core/states/tutorial-state.cpp
 
     # global-settings
     src/global-settings/setting-manager.cpp
@@ -100,6 +101,8 @@ add_executable(game
     src/entities/enemy/soldier.cpp
     src/entities/enemy/brute.cpp
     src/entities/enemy/boss-malachar.cpp
+    src/entities/enemy/dummy-enemy.cpp
+    src/entities/enemy/random-wander-strategy.cpp
 
     ## items & economy
     src/economy/item.cpp
@@ -122,6 +125,7 @@ add_executable(game
     src/chambers/prevent-chamber.cpp
     src/chambers/gauntlet-chamber.cpp
     src/chambers/boss-chamber.cpp
+    src/chambers/tutorial-chamber.cpp
     src/chambers/wave-spawner.cpp
     src/chambers/map-loader.cpp
     src/chambers/tilemap-loader.cpp

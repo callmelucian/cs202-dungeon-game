@@ -26,6 +26,7 @@ private:
     UI::VerticalBox* buttonBox;
     UI::Button* continueButton;
     UI::Button* playButton;
+    UI::Button* tutorialButton;
     UI::Button* optionsButton;
     UI::Button* exitButton;
 };
