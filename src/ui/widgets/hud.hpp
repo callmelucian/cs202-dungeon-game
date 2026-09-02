@@ -48,17 +48,10 @@ private:
     float ghostHpRatio;
     float ghostLagTimer;
 
-    // Form state
+    // Active Form & Momentum state
     FormType activeForm;
-
-    // 3 Persistent Momentum values & smooth lerps
-    float wraithbladeMomentum;
-    float voidcasterMomentum;
-    float ironshellMomentum;
-
-    float displayedWraithblade;
-    float displayedVoidcaster;
-    float displayedIronshell;
+    float currentMomentum;
+    float displayedMomentum;
 
     // Switch cooldown state
     float switchCooldownTimer;

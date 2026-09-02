@@ -67,6 +67,7 @@ Game::Game() : running(false) {
     sounds.loadSound("switch", resolvePath("assets/sounds/switch.wav"));
     sounds.loadSound("swing", resolvePath("assets/sounds/swing.wav"));
     sounds.loadSound("shoot", resolvePath("assets/sounds/shoot.wav"));
+    sounds.loadSound("fireball", resolvePath("assets/sounds/shoot.wav"));
     sounds.loadSound("enemy-hit", resolvePath("assets/sounds/enemy-hit.wav"));
     sounds.loadSound("pickup", resolvePath("assets/sounds/pickup.wav"));
     sounds.loadSound("echo-collect", resolvePath("assets/sounds/echo-collect.wav"));

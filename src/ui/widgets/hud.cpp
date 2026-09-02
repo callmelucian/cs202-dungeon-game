@@ -17,12 +17,8 @@ HUD::HUD()
       ghostHpRatio(1.0f),
       ghostLagTimer(0.0f),
       activeForm(FormType::WRAITHBLADE),
-      wraithbladeMomentum(0.0f),
-      voidcasterMomentum(0.0f),
-      ironshellMomentum(0.0f),
-      displayedWraithblade(0.0f),
-      displayedVoidcaster(0.0f),
-      displayedIronshell(0.0f),
+      currentMomentum(0.0f),
+      displayedMomentum(0.0f),
       switchCooldownTimer(0.0f),
       maxSwitchCooldown(SWITCH_COOLDOWN_DURATION),
       dashCooldownTimer(0.0f),
@@ -52,10 +48,7 @@ void HUD::updatePlayerState(const Player& player) {
     maxHp     = stats.maxHp;
 
     activeForm = player.getActiveFormType();
-
-    wraithbladeMomentum = player.getMomentum(FormType::WRAITHBLADE);
-    voidcasterMomentum  = player.getMomentum(FormType::VOIDCASTER);
-    ironshellMomentum   = player.getMomentum(FormType::IRONSHELL);
+    currentMomentum = player.getMomentum(activeForm);
     switchCooldownTimer = player.getSwitchCooldownTimer();
     dashCooldownTimer   = player.getDashCooldownTimer();
 
@@ -96,10 +89,8 @@ void HUD::update(float dt) {
         }
     }
 
-    // Smooth 3 momentum bars (0..1 ratio)
-    displayedWraithblade = Math::lerp(displayedWraithblade, std::clamp(wraithbladeMomentum / MAX_MOMENTUM, 0.0f, 1.0f), t);
-    displayedVoidcaster  = Math::lerp(displayedVoidcaster,  std::clamp(voidcasterMomentum  / MAX_MOMENTUM, 0.0f, 1.0f), t);
-    displayedIronshell   = Math::lerp(displayedIronshell,   std::clamp(ironshellMomentum   / MAX_MOMENTUM, 0.0f, 1.0f), t);
+    // Smooth current active momentum bar (0..1 ratio)
+    displayedMomentum = Math::lerp(displayedMomentum, std::clamp(currentMomentum / MAX_MOMENTUM, 0.0f, 1.0f), t);
 
     // Smooth Echo Power bar (0..1 ratio)
     float targetEchoRatio = std::clamp(echoPower / 100.0f, 0.0f, 1.0f);
@@ -213,7 +204,7 @@ static void drawGlossyBar(sf::RenderTarget& target,
 }
 
 // =========================================================================
-// 1. Compact Player Cluster (Health + 3 Mini-Momentum Meters + Dash)
+// 1. Compact Player Cluster (Health + Active Form Momentum + Dash)
 // =========================================================================
 
 void HUD::drawPlayerCluster(sf::RenderTarget& target) const {
@@ -297,58 +288,49 @@ void HUD::drawPlayerCluster(sf::RenderTarget& target) const {
     std::string hpStr = "HP " + std::to_string(intHp) + " / " + std::to_string(intMaxHp);
     drawText(target, "bold", barX + 8.0f, barY + 2.0f, hpStr, 11, sf::Color(255, 245, 245));
 
-    // --- 3 Mini Momentum Bars (Side-by-side) ---
+    // --- Single Active Form Momentum Bar ---
+    float momX = barX;
     float momY = startY + barH + 4.0f;
-    float momBarW = 72.0f;
-    float momBarH = 14.0f;
-    float momGap = 7.0f;
+    float momW = barW;
+    float momH = 14.0f;
 
-    struct FormRow {
-        FormType type;
-        std::string key;
-        float rawMom;
-        float ratio;
-        sf::Color activeCol;
-        sf::Color frozenCol;
-    };
+    sf::Color momFill = sf::Color(225, 50, 60);
+    if (activeForm == FormType::VOIDCASTER) momFill = sf::Color(175, 65, 235);
+    else if (activeForm == FormType::IRONSHELL)  momFill = sf::Color(235, 185, 30);
 
-    std::vector<FormRow> forms = {
-        {FormType::WRAITHBLADE, "1:W", wraithbladeMomentum, displayedWraithblade, sf::Color(225, 50, 60), sf::Color(90, 30, 35, 180)},
-        {FormType::VOIDCASTER,  "2:V", voidcasterMomentum,  displayedVoidcaster,  sf::Color(175, 65, 235), sf::Color(70, 30, 95, 180)},
-        {FormType::IRONSHELL,   "3:I", ironshellMomentum,   displayedIronshell,   sf::Color(235, 185, 30), sf::Color(95, 75, 15, 180)}
-    };
+    sf::Color momBorder = (currentMomentum >= 50.0f) ? sf::Color(255, 240, 100, 220) : sf::Color(40, 50, 68, 180);
 
-    for (size_t i = 0; i < forms.size(); ++i) {
-        float x = barX + i * (momBarW + momGap);
-        bool isActive = (activeForm == forms[i].type);
+    drawFramedBox(target, momX, momY, momW, momH,
+                  sf::Color(15, 20, 30, 230), momBorder, 1.0f);
 
-        sf::Color bgCol = isActive ? sf::Color(20, 25, 35, 240) : sf::Color(14, 16, 22, 200);
-        sf::Color borderCol = isActive ? (forms[i].rawMom >= 50.0f ? sf::Color(255, 240, 100, 240) : forms[i].activeCol)
-                                       : sf::Color(35, 42, 55, 160);
+    if (displayedMomentum > 0.001f) {
+        float fillW = std::clamp(momW * displayedMomentum, 1.0f, momW);
+        sf::RectangleShape fillRect({fillW, momH});
+        fillRect.setPosition({momX, momY});
+        fillRect.setFillColor(momFill);
+        target.draw(fillRect);
 
-        drawFramedBox(target, x, momY, momBarW, momBarH, bgCol, borderCol, 1.0f);
+        // Subtle gloss
+        sf::RectangleShape gloss({fillW, momH * 0.35f});
+        gloss.setPosition({momX, momY});
+        gloss.setFillColor(sf::Color(255, 255, 255, 35));
+        target.draw(gloss);
+    }
 
-        // Fill
-        if (forms[i].ratio > 0.001f) {
-            float fillW = std::clamp(momBarW * forms[i].ratio, 1.0f, momBarW);
-            sf::RectangleShape fillRect({fillW, momBarH});
-            fillRect.setPosition({x, momY});
-            fillRect.setFillColor(isActive ? forms[i].activeCol : forms[i].frozenCol);
-            target.draw(fillRect);
-        }
+    // 50% Threshold Notch
+    float notchX = momX + momW * 0.50f;
+    sf::RectangleShape notch({1.0f, momH});
+    notch.setPosition({notchX, momY});
+    notch.setFillColor((currentMomentum >= 50.0f) ? sf::Color(255, 255, 255, 220) : sf::Color(0, 0, 0, 120));
+    target.draw(notch);
 
-        // Notch at 50%
-        float notchX = x + momBarW * 0.50f;
-        sf::RectangleShape notch({1.0f, momBarH});
-        notch.setPosition({notchX, momY});
-        notch.setFillColor(isActive && forms[i].rawMom >= 50.0f ? sf::Color(255, 255, 255, 220) : sf::Color(0, 0, 0, 100));
-        target.draw(notch);
+    // Momentum Text Overlay
+    int intMom = static_cast<int>(std::round(currentMomentum));
+    std::string momStr = "MOM " + std::to_string(intMom) + " / 100";
+    drawText(target, "regular", momX + 6.0f, momY + 1.0f, momStr, 10, sf::Color(240, 240, 240));
 
-        // Label: "1:W 45" or "2:V 60"
-        int intMom = static_cast<int>(std::round(forms[i].rawMom));
-        std::string tag = forms[i].key + " " + std::to_string(intMom);
-        sf::Color textCol = isActive ? sf::Color(255, 255, 255) : sf::Color(140, 155, 175);
-        drawText(target, "regular", x + 4.0f, momY + 1.0f, tag, 10, textCol);
+    if (currentMomentum >= 50.0f) {
+        drawText(target, "bold", momX + momW - 108.0f, momY + 1.0f, "[Q] SPECIAL READY", 10, sf::Color(255, 240, 100));
     }
 }
 
