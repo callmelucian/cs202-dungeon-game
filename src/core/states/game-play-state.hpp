@@ -88,6 +88,9 @@ private:
     float fadeAlpha = 255.0f;
     const float FADE_DURATION = 2.0f;
     mutable sf::RectangleShape fadeOverlay;
+
+    float chamberElapsedTime = 0.0f;
+    std::string currentChamberTitle = "";
     
     void setupUI();
     void setupObjectiveModal(const std::string& titleStr, const std::string& objectiveStr);

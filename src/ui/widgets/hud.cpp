@@ -4,13 +4,18 @@
 #include "../../entities/effects/status-effect.hpp"
 #include <cmath>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
+#include <cstdio>
 
 namespace UI {
 
 HUD::HUD()
-    : currentHp(0.0f),
-      maxHp(0.0f),
+    : currentHp(100.0f),
+      maxHp(100.0f),
       displayedHpRatio(1.0f),
+      ghostHpRatio(1.0f),
+      ghostLagTimer(0.0f),
       activeForm(FormType::WRAITHBLADE),
       wraithbladeMomentum(0.0f),
       voidcasterMomentum(0.0f),
@@ -20,10 +25,17 @@ HUD::HUD()
       displayedIronshell(0.0f),
       switchCooldownTimer(0.0f),
       maxSwitchCooldown(SWITCH_COOLDOWN_DURATION),
+      dashCooldownTimer(0.0f),
+      maxDashCooldown(1.0f),
       echoPower(100.0f),
       displayedEchoRatio(1.0f),
       hasEcho(false),
-      lerpSpeed(HUD_LERP_SPEED)
+      chamberLevel(1),
+      chamberNumber(1),
+      chamberTitle("The Drowned Archive"),
+      elapsedChamberTime(0.0f),
+      lerpSpeed(HUD_LERP_SPEED),
+      animTime(0.0f)
 {
     SettingManager& settings = SettingManager::getInstance();
     fixedWidth  = static_cast<float>(settings.getWindowWidth());
@@ -35,7 +47,6 @@ HUD::HUD()
 }
 
 void HUD::updatePlayerState(const Player& player) {
-    // --- Health ---
     Stats stats = player.getEffectiveStats();
     currentHp = stats.hp;
     maxHp     = stats.maxHp;
@@ -46,6 +57,8 @@ void HUD::updatePlayerState(const Player& player) {
     voidcasterMomentum  = player.getMomentum(FormType::VOIDCASTER);
     ironshellMomentum   = player.getMomentum(FormType::IRONSHELL);
     switchCooldownTimer = player.getSwitchCooldownTimer();
+    dashCooldownTimer   = player.getDashCooldownTimer();
+
     activeEffects.clear();
     for (const auto& effect : player.getStatusEffects()) {
         ActiveEffectInfo info;
@@ -55,34 +68,51 @@ void HUD::updatePlayerState(const Player& player) {
     }
 }
 
+void HUD::updateChamberInfo(int level, int chamber, const std::string& title, float elapsedTime) {
+    chamberLevel = level;
+    chamberNumber = chamber;
+    chamberTitle = title;
+    elapsedChamberTime = elapsedTime;
+}
+
 void HUD::update(float dt) {
     if (dt <= 0.0f) return;
+    animTime += dt;
     float t = 1.0f - std::exp(-lerpSpeed * dt);
 
     // Smooth health bar
-    float targetHpRatio = (maxHp > 0.0f) ? (currentHp / maxHp) : 0.0f;
+    float targetHpRatio = (maxHp > 0.0f) ? std::clamp(currentHp / maxHp, 0.0f, 1.0f) : 0.0f;
     displayedHpRatio = Math::lerp(displayedHpRatio, targetHpRatio, t);
 
-    // Smooth 3 momentum bars (ratio 0..1)
-    displayedWraithblade = Math::lerp(displayedWraithblade, wraithbladeMomentum / MAX_MOMENTUM, t);
-    displayedVoidcaster  = Math::lerp(displayedVoidcaster,  voidcasterMomentum  / MAX_MOMENTUM, t);
-    displayedIronshell   = Math::lerp(displayedIronshell,   ironshellMomentum   / MAX_MOMENTUM, t);
+    // Damage ghost bar lag
+    if (ghostHpRatio < displayedHpRatio) {
+        ghostHpRatio = displayedHpRatio;
+        ghostLagTimer = 0.0f;
+    } else if (ghostHpRatio > displayedHpRatio) {
+        ghostLagTimer += dt;
+        if (ghostLagTimer >= 0.35f) {
+            float ghostT = 1.0f - std::exp(-3.5f * dt);
+            ghostHpRatio = Math::lerp(ghostHpRatio, displayedHpRatio, ghostT);
+        }
+    }
 
-    // Smooth Echo Power bar (ratio 0..1)
-    float targetEchoRatio = echoPower / 100.0f;
+    // Smooth 3 momentum bars (0..1 ratio)
+    displayedWraithblade = Math::lerp(displayedWraithblade, std::clamp(wraithbladeMomentum / MAX_MOMENTUM, 0.0f, 1.0f), t);
+    displayedVoidcaster  = Math::lerp(displayedVoidcaster,  std::clamp(voidcasterMomentum  / MAX_MOMENTUM, 0.0f, 1.0f), t);
+    displayedIronshell   = Math::lerp(displayedIronshell,   std::clamp(ironshellMomentum   / MAX_MOMENTUM, 0.0f, 1.0f), t);
+
+    // Smooth Echo Power bar (0..1 ratio)
+    float targetEchoRatio = std::clamp(echoPower / 100.0f, 0.0f, 1.0f);
     displayedEchoRatio = Math::lerp(displayedEchoRatio, targetEchoRatio, t);
 }
 
 void HUD::handleEvent(const sf::Event& /*event*/) {
-    // HUD is non-interactive; no event handling needed
 }
 
 void HUD::onColorPaletteChanged(const ColorPalette& /*palette*/) {
-    // Reserved for future theme support
 }
 
 void HUD::computeSize(sf::Vector2f /*availableSize*/) {
-    // HUD always fills the full window — size is set from SettingManager in constructor
     size = sf::Vector2f(fixedWidth, fixedHeight);
 }
 
@@ -99,183 +129,326 @@ void HUD::setHasEcho(bool active) {
 }
 
 void HUD::draw(sf::RenderTarget& target) const {
-    drawMainPanel(target);
-    drawMomentumMeters(target);
-    drawCooldownBar(target);
+    drawPlayerCluster(target);
     drawStatusEffects(target);
-    if (hasEcho) drawEchoPowerBar(target);
+    drawChamberTimer(target);
+    if (hasEcho) {
+        drawEchoIntegrityBar(target);
+    }
 }
 
-// ---- Layout constants (relative to HUD position) ----
-static constexpr float PAD          = 20.0f;
-static constexpr float HP_BAR_W     = 300.0f;
-static constexpr float HP_BAR_H     = 26.0f;
-static constexpr float MOM_BAR_W    = 260.0f;
-static constexpr float MOM_BAR_H    = 20.0f;
-static constexpr float MOM_SPACING  = 13.0f;
-static constexpr float CD_BAR_W     = 260.0f;
-static constexpr float CD_BAR_H     = 14.0f;
-static constexpr float PANEL_W      = 330.0f;
-static constexpr float PANEL_H      = 180.0f;
-static constexpr float ECHO_BAR_W   = 400.0f;
-static constexpr float ECHO_BAR_H   = 22.0f;
-static constexpr float STATUS_ICON  = 20.0f;
+// =========================================================================
+// Drawing Helper Functions
+// =========================================================================
 
-// Helper: draw a background + foreground filled bar at (x,y)
-static void drawBar(sf::RenderTarget& target,
-                    float x, float y, float w, float h,
-                    float ratio,
-                    sf::Color bgCol, sf::Color fgCol) {
-    // Background track
-    sf::RectangleShape bg({w, h});
-    bg.setPosition({x, y});
-    bg.setFillColor(bgCol);
-    target.draw(bg);
-    // Foreground fill — clamp to at least 1px to avoid zero-size assertion
-    float fillW = std::max(1.0f, w * std::clamp(ratio, 0.0f, 1.0f));
-    sf::RectangleShape fg({fillW, h});
-    fg.setPosition({x, y});
-    fg.setFillColor(fgCol);
-    target.draw(fg);
+static void drawText(sf::RenderTarget& target,
+                     const std::string& fontKey,
+                     float x, float y,
+                     const std::string& str,
+                     unsigned int size = 14,
+                     sf::Color color = sf::Color::White) {
+    try {
+        const sf::Font& font = AssetManager::getInstance().getFont(fontKey);
+        sf::Text text(font, str, size);
+        text.setPosition({x, y});
+        text.setFillColor(color);
+        target.draw(text);
+    } catch (const std::exception&) {
+        const sf::Font& fallback = AssetManager::getInstance().getFont("regular");
+        sf::Text text(fallback, str, size);
+        text.setPosition({x, y});
+        text.setFillColor(color);
+        target.draw(text);
+    }
 }
 
-// Helper: draw text
-static void drawText(sf::RenderTarget& target, float x, float y, const std::string& str, unsigned int size = 14, sf::Color color = sf::Color::White) {
-    const sf::Font& font = AssetManager::getInstance().getFont("regular");
-    sf::Text text(font, str, size);
-    text.setPosition({x, y});
-    text.setFillColor(color);
-    target.draw(text);
+static void drawFramedBox(sf::RenderTarget& target,
+                          float x, float y, float w, float h,
+                          sf::Color bgColor,
+                          sf::Color borderColor,
+                          float borderThickness = 1.0f) {
+    sf::RectangleShape box({w, h});
+    box.setPosition({x, y});
+    box.setFillColor(bgColor);
+    box.setOutlineColor(borderColor);
+    box.setOutlineThickness(borderThickness);
+    target.draw(box);
 }
 
-void HUD::drawMainPanel(sf::RenderTarget& target) const {
-    float x = position.x + PAD;
-    float y = position.y + PAD;
+static void drawGlossyBar(sf::RenderTarget& target,
+                          float x, float y, float w, float h,
+                          float fillRatio,
+                          float ghostRatio,
+                          sf::Color bgCol,
+                          sf::Color fillCol,
+                          sf::Color ghostCol,
+                          sf::Color borderCol) {
+    drawFramedBox(target, x, y, w, h, bgCol, borderCol, 1.0f);
 
-    // HP label
-    drawText(target, x, y - 2.0f, "HP", 16, sf::Color(255, 100, 100));
+    // Ghost Bar Fill (Damage Lag)
+    if (ghostRatio > fillRatio && ghostRatio > 0.001f) {
+        float ghostW = std::clamp(w * ghostRatio, 1.0f, w);
+        sf::RectangleShape ghostRect({ghostW, h});
+        ghostRect.setPosition({x, y});
+        ghostRect.setFillColor(ghostCol);
+        target.draw(ghostRect);
+    }
 
-    // Health bar
-    float barX = x + 36.0f;
-    float barW = HP_BAR_W - 36.0f;
-    drawBar(target, barX, y, barW, HP_BAR_H,
-            displayedHpRatio,
-            sf::Color(60, 0, 0, 200),
-            sf::Color(210, 50, 50));
+    // Foreground Fill
+    if (fillRatio > 0.001f) {
+        float fillW = std::clamp(w * fillRatio, 1.0f, w);
+        sf::RectangleShape fillRect({fillW, h});
+        fillRect.setPosition({x, y});
+        fillRect.setFillColor(fillCol);
+        target.draw(fillRect);
 
-    // Numeric HP overlay (e.g. "46/100")
-    std::string hpStr = std::to_string(static_cast<int>(std::round(currentHp)))
-                      + "/" + std::to_string(static_cast<int>(std::round(maxHp)));
-    drawText(target, barX + 4.0f, y + 2.0f, hpStr, 12, sf::Color(255, 220, 220));
-
-    // Form colour chip next to health bar
-    sf::Color formColor = sf::Color::White;
-    if (activeForm == FormType::WRAITHBLADE) formColor = sf::Color(220, 60, 60);
-    else if (activeForm == FormType::VOIDCASTER) formColor = sf::Color(180, 60, 220);
-    else if (activeForm == FormType::IRONSHELL)  formColor = sf::Color(220, 200, 50);
-
-    sf::RectangleShape chip({HP_BAR_H, HP_BAR_H});
-    chip.setPosition({x + HP_BAR_W + 6.0f, y});
-    chip.setFillColor(formColor);
-    target.draw(chip);
+        // Subtle gloss line
+        if (h >= 6.0f) {
+            sf::RectangleShape gloss({fillW, h * 0.35f});
+            gloss.setPosition({x, y});
+            gloss.setFillColor(sf::Color(255, 255, 255, 40));
+            target.draw(gloss);
+        }
+    }
 }
 
-void HUD::drawMomentumMeters(sf::RenderTarget& target) const {
-    float x   = position.x + PAD;
-    float topY = position.y + PAD + HP_BAR_H + 24.0f;
+// =========================================================================
+// 1. Compact Player Cluster (Health + 3 Mini-Momentum Meters + Dash)
+// =========================================================================
 
-    auto rowColor = [&](FormType form) -> std::pair<sf::Color, sf::Color> {
-        if (form == FormType::WRAITHBLADE)
-            return {sf::Color(60, 0, 0, 140),  sf::Color(220, 60, 60)};
-        if (form == FormType::VOIDCASTER)
-            return {sf::Color(40, 0, 60, 140), sf::Color(180, 60, 220)};
-        // IRONSHELL
-        return   {sf::Color(50, 40, 0, 140),   sf::Color(220, 200, 50)};
+void HUD::drawPlayerCluster(sf::RenderTarget& target) const {
+    float startX = position.x + 20.0f;
+    float startY = position.y + 20.0f;
+
+    // --- Form Emblem Box (36x36) ---
+    float emblemSize = 36.0f;
+    sf::Color formColor = sf::Color(230, 60, 70);
+    std::string formLetter = "W";
+
+    if (activeForm == FormType::VOIDCASTER) {
+        formColor = sf::Color(185, 80, 240);
+        formLetter = "V";
+    } else if (activeForm == FormType::IRONSHELL) {
+        formColor = sf::Color(240, 195, 40);
+        formLetter = "I";
+    }
+
+    drawFramedBox(target, startX, startY, emblemSize, emblemSize,
+                  sf::Color(15, 18, 26, 230), formColor, 1.5f);
+
+    drawText(target, "pixel-bold", startX + 9.0f, startY + 3.0f,
+             formLetter, 22, sf::Color(255, 255, 255));
+
+    // Form Swap Cooldown Overlay on Badge
+    if (switchCooldownTimer > 0.0f) {
+        sf::RectangleShape cdOverlay({emblemSize, emblemSize});
+        cdOverlay.setPosition({startX, startY});
+        cdOverlay.setFillColor(sf::Color(40, 10, 15, 180));
+        target.draw(cdOverlay);
+
+        char cdBuf[8];
+        snprintf(cdBuf, sizeof(cdBuf), "%.1f", switchCooldownTimer);
+        drawText(target, "bold", startX + 6.0f, startY + 10.0f, cdBuf, 11, sf::Color(255, 180, 180));
+    }
+
+    // --- Dash Mini-Bar (Below Emblem) ---
+    float dashY = startY + emblemSize + 3.0f;
+    float dashH = 4.0f;
+    if (dashCooldownTimer <= 0.0f) {
+        sf::RectangleShape dashBar({emblemSize, dashH});
+        dashBar.setPosition({startX, dashY});
+        dashBar.setFillColor(sf::Color(40, 220, 150));
+        target.draw(dashBar);
+    } else {
+        float dashRatio = std::clamp(1.0f - dashCooldownTimer / maxDashCooldown, 0.0f, 1.0f);
+        sf::RectangleShape dashTrack({emblemSize, dashH});
+        dashTrack.setPosition({startX, dashY});
+        dashTrack.setFillColor(sf::Color(20, 30, 40, 200));
+        target.draw(dashTrack);
+
+        sf::RectangleShape dashFill({emblemSize * dashRatio, dashH});
+        dashFill.setPosition({startX, dashY});
+        dashFill.setFillColor(sf::Color(30, 140, 180));
+        target.draw(dashFill);
+    }
+
+    // --- Health Bar ---
+    float barX = startX + emblemSize + 8.0f;
+    float barY = startY;
+    float barW = 230.0f;
+    float barH = 18.0f;
+
+    sf::Color hpBorder = sf::Color(65, 25, 30, 200);
+    if (displayedHpRatio < 0.30f) {
+        uint8_t pulseAlpha = static_cast<uint8_t>(140.0f + 100.0f * std::sin(animTime * 8.0f));
+        hpBorder = sf::Color(255, 40, 40, pulseAlpha);
+    }
+
+    drawGlossyBar(target, barX, barY, barW, barH,
+                  displayedHpRatio, ghostHpRatio,
+                  sf::Color(25, 10, 15, 230),
+                  sf::Color(220, 45, 55),
+                  sf::Color(240, 140, 80, 200),
+                  hpBorder);
+
+    // HP Text Overlay: "HP  85 / 100"
+    int intHp = static_cast<int>(std::round(currentHp));
+    int intMaxHp = static_cast<int>(std::round(maxHp));
+    std::string hpStr = "HP " + std::to_string(intHp) + " / " + std::to_string(intMaxHp);
+    drawText(target, "bold", barX + 8.0f, barY + 2.0f, hpStr, 11, sf::Color(255, 245, 245));
+
+    // --- 3 Mini Momentum Bars (Side-by-side) ---
+    float momY = startY + barH + 4.0f;
+    float momBarW = 72.0f;
+    float momBarH = 14.0f;
+    float momGap = 7.0f;
+
+    struct FormRow {
+        FormType type;
+        std::string key;
+        float rawMom;
+        float ratio;
+        sf::Color activeCol;
+        sf::Color frozenCol;
     };
 
-    float ratio = 0.0f;
-    float rawMom = 0.0f;
-    if (activeForm == FormType::WRAITHBLADE) { ratio = displayedWraithblade; rawMom = wraithbladeMomentum; }
-    else if (activeForm == FormType::VOIDCASTER) { ratio = displayedVoidcaster; rawMom = voidcasterMomentum; }
-    else if (activeForm == FormType::IRONSHELL) { ratio = displayedIronshell; rawMom = ironshellMomentum; }
+    std::vector<FormRow> forms = {
+        {FormType::WRAITHBLADE, "1:W", wraithbladeMomentum, displayedWraithblade, sf::Color(225, 50, 60), sf::Color(90, 30, 35, 180)},
+        {FormType::VOIDCASTER,  "2:V", voidcasterMomentum,  displayedVoidcaster,  sf::Color(175, 65, 235), sf::Color(70, 30, 95, 180)},
+        {FormType::IRONSHELL,   "3:I", ironshellMomentum,   displayedIronshell,   sf::Color(235, 185, 30), sf::Color(95, 75, 15, 180)}
+    };
 
-    auto [bg, fg] = rowColor(activeForm);
+    for (size_t i = 0; i < forms.size(); ++i) {
+        float x = barX + i * (momBarW + momGap);
+        bool isActive = (activeForm == forms[i].type);
 
-    drawText(target, x, topY - 16.0f, "Momentum", 13, sf::Color(200, 200, 200));
-    drawBar(target, x, topY, MOM_BAR_W, MOM_BAR_H, ratio, bg, fg);
+        sf::Color bgCol = isActive ? sf::Color(20, 25, 35, 240) : sf::Color(14, 16, 22, 200);
+        sf::Color borderCol = isActive ? (forms[i].rawMom >= 50.0f ? sf::Color(255, 240, 100, 240) : forms[i].activeCol)
+                                       : sf::Color(35, 42, 55, 160);
 
-    // Numeric momentum overlay (e.g. "46/100")
-    std::string momStr = std::to_string(static_cast<int>(std::round(rawMom))) + "/100";
-    drawText(target, x + 4.0f, topY + 1.0f, momStr, 11, sf::Color(240, 240, 240));
+        drawFramedBox(target, x, momY, momBarW, momBarH, bgCol, borderCol, 1.0f);
+
+        // Fill
+        if (forms[i].ratio > 0.001f) {
+            float fillW = std::clamp(momBarW * forms[i].ratio, 1.0f, momBarW);
+            sf::RectangleShape fillRect({fillW, momBarH});
+            fillRect.setPosition({x, momY});
+            fillRect.setFillColor(isActive ? forms[i].activeCol : forms[i].frozenCol);
+            target.draw(fillRect);
+        }
+
+        // Notch at 50%
+        float notchX = x + momBarW * 0.50f;
+        sf::RectangleShape notch({1.0f, momBarH});
+        notch.setPosition({notchX, momY});
+        notch.setFillColor(isActive && forms[i].rawMom >= 50.0f ? sf::Color(255, 255, 255, 220) : sf::Color(0, 0, 0, 100));
+        target.draw(notch);
+
+        // Label: "1:W 45" or "2:V 60"
+        int intMom = static_cast<int>(std::round(forms[i].rawMom));
+        std::string tag = forms[i].key + " " + std::to_string(intMom);
+        sf::Color textCol = isActive ? sf::Color(255, 255, 255) : sf::Color(140, 155, 175);
+        drawText(target, "regular", x + 4.0f, momY + 1.0f, tag, 10, textCol);
+    }
 }
 
-void HUD::drawCooldownBar(sf::RenderTarget& target) const {
-    if (switchCooldownTimer <= 0.0f) return;
-
-    float x = position.x + PAD;
-    float y = position.y + PAD + HP_BAR_H + 24.0f + MOM_BAR_H + 28.0f;
-
-    drawText(target, x, y - 16.0f, "Switch CD", 13, sf::Color(150, 200, 220));
-
-    float ratio = std::clamp(switchCooldownTimer / maxSwitchCooldown, 0.0f, 1.0f);
-    drawBar(target, x, y, CD_BAR_W, CD_BAR_H, ratio,
-            sf::Color(20, 40, 50, 160),
-            sf::Color(80, 200, 220));
-
-    // Numeric cooldown overlay (e.g. "2.4s")
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.1fs", switchCooldownTimer);
-    drawText(target, x + 4.0f, y + 0.0f, buf, 10, sf::Color(200, 240, 255));
-}
+// =========================================================================
+// 2. Compact Status Effects
+// =========================================================================
 
 void HUD::drawStatusEffects(sf::RenderTarget& target) const {
     if (activeEffects.empty()) return;
 
-    float x = position.x + PAD;
-    float y = position.y + PAD + HP_BAR_H + 24.0f + MOM_BAR_H + 28.0f + CD_BAR_H + 16.0f;
+    float startX = position.x + 20.0f;
+    float startY = position.y + 64.0f;
+    float badgeW = 86.0f;
+    float badgeH = 20.0f;
+    float spacing = 6.0f;
 
     for (size_t i = 0; i < activeEffects.size(); ++i) {
-        sf::Color col = sf::Color::White;
-        if (activeEffects[i].name == "Burned")    col = sf::Color(255, 120, 30);
-        else if (activeEffects[i].name == "Slowed")    col = sf::Color(80, 120, 255);
-        else if (activeEffects[i].name == "Paralyzed") col = sf::Color(220, 220, 40);
+        float x = startX + i * (badgeW + spacing);
+        float y = startY;
 
-        sf::RectangleShape icon({STATUS_ICON, STATUS_ICON});
-        icon.setPosition({x + i * (STATUS_ICON + 4.0f), y});
-        icon.setFillColor(col);
-        // Fade icon as the effect expires (timer / 10s)
-        uint8_t alpha = static_cast<uint8_t>(
-            std::clamp(activeEffects[i].timer / 10.0f, 0.2f, 1.0f) * 255.0f);
-        icon.setFillColor(sf::Color(col.r, col.g, col.b, alpha));
-        target.draw(icon);
+        sf::Color badgeBg = sf::Color(20, 16, 25, 220);
+        sf::Color badgeBorder = sf::Color(220, 120, 40, 220);
+        sf::Color textColor = sf::Color(255, 200, 150);
+
+        if (activeEffects[i].name == "Burned") {
+            badgeBg = sf::Color(40, 15, 10, 230);
+            badgeBorder = sf::Color(255, 100, 30, 220);
+            textColor = sf::Color(255, 180, 120);
+        } else if (activeEffects[i].name == "Slowed") {
+            badgeBg = sf::Color(10, 20, 40, 230);
+            badgeBorder = sf::Color(60, 160, 255, 220);
+            textColor = sf::Color(160, 220, 255);
+        } else if (activeEffects[i].name == "Paralyzed") {
+            badgeBg = sf::Color(35, 30, 10, 230);
+            badgeBorder = sf::Color(245, 215, 30, 220);
+            textColor = sf::Color(255, 240, 140);
+        }
+
+        drawFramedBox(target, x, y, badgeW, badgeH, badgeBg, badgeBorder, 1.0f);
+
+        char timerBuf[16];
+        snprintf(timerBuf, sizeof(timerBuf), "%.1fs", activeEffects[i].timer);
+        std::string label = activeEffects[i].name.substr(0, 4) + " " + timerBuf;
+        drawText(target, "bold", x + 5.0f, y + 3.0f, label, 10, textColor);
     }
 }
 
-void HUD::drawEchoPowerBar(sf::RenderTarget& target) const {
-    // Centered at the top of the screen
-    float x = position.x + (fixedWidth - ECHO_BAR_W) / 2.0f;
-    float y = position.y + 30.0f;
+// =========================================================================
+// 3. Minimal Chamber Timer (Top Right area)
+// =========================================================================
 
-    drawText(target, x, y - 18.0f, "Echo Power", 15, sf::Color(0, 220, 180));
+void HUD::drawChamberTimer(sf::RenderTarget& target) const {
+    float timerW = 76.0f;
+    float timerH = 26.0f;
+    float timerX = position.x + fixedWidth - timerW - 20.0f;
+    float timerY = position.y + 82.0f;
 
-    drawBar(target, x, y, ECHO_BAR_W, ECHO_BAR_H,
-            displayedEchoRatio,
-            sf::Color(0, 40, 40, 200),
-            sf::Color(0, 220, 180));
+    drawFramedBox(target, timerX, timerY, timerW, timerH,
+                  sf::Color(10, 15, 24, 200),
+                  sf::Color(40, 60, 85, 180), 1.0f);
 
-    // Numeric echo power overlay (e.g. "78/100")
-    std::string echoStr = std::to_string(static_cast<int>(std::round(echoPower))) + "/100";
-    drawText(target, x + 4.0f, y + 2.0f, echoStr, 12, sf::Color(200, 255, 245));
+    int totalSec = static_cast<int>(elapsedChamberTime);
+    int minutes = totalSec / 60;
+    int seconds = totalSec % 60;
+    char timeStr[16];
+    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", minutes, seconds);
 
-    // Danger tint when Echo Power is critical (< 30%)
+    drawText(target, "pixel-bold", timerX + 11.0f, timerY + 4.0f, timeStr, 15, sf::Color(90, 230, 255));
+}
+
+// =========================================================================
+// 4. Echo Core Integrity Bar (Top-Center for Protect Chambers)
+// =========================================================================
+
+void HUD::drawEchoIntegrityBar(sf::RenderTarget& target) const {
+    float barW = 340.0f;
+    float barH = 22.0f;
+    float barX = position.x + (fixedWidth - barW) / 2.0f;
+    float barY = position.y + 20.0f;
+
+    sf::Color frameBorder = sf::Color(0, 180, 160, 200);
     if (displayedEchoRatio < 0.30f) {
-        float fillW = std::max(1.0f, ECHO_BAR_W * displayedEchoRatio);
-        sf::RectangleShape danger({fillW, ECHO_BAR_H});
-        danger.setPosition({x, y});
-        uint8_t alpha = static_cast<uint8_t>((1.0f - displayedEchoRatio / 0.30f) * 120.0f);
-        danger.setFillColor(sf::Color(255, 60, 0, alpha));
-        target.draw(danger);
+        uint8_t pulseAlpha = static_cast<uint8_t>(140.0f + 110.0f * std::sin(animTime * 10.0f));
+        frameBorder = sf::Color(255, 45, 45, pulseAlpha);
     }
+
+    drawFramedBox(target, barX, barY, barW, barH,
+                  sf::Color(8, 14, 20, 220), frameBorder, 1.0f);
+
+    sf::Color gaugeFill = (displayedEchoRatio < 0.30f) ? sf::Color(240, 60, 40) : sf::Color(0, 220, 180);
+    drawGlossyBar(target, barX, barY, barW, barH,
+                  displayedEchoRatio, 0.0f,
+                  sf::Color(8, 25, 30, 200),
+                  gaugeFill,
+                  sf::Color::Transparent,
+                  frameBorder);
+
+    int echoPct = static_cast<int>(std::round(displayedEchoRatio * 100.0f));
+    std::string text = "ECHO " + std::to_string(echoPct) + "%";
+    drawText(target, "bold", barX + 10.0f, barY + 3.0f, text, 11, sf::Color(230, 255, 250));
 }
 
 } // namespace UI

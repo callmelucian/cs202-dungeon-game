@@ -287,6 +287,8 @@ void GameplayState::startChamberIntro(const std::string& titleStr, const std::st
     }
 
     setupObjectiveModal(titleStr, objectiveStr);
+    currentChamberTitle = titleStr;
+    chamberElapsedTime = 0.0f;
     objectivePhase = ObjectivePhase::FADING_IN;
     objectiveTimer = 0.0f;
     objectiveAlpha = 0.0f;
@@ -406,8 +408,12 @@ void GameplayState::update(float deltaTime) {
         AuraRenderer::getInstance().update(deltaTime);
         UI::FloatingTextManager::getInstance().update(deltaTime);
 
-        if (player && hud) {
-            hud->updatePlayerState(*player);
+        if (hud) {
+            if (player) {
+                hud->updatePlayerState(*player);
+            }
+            RunState& runState = Game::getInstance().getRunState();
+            hud->updateChamberInfo(runState.currentLevel, runState.currentChamber, currentChamberTitle, chamberElapsedTime);
         }
 
         if (player) {
@@ -509,8 +515,15 @@ void GameplayState::update(float deltaTime) {
     }
 
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
-    if (player && hud) {
-        hud->updatePlayerState(*player);
+    if (transitionState == ChamberTransitionState::PLAYING) {
+        chamberElapsedTime += deltaTime;
+    }
+    if (hud) {
+        if (player) {
+            hud->updatePlayerState(*player);
+        }
+        RunState& runState = Game::getInstance().getRunState();
+        hud->updateChamberInfo(runState.currentLevel, runState.currentChamber, currentChamberTitle, chamberElapsedTime);
     }
     
     // 4. Update camera position lerp & zoom lerp

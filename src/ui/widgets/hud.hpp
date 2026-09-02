@@ -33,8 +33,9 @@ public:
     // EchoObserver interface
     void onEchoPowerChanged(float power) override;
 
-    // Main sync method called every frame from GameplayState
+    // Main sync methods called every frame from GameplayState
     void updatePlayerState(const Player& player);
+    void updateChamberInfo(int level, int chamber, const std::string& title, float elapsedTime);
 
     // Enable / disable top Echo Power bar
     void setHasEcho(bool active);
@@ -44,6 +45,8 @@ private:
     float currentHp;
     float maxHp;
     float displayedHpRatio;
+    float ghostHpRatio;
+    float ghostLagTimer;
 
     // Form state
     FormType activeForm;
@@ -61,23 +64,33 @@ private:
     float switchCooldownTimer;
     float maxSwitchCooldown;
 
+    // Dash cooldown state
+    float dashCooldownTimer;
+    float maxDashCooldown;
+
     // Echo Power state & smooth lerp
     float echoPower;
     float displayedEchoRatio;
     bool hasEcho;
 
+    // Chamber info & timer
+    int chamberLevel;
+    int chamberNumber;
+    std::string chamberTitle;
+    float elapsedChamberTime;
+
     // Active status effects
     std::vector<ActiveEffectInfo> activeEffects;
 
-    // Smoothing speed
+    // Smoothing & animation timers
     float lerpSpeed;
+    float animTime;
 
     // Helper drawing routines
-    void drawMainPanel(sf::RenderTarget& target) const;
-    void drawMomentumMeters(sf::RenderTarget& target) const;
-    void drawCooldownBar(sf::RenderTarget& target) const;
+    void drawPlayerCluster(sf::RenderTarget& target) const;
     void drawStatusEffects(sf::RenderTarget& target) const;
-    void drawEchoPowerBar(sf::RenderTarget& target) const;
+    void drawChamberTimer(sf::RenderTarget& target) const;
+    void drawEchoIntegrityBar(sf::RenderTarget& target) const;
 };
 
 } // namespace UI

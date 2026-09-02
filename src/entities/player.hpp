@@ -64,6 +64,7 @@ public:
     void triggerDash();
     bool isDashing() const { return dashTimer > 0.0f; }
     float getDashTimer() const { return dashTimer; }
+    float getDashCooldownTimer() const { return dashCooldownTimer; }
 
     FormType getActiveFormType() const;
     PlayerForm* getActiveForm() const;

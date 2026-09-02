@@ -502,8 +502,11 @@ void TutorialState::update(float deltaTime) {
     }
 
     // 5. Update HUD
-    if (player && hud) {
-        hud->updatePlayerState(*player);
+    if (hud) {
+        if (player) {
+            hud->updatePlayerState(*player);
+        }
+        hud->updateChamberInfo(0, 1, "Tutorial Grounds", 0.0f);
     }
 
     // 6. Update Camera: Follow player with smart framing
