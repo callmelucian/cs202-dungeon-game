@@ -1,6 +1,7 @@
 #include "choose-chamber-state.hpp"
 #include "individual-chamber-state.hpp"
 #include "game-play-state.hpp"
+#include "story-intro-state.hpp"
 #include "main-menu-state.hpp"
 #include "../game.hpp"
 #include "../../global-settings/save-load-manager.hpp"
@@ -44,7 +45,7 @@ ChooseChamberState::ChooseChamberState(StateManager& manager) : GameState(manage
             runState.currentLevel = 1;
             runState.currentChamber = 1;
             SaveLoadManager::getInstance().saveGame(runState);
-            stateManager.pushState(std::make_unique<GameplayState>(stateManager));
+            stateManager.pushState(std::make_unique<StoryIntroState>(stateManager));
         });
 
     // 2. Individual Chamber Button

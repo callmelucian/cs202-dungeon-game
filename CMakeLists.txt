@@ -40,6 +40,7 @@ add_executable(game
     src/core/states/setting-state.cpp
     src/core/states/debug-state.cpp
     src/core/states/tutorial-state.cpp
+    src/core/states/story-intro-state.cpp
 
     # global-settings
     src/global-settings/setting-manager.cpp
