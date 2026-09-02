@@ -27,9 +27,13 @@ private:
     float currentHp;
     float maxHp;
     float displayedHpRatio;
+    float displayedPhaseRatio;
+    float ghostPhaseRatio;
+    float ghostLagTimer;
     int currentPhase;
     std::string bossName;
     float lerpSpeed;
+    float animTime;
 };
 
 } // namespace UI
