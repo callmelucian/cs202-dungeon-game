@@ -127,49 +127,6 @@ void GameplayState::setupUI() {
         .modeY = UI::SizeMode::Expanded
     });
 
-    // Create an overlaying container
-    buttonBoxWrapper = root->createChild<UI::Container>()
-        ->setAlignmentX(UI::AlignmentX::Right)
-        ->setAlignmentY(UI::AlignmentY::Top)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
-
-    // Horizontal Box for buttons (contained to fit children)
-    buttonBox = buttonBoxWrapper->createChild<UI::HorizontalBox>()
-        ->setModeX(UI::SizeMode::Contained)
-        ->setModeY(UI::SizeMode::Contained)
-        ->setSpacing(15.f)
-        ->setDistribution(UI::Distribution::SpaceBetween)
-        ->setPadding(15.f, 15.f, 15.f, 15.f)
-        ->setColor(sf::Color({255, 255, 255, 10}));
-
-    // Set defaults for buttons inside buttonBox
-    buttonBox->setChildDefaults({
-        .modeX = UI::SizeMode::Fixed,
-        .modeY = UI::SizeMode::Fixed,
-        .fixedWidth = 140.f,
-        .fixedHeight = 45.f
-    });
-
-    // Add buttons
-    pauseButton = buttonBox->createChild<UI::Button>("Pause", "regular", 22)
-        ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<PauseState>(stateManager));
-        });
-    echoesButton = buttonBox->createChild<UI::Button>("Echoes", "regular", 22)
-        ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<EchoLogState>(stateManager));
-        });
-    debugButton = buttonBox->createChild<UI::Button>("Debug", "regular", 22)
-        ->setOnClick([this]() {
-            if (player) {
-                stateManager.pushState(std::make_unique<DebugState>(stateManager, *player));
-            }
-        });
-    quitButton = buttonBox->createChild<UI::Button>("Quit Game", "regular", 22)
-        ->setOnClick([this]() {
-            stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
-        });
-
     // Create centered overlay for Chamber Intro title container
     UI::Container* centerOverlay = root->createChild<UI::Container>()
         ->setModeX(UI::SizeMode::Fixed)
@@ -618,9 +575,16 @@ void GameplayState::handleEvents(sf::Event& event) {
     }
 
     if (transitionState != ChamberTransitionState::PLAYING) {
-        // Pass events to UI components (e.g. pause/quit buttons) but skip player gameplay inputs
+        // Pass events to UI components but skip player gameplay inputs
         GameState::handleEvents(event);
         return;
+    }
+
+    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+        if (keyEvent->scancode == sf::Keyboard::Scancode::Escape) {
+            stateManager.pushState(std::make_unique<PauseState>(stateManager));
+            return;
+        }
     }
 
     // 1. Let the player handle its own single-press inputs

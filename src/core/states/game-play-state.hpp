@@ -51,15 +51,6 @@ public:
     void onChamberCompleted() override;
     void onChamberFailed() override;
 private:
-    // UI::Container* overlays;
-    UI::HorizontalBox* buttonBox;
-    UI::Container* buttonBoxWrapper;
-    
-    UI::Button* pauseButton;
-    UI::Button* echoesButton;
-    UI::Button* debugButton;
-    UI::Button* quitButton;
-
     UI::Container* titleContainer = nullptr;
     UI::Text* chamberTitleText = nullptr;
 

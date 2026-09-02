@@ -46,42 +46,6 @@ void TutorialState::setupUI() {
         .modeY = UI::SizeMode::Expanded
     });
 
-    // Action buttons in top-right
-    buttonBoxWrapper = root->createChild<UI::Container>()
-        ->setAlignmentX(UI::AlignmentX::Right)
-        ->setAlignmentY(UI::AlignmentY::Top)
-        ->setPadding(20.f, 20.f, 20.f, 20.f);
-
-    buttonBox = buttonBoxWrapper->createChild<UI::HorizontalBox>()
-        ->setModeX(UI::SizeMode::Contained)
-        ->setModeY(UI::SizeMode::Contained)
-        ->setSpacing(15.f)
-        ->setDistribution(UI::Distribution::SpaceBetween)
-        ->setPadding(12.f, 12.f, 12.f, 12.f)
-        ->setColor(sf::Color(255, 255, 255, 10));
-
-    buttonBox->setChildDefaults({
-        .modeX = UI::SizeMode::Fixed,
-        .modeY = UI::SizeMode::Fixed,
-        .fixedWidth = 130.f,
-        .fixedHeight = 42.f
-    });
-
-    pauseButton = buttonBox->createChild<UI::Button>("Pause", "regular", 20)
-        ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<PauseState>(stateManager));
-        });
-
-    settingButton = buttonBox->createChild<UI::Button>("Settings", "regular", 20)
-        ->setOnClick([this]() {
-            stateManager.pushState(std::make_unique<SettingState>(stateManager));
-        });
-
-    quitButton = buttonBox->createChild<UI::Button>("Quit", "regular", 20)
-        ->setOnClick([this]() {
-            stateManager.clearAndSetState(std::make_unique<MainMenuState>(stateManager));
-        });
-
     // Intro title overlay
     UI::Container* centerOverlay = root->createChild<UI::Container>()
         ->setModeX(UI::SizeMode::Fixed)
@@ -620,6 +584,13 @@ void TutorialState::handleEvents(sf::Event& event) {
     if (transitionState != TutorialTransitionState::PLAYING) {
         GameState::handleEvents(event);
         return;
+    }
+
+    if (const auto* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+        if (keyEvent->scancode == sf::Keyboard::Scancode::Escape) {
+            stateManager.pushState(std::make_unique<PauseState>(stateManager));
+            return;
+        }
     }
 
     if (player) {

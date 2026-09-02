@@ -60,12 +60,6 @@ private:
 
     // UI elements
     UI::HUD* hud = nullptr;
-    UI::Container* buttonBoxWrapper = nullptr;
-    UI::HorizontalBox* buttonBox = nullptr;
-    UI::Button* pauseButton = nullptr;
-    UI::Button* settingButton = nullptr;
-    UI::Button* quitButton = nullptr;
-
     UI::Container* titleContainer = nullptr;
     UI::Text* chamberTitleText = nullptr;
 

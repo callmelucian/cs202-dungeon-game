@@ -19,13 +19,16 @@
 class PauseState : public GameState {
 public:
     PauseState(StateManager& manager);
+    virtual ~PauseState() override = default;
     bool isTransparent() const override { return true; }
+    void handleEvents(sf::Event& event) override;
 
 private:
     UI::VerticalBox* layoutBox;
     UI::Text* titleText;
     UI::VerticalBox* buttonBox;
     UI::Button* resumeButton;
+    UI::Button* echoButton;
     UI::Button* saveButton;
     UI::Button* settingButton;
     UI::Button* menuButton;
