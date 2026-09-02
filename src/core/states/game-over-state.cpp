@@ -116,10 +116,10 @@ GameOverState::GameOverState(StateManager& manager, std::optional<EndingType> en
         };
 
         const std::vector<EchoMeta> echoList = {
-            {EchoType::MARROW, "Marrow Echo", "L1 Ch.1"},
-            {EchoType::HOLLOW_BELL, "Hollow Bell", "L1 Ch.2"},
-            {EchoType::CLARITY_SHARD, "Clarity Shard", "L2 Ch.1"},
-            {EchoType::RESONANCE_CORE, "Resonance Core", "L2 Ch.2"},
+            {EchoType::CLARITY_SHARD, "Clarity Shard", "L1 Ch.1"},
+            {EchoType::MARROW, "Marrow Echo", "L1 Ch.2"},
+            {EchoType::HOLLOW_BELL, "Hollow Bell", "L2 Ch.1"},
+            {EchoType::RESONANCE_CORE, "Resonance Core", "L3 Ch.1"},
             {EchoType::OBSIDIAN_KEY, "Obsidian Key", "L3 Ch.2"}
         };
 

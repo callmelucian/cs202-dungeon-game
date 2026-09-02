@@ -31,6 +31,10 @@ void BossChamber::setGrids2D5(const std::vector<std::vector<std::string>>& tGrid
     float ox = SettingManager::getInstance().getGridOffsetX();
     float oy = SettingManager::getInstance().getGridOffsetY();
 
+    // Default exit position at the center of the arena floor
+    sf::Vector2f defaultExit = {ox + 10.0f * cellSize, oy + 10.0f * cellSize};
+    setExitPosition(defaultExit);
+
     // Position Boss Malachar at the upper-center of the arena floor
     if (boss) {
         sf::Vector2f bossSpawnPos = {ox + 10.0f * cellSize, oy + 5.0f * cellSize};
@@ -65,6 +69,10 @@ void BossChamber::update(float dt) {
         // Resolve boss collision against obstacles so it can't clip through walls
         CollisionSolver::resolveX(*boss, getObstaclesFor(boss.get()), dt);
         CollisionSolver::resolveY(*boss, getObstaclesFor(boss.get()), dt);
+    } else if (boss && !boss->isAlive()) {
+        if (exitGate && !exitGate->isActive()) {
+            onBossDefeated();
+        }
     }
 
     // Update void rupture hazards (Sunder attack in Phase 3 & 4)
@@ -209,7 +217,21 @@ void BossChamber::onEnemyHit(Enemy* enemy, bool lethal) {
 }
 
 void BossChamber::onBossDefeated() {
-    completeChamber();
+    float cellSize = SettingManager::getInstance().getCellSize();
+    float ox = SettingManager::getInstance().getGridOffsetX();
+    float oy = SettingManager::getInstance().getGridOffsetY();
+
+    sf::Vector2f gatePos = (boss ? boss->getPosition() : sf::Vector2f(ox + 10.0f * cellSize, oy + 10.0f * cellSize));
+    setExitPosition(gatePos);
+
+    if (exitGate) {
+        exitGate->setPosition(gatePos);
+        exitGate->setActive(true);
+    }
+
+    UI::FloatingTextManager::getInstance().spawnStatus(gatePos + sf::Vector2f(0.0f, -40.0f), "VAULT GATE UNSEALED", sf::Color(255, 215, 80));
+    ParticleSystem::getInstance().emitBurst(gatePos, 50, sf::Color(255, 215, 80, 220), 50.0f, 150.0f, 0.8f, 1.6f, 6.0f);
+    SoundManager::getInstance().playSound("echo-spawn");
 }
 
 void BossChamber::freezeAllEnemies(float duration) {

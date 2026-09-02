@@ -17,6 +17,7 @@
 #include "../../global-settings/save-load-manager.hpp"
 #include "../../global-settings/sound-manager.hpp"
 #include <cmath>
+#include <iostream>
 
 GameplayState::GameplayState(StateManager& manager, bool isIndividualMode)
     : GameState(manager), isDebugMode(false), isIndividualMode(isIndividualMode)
@@ -676,6 +677,18 @@ void GameplayState::onEchoPowerChanged(float /*power*/) {
 }
 
 void GameplayState::onChamberCompleted() {
+    if (transitionState != ChamberTransitionState::COMPLETED && transitionState != ChamberTransitionState::FADING_OUT) {
+        transitionState = ChamberTransitionState::FADING_OUT;
+        fadeTimer = 0.0f;
+        fadeAlpha = 0.0f;
+        if (player) {
+            player->setVelocity({0.0f, 0.0f});
+            player->setKnockbackVelocity({0.0f, 0.0f});
+        }
+        SoundManager::getInstance().playSound("echo-collect");
+        return;
+    }
+
     if (isIndividualMode) {
         stateManager.popState();
         return;
@@ -709,10 +722,17 @@ void GameplayState::onChamberCompleted() {
                 // Game completely over! (Win)
                 std::remove("savegame.json");
                 int stolenCount = 0;
+                int collectedCount = 0;
                 for (const auto& [type, outcome] : runState.echoOutcomes) {
                     if (outcome == EchoOutcome::STOLEN) {
                         stolenCount++;
+                    } else if (outcome == EchoOutcome::COLLECTED) {
+                        collectedCount++;
                     }
+                }
+                int uncollectedCount = 5 - (collectedCount + stolenCount);
+                if (uncollectedCount > 0) {
+                    stolenCount += uncollectedCount;
                 }
                 runState.echoesStolen = stolenCount;
 
@@ -724,6 +744,9 @@ void GameplayState::onChamberCompleted() {
                 } else {
                     ending = EndingType::ENDING_C_WARNING;
                 }
+
+                std::cout << "Campaign completed with " << stolenCount << " stolen Echo(es). Transitioning to Ending "
+                          << (ending == EndingType::ENDING_A_SHATTER ? "A (Shatter)" : (ending == EndingType::ENDING_B_RETREAT ? "B (Retreat)" : "C (Warning)")) << "\n";
 
                 stateManager.clearAndSetState(std::make_unique<GameOverState>(stateManager, ending));
                 return;
