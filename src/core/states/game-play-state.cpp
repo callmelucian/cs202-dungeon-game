@@ -408,12 +408,8 @@ void GameplayState::update(float deltaTime) {
         AuraRenderer::getInstance().update(deltaTime);
         UI::FloatingTextManager::getInstance().update(deltaTime);
 
-        if (hud) {
-            if (player) {
-                hud->updatePlayerState(*player);
-            }
-            RunState& runState = Game::getInstance().getRunState();
-            hud->updateChamberInfo(runState.currentLevel, runState.currentChamber, currentChamberTitle, chamberElapsedTime);
+        if (player && hud) {
+            hud->updatePlayerState(*player);
         }
 
         if (player) {
@@ -515,15 +511,8 @@ void GameplayState::update(float deltaTime) {
     }
 
     // 3. Update HUD data — lerp animation runs via the UI tree's Container::update()
-    if (transitionState == ChamberTransitionState::PLAYING) {
-        chamberElapsedTime += deltaTime;
-    }
-    if (hud) {
-        if (player) {
-            hud->updatePlayerState(*player);
-        }
-        RunState& runState = Game::getInstance().getRunState();
-        hud->updateChamberInfo(runState.currentLevel, runState.currentChamber, currentChamberTitle, chamberElapsedTime);
+    if (player && hud) {
+        hud->updatePlayerState(*player);
     }
     
     // 4. Update camera position lerp & zoom lerp

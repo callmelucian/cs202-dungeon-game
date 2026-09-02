@@ -33,9 +33,8 @@ public:
     // EchoObserver interface
     void onEchoPowerChanged(float power) override;
 
-    // Main sync methods called every frame from GameplayState
+    // Main sync method called every frame from GameplayState
     void updatePlayerState(const Player& player);
-    void updateChamberInfo(int level, int chamber, const std::string& title, float elapsedTime);
 
     // Enable / disable top Echo Power bar
     void setHasEcho(bool active);
@@ -66,12 +65,6 @@ private:
     float displayedEchoRatio;
     bool hasEcho;
 
-    // Chamber info & timer
-    int chamberLevel;
-    int chamberNumber;
-    std::string chamberTitle;
-    float elapsedChamberTime;
-
     // Active status effects
     std::vector<ActiveEffectInfo> activeEffects;
 
@@ -82,7 +75,6 @@ private:
     // Helper drawing routines
     void drawPlayerCluster(sf::RenderTarget& target) const;
     void drawStatusEffects(sf::RenderTarget& target) const;
-    void drawChamberTimer(sf::RenderTarget& target) const;
     void drawEchoIntegrityBar(sf::RenderTarget& target) const;
 };
 

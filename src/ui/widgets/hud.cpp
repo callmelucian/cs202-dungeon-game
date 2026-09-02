@@ -26,10 +26,6 @@ HUD::HUD()
       echoPower(100.0f),
       displayedEchoRatio(1.0f),
       hasEcho(false),
-      chamberLevel(1),
-      chamberNumber(1),
-      chamberTitle("The Drowned Archive"),
-      elapsedChamberTime(0.0f),
       lerpSpeed(HUD_LERP_SPEED),
       animTime(0.0f)
 {
@@ -59,13 +55,6 @@ void HUD::updatePlayerState(const Player& player) {
         info.timer = effect->getTimer();
         activeEffects.push_back(info);
     }
-}
-
-void HUD::updateChamberInfo(int level, int chamber, const std::string& title, float elapsedTime) {
-    chamberLevel = level;
-    chamberNumber = chamber;
-    chamberTitle = title;
-    elapsedChamberTime = elapsedTime;
 }
 
 void HUD::update(float dt) {
@@ -122,7 +111,6 @@ void HUD::setHasEcho(bool active) {
 void HUD::draw(sf::RenderTarget& target) const {
     drawPlayerCluster(target);
     drawStatusEffects(target);
-    drawChamberTimer(target);
     if (hasEcho) {
         drawEchoIntegrityBar(target);
     }
@@ -379,30 +367,7 @@ void HUD::drawStatusEffects(sf::RenderTarget& target) const {
 }
 
 // =========================================================================
-// 3. Minimal Chamber Timer (Top Right area)
-// =========================================================================
-
-void HUD::drawChamberTimer(sf::RenderTarget& target) const {
-    float timerW = 76.0f;
-    float timerH = 26.0f;
-    float timerX = position.x + fixedWidth - timerW - 20.0f;
-    float timerY = position.y + 82.0f;
-
-    drawFramedBox(target, timerX, timerY, timerW, timerH,
-                  sf::Color(10, 15, 24, 200),
-                  sf::Color(40, 60, 85, 180), 1.0f);
-
-    int totalSec = static_cast<int>(elapsedChamberTime);
-    int minutes = totalSec / 60;
-    int seconds = totalSec % 60;
-    char timeStr[16];
-    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", minutes, seconds);
-
-    drawText(target, "pixel-bold", timerX + 11.0f, timerY + 4.0f, timeStr, 15, sf::Color(90, 230, 255));
-}
-
-// =========================================================================
-// 4. Echo Core Integrity Bar (Top-Center for Protect Chambers)
+// 3. Echo Core Integrity Bar (Top-Center for Protect Chambers)
 // =========================================================================
 
 void HUD::drawEchoIntegrityBar(sf::RenderTarget& target) const {
